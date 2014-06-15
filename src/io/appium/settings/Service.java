@@ -2,6 +2,7 @@ package io.appium.settings;
 
 import android.content.Context;
 
+
 public abstract class Service {
   protected Context context;
 

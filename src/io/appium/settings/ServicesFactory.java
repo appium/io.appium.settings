@@ -1,10 +1,8 @@
 package io.appium.settings;
 
-import io.appium.settings.handlers.*;
-
-import io.appium.settings.Service;
-
 import android.content.Context;
+import io.appium.settings.handlers.*;
+import io.appium.settings.Service;
 
 
 public class ServicesFactory {
@@ -15,6 +13,8 @@ public class ServicesFactory {
       return new DataService(context);
     } else if (name.equalsIgnoreCase("gps")) {
       return new GPSService(context);
+    } else if (name.equalsIgnoreCase("airplane_mode")) {
+      return new AirplaneModeService(context);
     } else {
       return null;
     }

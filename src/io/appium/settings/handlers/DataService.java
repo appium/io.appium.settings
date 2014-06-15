@@ -1,19 +1,13 @@
 package io.appium.settings.handlers;
 
-import io.appium.settings.Service;
-
 import android.content.Context;
-
+import android.net.ConnectivityManager;
+import android.os.Build;
+import android.telephony.TelephonyManager;
+import android.util.Log;
+import io.appium.settings.Service;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-
-import android.content.Context;
-import android.os.Build;
-
-import android.net.ConnectivityManager;
-import android.telephony.TelephonyManager;
-
-import android.util.Log;
 
 
 public class DataService extends Service {

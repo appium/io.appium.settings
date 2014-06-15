@@ -70,6 +70,11 @@ $ adb shell am start -n io.appium.settings/.Settings -e wifi on -e data off
 
 Voila!
 
+
+## Caveats
+
+There are certain system services which cannot be accessed through an application. Two ones central here are `airplane_mode` and `gps`.
+
 ## License
 
 Apache License 2.0

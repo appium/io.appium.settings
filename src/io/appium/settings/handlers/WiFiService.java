@@ -1,12 +1,9 @@
 package io.appium.settings.handlers;
 
-import io.appium.settings.Service;
-
 import android.content.Context;
-
 import android.net.wifi.WifiManager;
-
 import android.util.Log;
+import io.appium.settings.Service;
 
 
 public class WiFiService extends Service {
