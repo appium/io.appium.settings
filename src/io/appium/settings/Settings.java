@@ -52,6 +52,7 @@ public class Settings extends Activity
   private void updateView(int index, String name, String value) {
     int viewId = this.getResources().getIdentifier("notice_" + index, "id", this.getPackageName());
     final TextView notice = (TextView) findViewById(viewId);
+    Log.d(TAG, name + "_" + value);
     int stringId = this.getResources().getIdentifier(name + "_" + value, "string", this.getPackageName());
     notice.setText(getResources().getString(stringId));
   }
