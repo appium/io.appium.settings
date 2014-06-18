@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Appium Settings</string>
+    <string name="placeholder"></string>
+    <string name="data_on">Enabling data service.</string>
+    <string name="data_off">Disabling data service.</string>
+    <string name="wifi_on">Enabling wifi service.</string>
+    <string name="wifi_off">Disabling wifi service.</string>
 </resources>
