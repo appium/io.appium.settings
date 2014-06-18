@@ -16,13 +16,14 @@ public class GPSService extends Service {
   }
 
   public boolean enable() {
-    beforeEnable = Settings.Secure.getString(context.getContentResolver(),
+    Log.d(TAG, "Enabling GPS");
+    beforeEnable = Settings.Secure.getString(mContext.getContentResolver(),
                                              Settings.Secure.LOCATION_PROVIDERS_ALLOWED);
     String newSet = String.format("%s,%s",
                                   beforeEnable,
                                   LocationManager.GPS_PROVIDER);
     try {
-        return Settings.Secure.putString(context.getContentResolver(),
+        return Settings.Secure.putString(mContext.getContentResolver(),
                                          Settings.Secure.LOCATION_PROVIDERS_ALLOWED,
                                          newSet);
     } catch(Exception e) {
@@ -32,8 +33,9 @@ public class GPSService extends Service {
   }
 
   public boolean disable() {
+    Log.d(TAG, "Disabling GPS");
     if (null == beforeEnable) {
-      String str = Settings.Secure.getString (context.getContentResolver(),
+      String str = Settings.Secure.getString (mContext.getContentResolver(),
                                               Settings.Secure.LOCATION_PROVIDERS_ALLOWED);
       if (null == str) {
         str = "";
@@ -54,9 +56,9 @@ public class GPSService extends Service {
       }
     }
     try {
-        return Settings.Secure.putString (context.getContentResolver(),
-                                          Settings.Secure.LOCATION_PROVIDERS_ALLOWED,
-                                          beforeEnable);
+      return Settings.Secure.putString (mContext.getContentResolver(),
+                                        Settings.Secure.LOCATION_PROVIDERS_ALLOWED,
+                                        beforeEnable);
     } catch(Exception e) {
       Log.e(TAG, "Unable to disable Data: " + e.getMessage());
       return false;

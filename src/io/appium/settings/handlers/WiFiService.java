@@ -16,14 +16,23 @@ public class WiFiService extends Service {
   public boolean enable() {
     Log.d(TAG, "Enabling wifi");
 
-    WifiManager mWifiManager = (WifiManager)context.getSystemService(Context.WIFI_SERVICE);
-    return mWifiManager.setWifiEnabled(true);
+    boolean ret = setWiFi(true);
+
+    WifiManager mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+    boolean b = mWifiManager.isWifiEnabled();
+    Log.d(TAG, "WIF? " + b);
+
+    return ret;
   }
 
   public boolean disable() {
     Log.d(TAG, "Disabling wifi");
 
-    WifiManager mWifiManager = (WifiManager)context.getSystemService(Context.WIFI_SERVICE);
-    return mWifiManager.setWifiEnabled(false);
+    return setWiFi(false);
+  }
+
+  private boolean setWiFi(boolean state) {
+    WifiManager mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+    return mWifiManager.setWifiEnabled(state);
   }
 }

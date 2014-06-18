@@ -29,7 +29,7 @@ public class DataService extends Service {
     return setDataConnection(false);
   }
 
-  private boolean setDataConnection(boolean ON) {
+  private boolean setDataConnection(boolean on) {
     try {
       if (Build.VERSION.SDK_INT == Build.VERSION_CODES.FROYO) {
         Method dataConnSwitchmethod;
@@ -37,7 +37,7 @@ public class DataService extends Service {
         Object ITelephonyStub;
         Class<?> ITelephonyClass;
 
-        TelephonyManager telephonyManager = (TelephonyManager) context
+        TelephonyManager telephonyManager = (TelephonyManager) mContext
             .getSystemService(Context.TELEPHONY_SERVICE);
 
         telephonyManagerClass = Class.forName(telephonyManager.getClass().getName());
@@ -46,7 +46,7 @@ public class DataService extends Service {
         ITelephonyStub = getITelephonyMethod.invoke(telephonyManager);
         ITelephonyClass = Class.forName(ITelephonyStub.getClass().getName());
 
-        if (ON) {
+        if (on) {
           dataConnSwitchmethod = ITelephonyClass
               .getDeclaredMethod("enableDataConnectivity");
         } else {
@@ -57,7 +57,7 @@ public class DataService extends Service {
         dataConnSwitchmethod.invoke(ITelephonyStub);
       } else {
         //log.i("App running on Ginger bread+");
-        final ConnectivityManager conman = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        final ConnectivityManager conman = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
         final Class<?> conmanClass = Class.forName(conman.getClass().getName());
         final Field iConnectivityManagerField = conmanClass.getDeclaredField("mService");
         iConnectivityManagerField.setAccessible(true);
@@ -65,7 +65,7 @@ public class DataService extends Service {
         final Class<?> iConnectivityManagerClass =  Class.forName(iConnectivityManager.getClass().getName());
         final Method setMobileDataEnabledMethod = iConnectivityManagerClass.getDeclaredMethod("setMobileDataEnabled", Boolean.TYPE);
         setMobileDataEnabledMethod.setAccessible(true);
-        setMobileDataEnabledMethod.invoke(iConnectivityManager, ON);
+        setMobileDataEnabledMethod.invoke(iConnectivityManager, on);
       }
 
       return true;

@@ -3,6 +3,7 @@ package io.appium.settings.handlers;
 import android.content.Context;
 import android.content.Intent;
 import android.provider.Settings;
+import android.util.Log;
 import io.appium.settings.Service;
 
 
@@ -14,16 +15,18 @@ public class AirplaneModeService extends Service {
   }
 
   public boolean enable() {
-    Settings.System.putInt(context.getContentResolver(),
+    Log.d(TAG, "Enabling airplane mode");
+    Settings.System.putInt(mContext.getContentResolver(),
     Settings.System.AIRPLANE_MODE_ON, 1);
     Intent intent = new Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED);
     intent.putExtra("state", 1);
-    context.sendBroadcast(intent);
+    mContext.sendBroadcast(intent);
 
     return true;
   }
 
   public boolean disable() {
+    Log.d(TAG, "Disabling airplane mode");
     return false;
   }
 }

@@ -4,10 +4,10 @@ import android.content.Context;
 
 
 public abstract class Service {
-  protected Context context;
+  protected Context mContext;
 
   public Service(Context context) {
-    this.context = context;
+    this.mContext = context;
   }
 
   public abstract boolean enable();
