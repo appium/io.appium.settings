@@ -7,6 +7,8 @@ A small and simple Android application that deals with the system settings. Then
 ## Requirements
 
 * [Android SDK](developer.android.com)
+* [Java JDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
+* [Apache ant](http://ant.apache.org/)
 
 ## Building
 
