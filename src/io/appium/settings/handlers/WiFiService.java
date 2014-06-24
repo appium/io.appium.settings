@@ -32,13 +32,7 @@ public class WiFiService extends Service {
   public boolean enable() {
     Log.d(TAG, "Enabling wifi");
 
-    boolean ret = setWiFi(true);
-
-    WifiManager mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
-    boolean b = mWifiManager.isWifiEnabled();
-    Log.d(TAG, "WIF? " + b);
-
-    return ret;
+    return setWiFi(true);
   }
 
   public boolean disable() {

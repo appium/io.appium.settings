@@ -62,7 +62,7 @@ public class Settings extends Activity
       public void run() {
         Settings.this.finish();
       }
-    }, 2000);
+    }, 1000);
   }
 
   private void updateView(int index, String name, String value) {
