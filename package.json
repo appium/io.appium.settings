@@ -1,0 +1,24 @@
+{
+  "name": "io.appium.settings",
+  "version": "1.0.0",
+  "description": "App for dealing with Android settings",
+  "main": "bin/settings_apk-debug.apk",
+  "scripts": {
+    "prepublish": "ant clean debug"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/appium/io.appium.settings.git"
+  },
+  "keywords": [
+    "appium",
+    "android",
+    "settings"
+  ],
+  "author": "https://github.com/imurchie",
+  "license": "apache-2.0",
+  "bugs": {
+    "url": "https://github.com/appium/io.appium.settings/issues"
+  },
+  "homepage": "https://github.com/appium/io.appium.settings"
+}
