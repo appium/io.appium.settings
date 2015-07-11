@@ -2,7 +2,7 @@
   "name": "io.appium.settings",
   "version": "1.0.0",
   "description": "App for dealing with Android settings",
-  "main": "bin/settings_apk-debug.apk",
+  "main": "index.js",
   "scripts": {
     "prepublish": "ant clean debug"
   },
