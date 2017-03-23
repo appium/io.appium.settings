@@ -17,15 +17,16 @@
 package io.appium.settings;
 
 import android.content.Context;
+import io.appium.settings.handlers.*;
 
-
-public abstract class Service {
-  protected Context mContext;
-
-  public Service(Context context) {
-    this.mContext = context;
+public class ServicesFactory {
+  public static Service getService(Context context, String name) {
+    if (name.equalsIgnoreCase("wifi")) {
+      return new WiFiService(context);
+    } else if (name.equalsIgnoreCase("data")) {
+      return new DataService(context);
+    } else {
+      return null;
+    }
   }
-
-  public abstract boolean enable();
-  public abstract boolean disable();
 }

@@ -6,8 +6,8 @@ import android.location.LocationManager;
 import android.os.SystemClock;
 
 public class MockLocationProvider {
-    String providerName;
-    Context ctx;
+    private String providerName;
+    private Context ctx;
 
     public MockLocationProvider(String name, Context ctx) {
         this.providerName = name;
@@ -15,8 +15,7 @@ public class MockLocationProvider {
     }
 
     public void pushLocation(double lat, double lon) {
-        LocationManager lm = (LocationManager) ctx.getSystemService(
-                Context.LOCATION_SERVICE);
+        LocationManager lm = (LocationManager) ctx.getSystemService(Context.LOCATION_SERVICE);
         lm.addTestProvider(providerName, false, false, false, false, false,
                 false, true, 0, 5);
         lm.setTestProviderEnabled(providerName, true);

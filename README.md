@@ -8,16 +8,17 @@ A small and simple Android application that deals with the system settings. Then
 
 * [Android SDK](developer.android.com)
 * [Java JDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
-* [Apache ant](http://ant.apache.org/)
+* [Gradle](https://gradle.org/)
+
+You may also consider using [Android Studio](https://developer.android.com/studio/index.html) to debug the code easily.
 
 ## Building
 
 ```shell
-$ cd into/this/repo
-$ ant debug
+$ ./gradlew clean assembleDebug
 ```
 
-You can also run `ant debug install` to build and immediately deploy the app to a connected Android device or emulator.
+You can also run `gradlew installDebug` to build and immediately deploy the app to a connected Android device or emulator.
 
 ## Installing
 
@@ -26,8 +27,8 @@ You can install the apk through the [Android Debug Bridge](http://developer.andr
 To install:
 
 ```shell
-$ cd into/this/repo
-$ adb install bin/settings_apk-debug.apk
+$ cd app/build/outputs/apk
+$ adb install settings_apk-debug.apk
 ```
 
 To uninstall:
@@ -43,35 +44,36 @@ Once installed on a device, you can change the `wifi` and `data` settings throug
 To turn on `wifi`:
 
 ```shell
-$ adb shell am start -n io.appium.settings/.Settings -e wifi on
+$ adb shell am broadcast -a io.appium.settings.wifi --es setstatus enable
 ```
 
 To turn off `wifi`:
 
 ```shell
-$ adb shell am start -n io.appium.settings/.Settings -e wifi off
+$ adb shell am broadcast -a io.appium.settings.wifi --es setstatus disable
 ```
 
 To turn on `data`:
 
 ```shell
-$ adb shell am start -n io.appium.settings/.Settings -e data on
+$ adb shell am broadcast -a io.appium.settings.data_connection --es setstatus enable
 ```
 
 To turn off `data`:
 
 ```shell
-$ adb shell am start -n io.appium.settings/.Settings -e data off
+$ adb shell am broadcast -a io.appium.settings.data_connection --es setstatus disable
 ```
 
-The two can be changed at the same time, as well:
+On Android 6.0+ you must enable the corresponding permissions for the app first. This can be
+done in application settings, Permissions entry.
 
-```shell
-$ adb shell am start -n io.appium.settings/.Settings -e wifi on -e data off
-```
+Switching mobile data on/off requires the phone to be rooted on Android 5.0+
+('su' binary is expected to be available on internal phone file system).
+Read [this](http://stackoverflow.com/questions/26539445/the-setmobiledataenabled-method-is-no-longer-callable-as-of-android-l-and-later)
+StackOveflow thread for more details.
 
 Voila!
-
 
 ## Caveats
 
