@@ -18,7 +18,6 @@ package io.appium.settings;
 
 import android.app.Service;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.IBinder;
@@ -34,13 +33,9 @@ public class LocationService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if ((getApplication().getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
-            Log.e(TAG, "Location mocking only works in debug mode");
-            return START_NOT_STICKY;
-        }
         for (String p : new String[]{
                 "android.permission.ACCESS_COARSE_LOCATION",
-                "android.permission.ACCESS_MOCK_LOCATION"}) {
+                "android.permission.ACCESS_FINE_LOCATION"}) {
             if (getApplicationContext().checkCallingOrSelfPermission(p)
                     != PackageManager.PERMISSION_GRANTED) {
                 Log.e(TAG, String.format("Cannot mock location due to missing permission '%s'", p));
