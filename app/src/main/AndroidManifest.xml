@@ -12,6 +12,7 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_MOCK_LOCATION" />
+    <uses-permission android:name="android.permission.SET_ANIMATION_SCALE" />
 
     <uses-feature android:name="android.hardware.wifi" />
 
@@ -38,15 +39,21 @@
             android:exported="true">
         </service>
 
-        <receiver android:name=".receivers.WiFiStatusReceiver">
+        <receiver android:name=".receivers.WiFiConnectionSettingReceiver">
             <intent-filter>
                 <action android:name="io.appium.settings.wifi" />
             </intent-filter>
         </receiver>
 
-        <receiver android:name=".receivers.DataConnectionStatusReceiver">
+        <receiver android:name=".receivers.DataConnectionSettingReceiver">
             <intent-filter>
                 <action android:name="io.appium.settings.data_connection" />
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name=".receivers.AnimationSettingReceiver">
+            <intent-filter>
+                <action android:name="io.appium.settings.animation" />
             </intent-filter>
         </receiver>
     </application>

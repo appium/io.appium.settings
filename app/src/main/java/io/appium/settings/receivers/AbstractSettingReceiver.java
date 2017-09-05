@@ -25,16 +25,16 @@ import android.util.Log;
 import java.util.Arrays;
 import java.util.List;
 
-import io.appium.settings.handlers.WiFiConnectionHandler;
+import io.appium.settings.handlers.AbstractSettingHandler;
 
-public class WiFiStatusReceiver extends BroadcastReceiver {
-    private static final String TAG = WiFiStatusReceiver.class.getSimpleName();
+public abstract class AbstractSettingReceiver extends BroadcastReceiver {
+    private static final String TAG = AbstractSettingReceiver.class.getSimpleName();
 
     private static final String COMMAND = "setstatus";
     private static final String COMMAND_ENABLE = "enable";
     private static final String COMMAND_DISABLE = "disable";
 
-    // am broadcast -a io.appium.settings.wifi --es setstatus [enable|disable]
+    // am broadcast -a io.appium.settings.[wifi|data_connection|animation] --es setstatus [enable|disable]
     @Override
     public void onReceive(Context context, Intent intent) {
         String command = intent.getStringExtra(COMMAND);
@@ -46,10 +46,12 @@ public class WiFiStatusReceiver extends BroadcastReceiver {
         }
         boolean isSuccessful;
         if (command.equals(COMMAND_ENABLE)) {
-            isSuccessful = new WiFiConnectionHandler(context).enable();
+            isSuccessful = getHandler(context).enable();
         } else {
-            isSuccessful = new WiFiConnectionHandler(context).disable();
+            isSuccessful = getHandler(context).disable();
         }
         setResultCode(isSuccessful ? Activity.RESULT_OK : Activity.RESULT_CANCELED);
     }
+
+    protected abstract AbstractSettingHandler getHandler(Context context);
 }

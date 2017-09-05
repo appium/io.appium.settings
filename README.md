@@ -39,7 +39,7 @@ $ adb uninstall io.appium.settings
 
 ## Running
 
-Once installed on a device, you can change the `wifi` and `data` settings through the following commands:
+Once installed on a device, you can change the `wifi`, `data` and `animation` settings through the following commands:
 
 To turn on `wifi`:
 
@@ -65,6 +65,23 @@ To turn off `data`:
 $ adb shell am broadcast -a io.appium.settings.data_connection --es setstatus disable
 ```
 
+To turn on `animation`:
+
+```shell
+$ adb shell am broadcast -a io.appium.settings.animation --es setstatus enable
+```
+
+To turn off `animation`:
+
+```shell
+$ adb shell am broadcast -a io.appium.settings.animation --es setstatus disable
+```
+
+To change animation setting, app should be granted `SET_ANIMATION_SCALE` permission:
+
+```shell
+$ adb shell pm grant io.appium.settings.animation android.permission.SET_ANIMATION_SCALE
+```
 On Android 6.0+ you must enable the corresponding permissions for the app first. This can be
 done in application settings, Permissions entry.
 
