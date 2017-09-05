@@ -16,17 +16,12 @@
 
 package io.appium.settings.handlers;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.SecurityException;
-
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.util.Log;
-import android.os.Bundle;
 import android.os.IBinder;
+import android.util.Log;
+
+import java.lang.reflect.Method;
+import java.util.Arrays;
 
 public class AnimationSettingHandler extends AbstractSettingHandler {
     private static final String TAG = "APPIUM SETTINGS (ANIMATION)";
@@ -53,9 +48,7 @@ public class AnimationSettingHandler extends AbstractSettingHandler {
             Object windowManagerObj = asInterfaceMethod.invoke(null, windowManagerBinder);
 
             float[] currentScales = (float[]) getAnimationScales.invoke(windowManagerObj);
-            for (int i = 0; i < currentScales.length; i++) {
-                currentScales[i] = (state == true) ? 1.0f : 0.0f;
-            }
+            Arrays.fill(currentScales, (state == true) ? 1.0f : 0.0f);
             setAnimationScales.invoke(windowManagerObj, currentScales);
             return true;
         } catch (Throwable e) {
