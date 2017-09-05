@@ -80,8 +80,9 @@ $ adb shell am broadcast -a io.appium.settings.animation --es setstatus disable
 To change animation setting, app should be granted `SET_ANIMATION_SCALE` permission:
 
 ```shell
-$ adb shell pm grant io.appium.settings.animation android.permission.SET_ANIMATION_SCALE
+$ adb shell pm grant io.appium.settings android.permission.SET_ANIMATION_SCALE
 ```
+
 On Android 6.0+ you must enable the corresponding permissions for the app first. This can be
 done in application settings, Permissions entry.
 
