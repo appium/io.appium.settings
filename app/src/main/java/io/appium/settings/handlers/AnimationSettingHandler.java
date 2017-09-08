@@ -51,7 +51,7 @@ public class AnimationSettingHandler extends AbstractSettingHandler {
             Arrays.fill(currentScales, (state == true) ? 1.0f : 0.0f);
             setAnimationScales.invoke(windowManagerObj, currentScales);
             return true;
-        } catch (Throwable e) {
+        } catch (Exception e) {
             Log.w(TAG, "Cannot set animation scale.", e);
         }
         return false;
