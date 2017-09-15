@@ -17,27 +17,24 @@
 package io.appium.settings.handlers;
 
 import android.content.Context;
-import android.content.pm.PackageManager;
+import android.net.wifi.WifiManager;
 
-abstract class ConnectionHandler {
-    protected Context mContext;
-    private String[] permissions;
+public class WiFiConnectionSettingHandler extends AbstractSettingHandler {
+    private static final String WIFI_PERMISSION = "android.permission.CHANGE_WIFI_STATE";
 
-    ConnectionHandler(Context context, String... permissions) {
-        this.mContext = context;
-        this.permissions = permissions;
+    public WiFiConnectionSettingHandler(Context context) {
+        super(context, WIFI_PERMISSION);
     }
 
-    public abstract boolean enable();
+    @Override
+    protected boolean setState(boolean state) {
+        WifiManager mWifiManager =
+                (WifiManager) mContext.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        return mWifiManager.setWifiEnabled(state);
+    }
 
-    public abstract boolean disable();
-
-    protected boolean hasPermissions() {
-        for (String p : permissions) {
-            if (mContext.checkCallingOrSelfPermission(p) != PackageManager.PERMISSION_GRANTED) {
-                return false;
-            }
-        }
-        return true;
+    @Override
+    protected String getSettingDescription() {
+        return "Wi-Fi";
     }
 }

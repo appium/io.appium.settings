@@ -28,31 +28,12 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
-public class DataConnectionHandler extends ConnectionHandler {
+public class DataConnectionSettingHandler extends AbstractSettingHandler {
     private static final String TAG = "APPIUM SETTINGS (DATA)";
+    private static final String NETWORK_PERMISSION = "android.permission.CHANGE_NETWORK_STATE";
 
-    public DataConnectionHandler(Context context) {
-        super(context, "android.permission.CHANGE_NETWORK_STATE");
-    }
-
-    public boolean enable() {
-        Log.d(TAG, "Enabling data");
-
-        if (!hasPermissions()) {
-            Log.e(TAG, "The necessary permissions are not set. Cannot enable data connection");
-            return false;
-        }
-        return setDataConnection(true);
-    }
-
-    public boolean disable() {
-        Log.d(TAG, "Disabling data");
-
-        if (!hasPermissions()) {
-            Log.e(TAG, "The necessary permissions are not set. Cannot disable data connection");
-            return false;
-        }
-        return setDataConnection(false);
+    public DataConnectionSettingHandler(Context context) {
+        super(context, NETWORK_PERMISSION);
     }
 
     private static boolean executeCommandViaSu(String command) {
@@ -128,7 +109,8 @@ public class DataConnectionHandler extends ConnectionHandler {
         setMobileDataEnabledMethod.invoke(iConnectivityManager, isEnabled);
     }
 
-    private boolean setDataConnection(boolean on) {
+    @Override
+    protected boolean setState(boolean on) {
         try {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
                 setMobileNetworkFromGingerbreadToLollipop(mContext, on);
@@ -142,5 +124,10 @@ public class DataConnectionHandler extends ConnectionHandler {
                     "Error turning %s mobile data: %s", on ? "on" : "off", e.getMessage()));
             return false;
         }
+    }
+
+    @Override
+    protected String getSettingDescription() {
+        return "mobile data";
     }
 }
