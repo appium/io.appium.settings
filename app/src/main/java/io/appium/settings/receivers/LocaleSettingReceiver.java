@@ -35,7 +35,7 @@ public class LocaleSettingReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if(!hasExtraLocale(intent)) {
-            Log.e(TAG, "Don't forget to set land and country like: am broadcast -a io.appium.settings.locale --es lang ja --es country JP");
+            Log.e(TAG, "Don't forget to set lang and country like: am broadcast -a io.appium.settings.locale --es lang ja --es country JP");
             Log.e(TAG, "Set en-US by default.");
 
             intent.putExtra(LANG, "en");

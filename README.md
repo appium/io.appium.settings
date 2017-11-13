@@ -80,7 +80,7 @@ $ adb shell am broadcast -a io.appium.settings.animation --es setstatus disable
 Set particular locale:
 
 ```shell
-$ adb shell am broadcast -a io.appium.settings.locale --es LANG ja --es COUNTRY JP
+$ adb shell am broadcast -a io.appium.settings.locale --es lang ja --es country JP
 ```
 
 ## Notes:
