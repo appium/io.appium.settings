@@ -83,6 +83,8 @@ Set particular locale:
 $ adb shell am broadcast -a io.appium.settings.locale --es lang ja --es country JP
 ```
 
+You can set the [Locale](https://developer.android.com/reference/java/util/Locale.html) format, especially this feature support [Locale(String language, String country)](https://developer.android.com/reference/java/util/Locale.html#Locale(java.lang.String,%20java.lang.String)) so far.
+
 ## Notes:
 
 * You have to specify the receiver class if app never executed before:

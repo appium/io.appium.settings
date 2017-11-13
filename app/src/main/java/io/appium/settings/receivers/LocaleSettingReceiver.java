@@ -45,6 +45,9 @@ public class LocaleSettingReceiver extends BroadcastReceiver {
         String language = intent.getStringExtra(LANG);
         String country = intent.getStringExtra(COUNTRY);
 
+        // Expect https://developer.android.com/reference/java/util/Locale.html#Locale(java.lang.String,%20java.lang.String) format.
+        // If we'd like to extend the other format like `Locale(String language, String country, String variant)`,
+        // you can implement it around here.
         Locale locale = new Locale(language, country);
 
         LocaleSettingHandler localeSettingHandler = new LocaleSettingHandler(context);
