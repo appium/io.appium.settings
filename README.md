@@ -77,6 +77,12 @@ To turn off `animation`:
 $ adb shell am broadcast -a io.appium.settings.animation --es setstatus disable
 ```
 
+Set particular locale:
+
+```shell
+$ adb shell am broadcast -a io.appium.settings.locale --es LANG ja --es COUNTRY JP
+```
+
 ## Notes:
 
 * You have to specify the receiver class if app never executed before:
@@ -86,6 +92,10 @@ $ adb shell am broadcast -a io.appium.settings.wifi -n io.appium.settings/.recei
 * To change animation setting, app should be granted `SET_ANIMATION_SCALE` permission:
 ```shell
 $ adb shell pm grant io.appium.settings android.permission.SET_ANIMATION_SCALE
+```
+* To change locale setting, app should be granted `CHANGE_CONFIGURATION` permission:
+```shell
+$ adb shell pm grant io.appium.settings android.permission.CHANGE_CONFIGURATION
 ```
 
 * On Android 6.0+ you must enable the corresponding permissions for the app first. This can be
