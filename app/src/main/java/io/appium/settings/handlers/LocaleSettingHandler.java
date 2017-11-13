@@ -19,6 +19,7 @@ package io.appium.settings.handlers;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.util.Log;
 
 import java.lang.reflect.Field;
@@ -26,24 +27,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Locale;
 
-public class LocaleSettingHandler {
+public class LocaleSettingHandler extends AbstractSettingHandler {
     private static final String TAG = "APPIUM SETTINGS(LOCALE)";
-    private static final String ANIMATION_PERMISSION = "android.permission.CHANGE_CONFIGURATION";
-
-    private Context context;
+    private static final String CHANGE_CONFIGURATION = "android.permission.CHANGE_CONFIGURATION";
 
     public LocaleSettingHandler(Context context) {
-        this.context = context;
-    }
-
-    private boolean hasPermissions() {
-        if (context.checkCallingOrSelfPermission(ANIMATION_PERMISSION) != PackageManager.PERMISSION_GRANTED) {
-            String logMessage = String.format("The permission %s is not set. Cannot change state of %s.",
-                    ANIMATION_PERMISSION, "mobile locale");
-            Log.e(TAG, logMessage);
-            return false;
-        }
-        return true;
+        super(context, CHANGE_CONFIGURATION);
     }
 
     public void setLocale(Locale locale) {
@@ -66,6 +55,12 @@ public class LocaleSettingHandler {
         methodGetDefault.setAccessible(true);
         amn = methodGetDefault.invoke(activityManagerNativeClass);
 
+        // Build.VERSION_CODES.O
+        if (Build.VERSION.SDK_INT >= 26) {
+            // getConfiguration moved from ActivityManagerNative to ActivityManagerProxy
+            activityManagerNativeClass = Class.forName(amn.getClass().getName());
+        }
+
         Method methodGetConfiguration = activityManagerNativeClass.getMethod("getConfiguration");
         methodGetConfiguration.setAccessible(true);
         config = (Configuration) methodGetConfiguration.invoke(amn);
@@ -79,5 +74,15 @@ public class LocaleSettingHandler {
         Method methodUpdateConfiguration = activityManagerNativeClass.getMethod("updateConfiguration", Configuration.class);
         methodUpdateConfiguration.setAccessible(true);
         methodUpdateConfiguration.invoke(amn, config);
+    }
+
+    @Override
+    protected boolean setState(boolean state) {
+        return false;
+    }
+
+    @Override
+    protected String getSettingDescription() {
+        return "locale";
     }
 }
