@@ -19,6 +19,7 @@ package io.appium.settings.receivers;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 
 import java.util.Locale;
 
@@ -27,12 +28,20 @@ import io.appium.settings.handlers.LocaleSettingHandler;
 public class LocaleSettingReceiver extends BroadcastReceiver {
     private static final String TAG = LocaleSettingReceiver.class.getSimpleName();
 
-    private static final String LANG = "LANG";
-    private static final String COUNTRY = "COUNTRY";
+    private static final String LANG = "lang";
+    private static final String COUNTRY = "country";
 
-    // am broadcast -a io.appium.settings.locale --es LANG ja --es COUNTRY JP
+    // am broadcast -a io.appium.settings.locale --es lang ja --es country JP
     @Override
     public void onReceive(Context context, Intent intent) {
+        if(!hasExtraLocale(intent)) {
+            Log.e(TAG, "Don't forget to set land and country like: am broadcast -a io.appium.settings.locale --es lang ja --es country JP");
+            Log.e(TAG, "Set en-US by default.");
+
+            intent.putExtra(LANG, "en");
+            intent.putExtra(COUNTRY, "US");
+        }
+
         String language = intent.getStringExtra(LANG);
         String country = intent.getStringExtra(COUNTRY);
 
@@ -41,5 +50,9 @@ public class LocaleSettingReceiver extends BroadcastReceiver {
         LocaleSettingHandler localeSettingHandler = new LocaleSettingHandler(context);
 
         localeSettingHandler.setLocale(locale);
+    }
+
+    private boolean hasExtraLocale(Intent intent) {
+        return intent.hasExtra(LANG) && intent.hasExtra(COUNTRY);
     }
 }
