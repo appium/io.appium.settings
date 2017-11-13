@@ -48,12 +48,10 @@ public class LocaleSettingHandler extends AbstractSettingHandler {
     private void setLocaleWith(Locale locale) throws
             ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
         Class<?> activityManagerNativeClass = Class.forName("android.app.ActivityManagerNative");
-        Object amn;
-        Configuration config;
 
         Method methodGetDefault = activityManagerNativeClass.getMethod("getDefault");
         methodGetDefault.setAccessible(true);
-        amn = methodGetDefault.invoke(activityManagerNativeClass);
+        Object amn = methodGetDefault.invoke(activityManagerNativeClass);
 
         // Build.VERSION_CODES.O
         if (Build.VERSION.SDK_INT >= 26) {
@@ -63,7 +61,7 @@ public class LocaleSettingHandler extends AbstractSettingHandler {
 
         Method methodGetConfiguration = activityManagerNativeClass.getMethod("getConfiguration");
         methodGetConfiguration.setAccessible(true);
-        config = (Configuration) methodGetConfiguration.invoke(amn);
+        Configuration config = (Configuration) methodGetConfiguration.invoke(amn);
 
         Class<?> configClass = config.getClass();
         Field f = configClass.getField("userSetLocale");
