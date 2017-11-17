@@ -13,6 +13,7 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_MOCK_LOCATION" />
     <uses-permission android:name="android.permission.SET_ANIMATION_SCALE" />
+    <uses-permission android:name="android.permission.CHANGE_CONFIGURATION" />
 
     <uses-feature android:name="android.hardware.wifi" />
 
@@ -54,6 +55,12 @@
         <receiver android:name=".receivers.AnimationSettingReceiver">
             <intent-filter>
                 <action android:name="io.appium.settings.animation" />
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name=".receivers.LocaleSettingReceiver">
+            <intent-filter>
+                <action android:name="io.appium.settings.locale" />
             </intent-filter>
         </receiver>
     </application>
