@@ -5,3 +5,4 @@ gen
 build
 *.iml
 local.properties
+package-lock.json
