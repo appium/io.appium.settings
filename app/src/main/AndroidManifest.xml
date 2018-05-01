@@ -10,7 +10,6 @@
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_MOCK_LOCATION" />
     <uses-permission android:name="android.permission.SET_ANIMATION_SCALE" />
     <uses-permission android:name="android.permission.CHANGE_CONFIGURATION" />
@@ -61,6 +60,12 @@
         <receiver android:name=".receivers.LocaleSettingReceiver">
             <intent-filter>
                 <action android:name="io.appium.settings.locale" />
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name=".receivers.LocationInfoReceiver">
+            <intent-filter>
+                <action android:name="io.appium.settings.location" />
             </intent-filter>
         </receiver>
     </application>

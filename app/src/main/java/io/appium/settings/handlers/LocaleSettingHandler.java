@@ -17,7 +17,6 @@
 package io.appium.settings.handlers;
 
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.util.Log;
