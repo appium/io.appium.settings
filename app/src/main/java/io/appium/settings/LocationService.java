@@ -33,9 +33,7 @@ public class LocationService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        for (String p : new String[]{
-                "android.permission.ACCESS_COARSE_LOCATION",
-                "android.permission.ACCESS_FINE_LOCATION"}) {
+        for (String p : new String[]{"android.permission.ACCESS_FINE_LOCATION"}) {
             if (getApplicationContext().checkCallingOrSelfPermission(p)
                     != PackageManager.PERMISSION_GRANTED) {
                 Log.e(TAG, String.format("Cannot mock location due to missing permission '%s'", p));
