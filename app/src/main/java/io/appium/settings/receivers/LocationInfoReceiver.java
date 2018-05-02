@@ -25,7 +25,7 @@ import android.util.Log;
 
 import java.util.Locale;
 
-import io.appium.settings.utils.GPSTracker;
+import io.appium.settings.GPSTracker;
 
 public class LocationInfoReceiver extends BroadcastReceiver {
     private static final String TAG = LocationInfoReceiver.class.getSimpleName();
@@ -38,7 +38,7 @@ public class LocationInfoReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.d(TAG, "Getting current location");
-        final Location location = new GPSTracker(context).getLocation();
+        final Location location = GPSTracker.getLocation();
         if (location != null) {
             setResultCode(Activity.RESULT_OK);
             // Decimal separator is a dot

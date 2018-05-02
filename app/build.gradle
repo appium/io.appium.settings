@@ -27,6 +27,10 @@ android {
     }
 }
 
+dependencies {
+    compile 'com.android.support:support-annotations:24.2.0'
+}
+
 static def renameAPK(variant) {
     variant.outputs.each { output ->
         def file = output.packageApplication.outputFile
