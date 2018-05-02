@@ -38,7 +38,11 @@
             android:name=".LocationService"
             android:exported="true">
         </service>
-        <service android:name=".GPSTracker" />
+        <service
+            android:name=".GPSTracker"
+            android:exported="true">
+        </service>
+
 
         <receiver android:name=".receivers.WiFiConnectionSettingReceiver">
             <intent-filter>

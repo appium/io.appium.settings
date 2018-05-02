@@ -34,8 +34,8 @@ import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 public class GPSTracker extends Service implements LocationListener {
     private static final String TAG = GPSTracker.class.getSimpleName();
 
-    private static Location location = null;
-    private LocationManager locationManager;
+    private static volatile Location location = null;
+    private volatile LocationManager locationManager;
 
     @Override
     public void onCreate() {
@@ -45,8 +45,10 @@ public class GPSTracker extends Service implements LocationListener {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        location = null;
         if (locationManager != null) {
             locationManager.removeUpdates(this);
+            locationManager = null;
         }
     }
 
@@ -80,11 +82,9 @@ public class GPSTracker extends Service implements LocationListener {
     public void onProviderDisabled(String provider) {
     }
 
-
     @Override
     public void onProviderEnabled(String provider) {
     }
-
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
