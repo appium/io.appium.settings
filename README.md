@@ -111,7 +111,7 @@ StackOveflow thread for more details.
 Voila!
 
 ### Android P
-- Android P has [ristrictions on non-SDK interfaces](https://developer.android.com/preview/restrictions-non-sdk-interfaces).
+- Android P has [restrictions on non-SDK interfaces](https://developer.android.com/preview/restrictions-non-sdk-interfaces).
 - We use `setAnimationScales` in `AnimationSettingHandler.java`, for example. If Appium runs the method via turn on/off animation feature, `java.lang.NoSuchMethodException: setAnimationScales` happens since the interface is non-sdk interface.
 - To avoid the error, we should run below before calling them.
 
