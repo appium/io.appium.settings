@@ -110,6 +110,18 @@ StackOveflow thread for more details.
 
 Voila!
 
+### Android P
+- Android P has [restrictions on non-SDK interfaces](https://developer.android.com/preview/restrictions-non-sdk-interfaces).
+- We use `setAnimationScales` in `AnimationSettingHandler.java`, for example. If Appium runs the method via turn on/off animation feature, `java.lang.NoSuchMethodException: setAnimationScales` happens since the interface is non-sdk interface.
+- To avoid the error, we should run below before calling them.
+
+```
+adb shell settings put global hidden_api_policy_pre_p_apps  1
+adb shell settings put global hidden_api_policy_p_apps 1
+```
+
+Read https://developer.android.com/preview/restrictions-non-sdk-interfaces for more details to understand further.
+
 ## Caveats
 
 There are certain system services which cannot be accessed through an application. Two ones central here are `airplane_mode` and `gps`.
