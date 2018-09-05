@@ -63,5 +63,11 @@
                 <action android:name="io.appium.settings.locale" />
             </intent-filter>
         </receiver>
+
+        <receiver android:name=".receivers.LocationInfoReceiver">
+            <intent-filter>
+                <action android:name="io.appium.settings.location" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>
