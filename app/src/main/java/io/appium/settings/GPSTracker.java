@@ -16,66 +16,81 @@
 
 package io.appium.settings;
 
+import android.annotation.SuppressLint;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.annotation.Nullable;
 import android.util.Log;
 
-import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
-import static android.Manifest.permission.ACCESS_FINE_LOCATION;
-
+@SuppressLint("Registered")
 public class GPSTracker extends Service implements LocationListener {
     private static final String TAG = GPSTracker.class.getSimpleName();
+    private final Context mContext;
 
-    private static volatile Location location = null;
-    private volatile LocationManager locationManager;
+    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 10; // 10 meters
+    private static final long MIN_TIME_BW_UPDATES = 1000 * 60; // 1 minute
 
-    @Override
-    public void onCreate() {
-        addLocationListener();
+    public GPSTracker(Context context) {
+        this.mContext = context;
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        location = null;
-        if (locationManager != null) {
-            locationManager.removeUpdates(this);
-            locationManager = null;
-        }
-    }
+    @SuppressLint("MissingPermission")
+    public Location getLocation() {
+        try {
+            LocationManager locationManager = (LocationManager) mContext
+                    .getSystemService(LOCATION_SERVICE);
+            if (locationManager == null) {
+                Log.e(TAG, "Cannot retrieve the location manager");
+                return null;
+            }
 
-    private void addLocationListener() {
-        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        if (locationManager == null) {
-            Log.e(TAG, "Cannot receive LocationManager instance from the system");
-            return;
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                && checkSelfPermission(ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && checkSelfPermission(ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Log.e(TAG, "Both Coarse and GPS location access are disabled");
-            return;
-        }
-        locationManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER,
-                0, 0, this);
-    }
+            boolean isGPSEnabled = locationManager
+                    .isProviderEnabled(LocationManager.GPS_PROVIDER);
+            boolean isNetworkEnabled = locationManager
+                    .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+            if (!isGPSEnabled && !isNetworkEnabled) {
+                Log.e(TAG, "Both Coarse and GPS providers are disabled");
+                return null;
+            }
 
-    @Nullable
-    public static Location getLocation() {
-        return location;
+            if (isGPSEnabled) {
+                try {
+                    locationManager.requestLocationUpdates(
+                            LocationManager.GPS_PROVIDER,
+                            MIN_TIME_BW_UPDATES,
+                            MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
+                    Log.d(TAG, "GPS enabled. Getting FINE location");
+                    return locationManager
+                            .getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                } catch (SecurityException e) {
+                    Log.e(TAG, "Appium Settings has no access to FINE location permission");
+                }
+            }
+            try {
+                locationManager.requestLocationUpdates(
+                        LocationManager.NETWORK_PROVIDER,
+                        MIN_TIME_BW_UPDATES,
+                        MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
+                Log.d(TAG, "Network enabled. Getting COARSE location");
+                return locationManager
+                        .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            } catch (SecurityException e) {
+                Log.e(TAG, "Appium Settings has no access to COARSE location permission");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     @Override
     public void onLocationChanged(Location location) {
-        GPSTracker.location = location;
     }
 
     @Override

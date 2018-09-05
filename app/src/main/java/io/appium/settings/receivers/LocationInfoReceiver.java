@@ -38,7 +38,7 @@ public class LocationInfoReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.d(TAG, "Getting current location");
-        final Location location = GPSTracker.getLocation();
+        final Location location = new GPSTracker(context).getLocation();
         if (location != null) {
             setResultCode(Activity.RESULT_OK);
             // Decimal separator is a dot
