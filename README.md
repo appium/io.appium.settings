@@ -4,6 +4,7 @@ Toggle settings in Android device or emulator.
 
 A small and simple Android application that deals with the system settings. Then the application shuts down.
 
+
 ## Requirements
 
 * [Android SDK](developer.android.com)
@@ -19,6 +20,7 @@ $ ./gradlew clean assembleDebug
 ```
 
 You can also run `gradlew installDebug` to build and immediately deploy the app to a connected Android device or emulator.
+
 
 ## Installing
 
@@ -37,9 +39,10 @@ To uninstall:
 $ adb uninstall io.appium.settings
 ```
 
-## Running
 
-Once installed on a device, you can change the `wifi`, `data` and `animation` settings through the following commands:
+## Changing of system settings
+
+Once installed on a device, you can change the `wifi`, `data`, `animation` and `locale` settings through the following commands:
 
 To turn on `wifi`:
 
@@ -85,6 +88,18 @@ $ adb shell am broadcast -a io.appium.settings.locale --es lang ja --es country 
 
 You can set the [Locale](https://developer.android.com/reference/java/util/Locale.html) format, especially this feature support [Locale(String language, String country)](https://developer.android.com/reference/java/util/Locale.html#Locale(java.lang.String,%20java.lang.String)) so far.
 
+
+## Retrieval of system settings
+
+You can retrieve the current geo location by executing:
+
+```shell
+$ adb shell am broadcast -a io.appium.settings.location -n io.appium.settings/.receivers.LocationInfoReceiver
+```
+
+The first value in the returned `data` string is the current latitude and the second is the longitude. An empty string is returned if the data cannot be retrieved (more details on the failure cause can be found in the logcat output).
+
+
 ## Notes:
 
 * You have to specify the receiver class if app never executed before:
@@ -110,9 +125,11 @@ StackOveflow thread for more details.
 
 Voila!
 
+
 ## Caveats
 
 There are certain system services which cannot be accessed through an application. Two ones central here are `airplane_mode` and `gps`.
+
 
 ## License
 
