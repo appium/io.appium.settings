@@ -97,7 +97,7 @@ You can retrieve the current geo location by executing:
 $ adb shell am broadcast -a io.appium.settings.location -n io.appium.settings/.receivers.LocationInfoReceiver
 ```
 
-The first value in the returned `data` string is the current latitude and the second is the longitude. An empty string is returned if the data cannot be retrieved (more details on the failure cause can be found in the logcat output).
+The first value in the returned `data` string is the current latitude, the second is the longitude and the last one is the altitude. An empty string is returned if the data cannot be retrieved (more details on the failure cause can be found in the logcat output).
 
 
 ## Notes:

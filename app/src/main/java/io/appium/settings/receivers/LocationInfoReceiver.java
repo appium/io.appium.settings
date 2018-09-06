@@ -33,7 +33,7 @@ public class LocationInfoReceiver extends BroadcastReceiver {
     /**
      * Responds to broadcast requests like
      * am broadcast -a io.appium.settings.location
-     * with latitude/longitude pair separated by a single space.
+     * with location properties separated by a single space
      */
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -42,8 +42,8 @@ public class LocationInfoReceiver extends BroadcastReceiver {
         if (location != null) {
             setResultCode(Activity.RESULT_OK);
             // Decimal separator is a dot
-            setResultData(String.format(Locale.US, "%.5f %.5f",
-                    location.getLatitude(), location.getLongitude()));
+            setResultData(String.format(Locale.US, "%.5f %.5f %.5f",
+                    location.getLatitude(), location.getLongitude(), location.getAltitude()));
         } else {
             setResultCode(Activity.RESULT_CANCELED);
             setResultData("");
