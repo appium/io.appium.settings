@@ -100,6 +100,18 @@ $ adb shell am broadcast -a io.appium.settings.location -n io.appium.settings/.r
 The first value in the returned `data` string is the current latitude, the second is the longitude and the last one is the altitude. An empty string is returned if the data cannot be retrieved (more details on the failure cause can be found in the logcat output).
 
 
+## IME actions generation
+
+You can simulate IME actions generation with this application. First, it is necessary to enable and activate the corresponding service:
+
+```bash
+adb shell ime enable io.appium.settings/.AppiumIME
+adb shell ime set io.appium.settings/.AppiumIME
+```
+
+After the service is active simply focus any edit field, which contains an IME handler, and send `/action_name_or_integer_code/` text into this field: `adb shell input text '/action_name_or_integer_code/'` (enclosing slashes are required). The following action names are supported (case-insensitive): `normal, unspecified, none, go, search, send, next, done, previous`. If the given action name is unknown then it is going to be printed into the text field as is without executing any action.
+
+
 ## Notes:
 
 * You have to specify the receiver class if app never executed before:
