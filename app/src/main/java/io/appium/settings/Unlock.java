@@ -18,7 +18,7 @@ import static android.view.WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED;
 import static android.view.WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON;
 
 public class Unlock extends Activity {
-    private static final String TAG = GPSTracker.class.getSimpleName();
+    private static final String TAG = Unlock.class.getSimpleName();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -71,11 +71,5 @@ public class Unlock extends Activity {
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         moveTaskToBack(true);
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        finish();
     }
 }

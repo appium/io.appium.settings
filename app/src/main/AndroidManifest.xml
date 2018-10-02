@@ -44,7 +44,7 @@
             android:launchMode="singleInstance"
             android:finishOnTaskLaunch="true"
             android:stateNotNeeded="true"
-            android:noHistory="false"
+            android:noHistory="true"
             android:excludeFromRecents="true">
         </activity>
 
