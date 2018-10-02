@@ -1,3 +1,9 @@
 bin/*
 !bin/settings_apk-debug.apk
 gen
+build
+.idea
+.gradle
+app/build/*
+!app/build/outputs/apk/settings_apk-debug.apk
+
