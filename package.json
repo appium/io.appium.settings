@@ -15,6 +15,14 @@
     "android",
     "settings"
   ],
+  "files": [
+    "index.js",
+    "gradle*",
+    "build.gradle",
+    "settings.gradle",
+    "app/",
+    "gradle/"
+  ],
   "author": "https://github.com/appium",
   "license": "Apache-2.0",
   "bugs": {
