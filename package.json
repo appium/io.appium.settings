@@ -4,7 +4,10 @@
   "description": "App for dealing with Android settings",
   "main": "index.js",
   "scripts": {
-    "prepublish": "./gradlew clean assembleDebug"
+    "bump-gradle-version": "gulp gradle-version-update --package-version=${npm_package_version} && git add app/build.gradle",
+    "build": "./gradlew clean assembleDebug",
+    "prepublish": "npm run build",
+    "version": "npm run bump-gradle-version && npm run build"
   },
   "repository": {
     "type": "git",
@@ -30,5 +33,8 @@
   "bugs": {
     "url": "https://github.com/appium/io.appium.settings/issues"
   },
-  "homepage": "https://github.com/appium/io.appium.settings"
+  "homepage": "https://github.com/appium/io.appium.settings",
+  "devDependencies": {
+    "appium-gulp-plugins": "^3.1.0"
+  }
 }
