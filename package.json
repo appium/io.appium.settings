@@ -20,7 +20,9 @@
     "gradle*",
     "build.gradle",
     "settings.gradle",
-    "app/",
+    "app/build.gradle",
+    "app/build/outputs/apk/",
+    "app/src/",
     "gradle/"
   ],
   "author": "https://github.com/appium",
