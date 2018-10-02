@@ -63,8 +63,7 @@ public class Unlock extends Activity {
             return;
         }
         if (mKeyguardManager.inKeyguardRestrictedInputMode()) {
-            KeyguardManager.KeyguardLock keyguardLock = mKeyguardManager.newKeyguardLock(getLocalClassName());
-            keyguardLock.disableKeyguard();
+            mKeyguardManager.newKeyguardLock(getLocalClassName()).disableKeyguard();
         }
     }
 
