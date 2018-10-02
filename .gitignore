@@ -6,3 +6,4 @@ build
 *.iml
 local.properties
 package-lock.json
+.DS_Store
