@@ -16,6 +16,7 @@
 
 package io.appium.settings;
 
+import android.annotation.SuppressLint;
 import android.inputmethodservice.InputMethodService;
 import android.text.method.MetaKeyKeyListener;
 import android.util.Log;
@@ -71,9 +72,9 @@ public class AppiumIME extends InputMethodService {
         return false;
     }
 
+    @SuppressLint("MissingSuperCall")
     @Override
     public boolean onEvaluateInputViewShown() {
-        super.onEvaluateInputViewShown();
         return false;
     }
 
