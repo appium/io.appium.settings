@@ -174,6 +174,7 @@ public class UnicodeIME extends InputMethodService {
             CharBuffer buf = UTF7_DECODER.decode(encoded);
             decoded = buf.toString();
         } catch (CharacterCodingException e) {
+            Log.e(TAG, e.getMessage());
             decoded = encStr;
         }
         return decoded;
