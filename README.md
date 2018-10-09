@@ -112,6 +112,18 @@ adb shell ime set io.appium.settings/.AppiumIME
 After the service is active simply focus any edit field, which contains an IME handler, and send `/action_name_or_integer_code/` text into this field: `adb shell input text '/action_name_or_integer_code/'` (enclosing slashes are required). The following action names are supported (case-insensitive): `normal, unspecified, none, go, search, send, next, done, previous`. If the given action name is unknown then it is going to be printed into the text field as is without executing any action.
 
 
+## Unicode IME
+
+This input method allows to enter unicode values into text fields using `adb shell input text` terminal command. The idea is to encode the given unicode string into UTF-7 and then let the corresponding IME to decode and transform the actual input. This helper is also useful for automating applications running under Android API19 and older where `sendText` method of `UiObject` did not support Unicode properly. The actual implementation is based on the [Uiautomator Unicode Input Helper](https://github.com/sumio/uiautomator-unicode-input-helper) by TOYAMA Sumio.
+
+Use the following commands to enable the Unicode IME:
+
+```bash
+adb shell ime enable io.appium.settings/.UnicodeIME
+adb shell ime set io.appium.settings/.UnicodeIME
+```
+
+
 ## Notes:
 
 * You have to specify the receiver class if app never executed before:
