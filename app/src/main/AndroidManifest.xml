@@ -66,6 +66,19 @@
                 android:resource="@xml/method" />
         </service>
 
+        <service
+            android:name=".UnicodeIME"
+            android:enabled="true"
+            android:permission="android.permission.BIND_INPUT_METHOD" >
+            <intent-filter>
+                <action android:name="android.view.InputMethod" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.view.im"
+                android:resource="@xml/method" />
+        </service>
+
         <receiver android:name=".receivers.WiFiConnectionSettingReceiver">
             <intent-filter>
                 <action android:name="io.appium.settings.wifi" />
