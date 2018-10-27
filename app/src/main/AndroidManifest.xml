@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="io.appium.settings">
 
     <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
@@ -21,7 +22,9 @@
 
     <application
         android:icon="@drawable/ic_launcher"
-        android:label="@string/app_name">
+        android:label="@string/app_name"
+        android:allowBackup="false"
+        tools:ignore="GoogleAppIndexingWarning">
         <activity
             android:name=".Settings"
             android:excludeFromRecents="true"
@@ -81,10 +84,10 @@
                 android:resource="@xml/method" />
         </service>
 
-        <receiver android:name=".receivers.WiFiConnectionSettingReceiver"></receiver>
-        <receiver android:name=".receivers.DataConnectionSettingReceiver"></receiver>
-        <receiver android:name=".receivers.AnimationSettingReceiver"></receiver>
-        <receiver android:name=".receivers.LocaleSettingReceiver"></receiver>
-        <receiver android:name=".receivers.LocationInfoReceiver"></receiver>
+        <receiver android:name=".receivers.WiFiConnectionSettingReceiver" />
+        <receiver android:name=".receivers.DataConnectionSettingReceiver" />
+        <receiver android:name=".receivers.AnimationSettingReceiver" />
+        <receiver android:name=".receivers.LocaleSettingReceiver" />
+        <receiver android:name=".receivers.LocationInfoReceiver" />
     </application>
 </manifest>
