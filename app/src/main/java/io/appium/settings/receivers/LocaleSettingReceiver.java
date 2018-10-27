@@ -19,11 +19,8 @@ package io.appium.settings.receivers;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.support.annotation.Nullable;
 import android.util.Log;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Locale;
 
 import io.appium.settings.handlers.LocaleSettingHandler;
@@ -53,9 +50,8 @@ public class LocaleSettingReceiver extends BroadcastReceiver {
         // Expect https://developer.android.com/reference/java/util/Locale.html#Locale(java.lang.String,%20java.lang.String) format.
         Locale locale = new Locale(language, country);
 
-        // "zh-Hans-CN" style is available over API level 21
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            @Nullable String script = intent.getStringExtra(SCRIPT);
+            String script = intent.getStringExtra(SCRIPT);
 
             Locale.Builder builder = new Locale.Builder();
             builder.setLocale(locale);
