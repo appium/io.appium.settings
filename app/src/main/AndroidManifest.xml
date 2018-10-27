@@ -88,6 +88,8 @@
         <receiver android:name=".receivers.DataConnectionSettingReceiver" />
         <receiver android:name=".receivers.AnimationSettingReceiver" />
         <receiver android:name=".receivers.LocaleSettingReceiver" />
-        <receiver android:name=".receivers.LocationInfoReceiver" />
+        <receiver android:name=".receivers.LocationInfoReceiver"
+            android:exported="true"
+        />
     </application>
 </manifest>

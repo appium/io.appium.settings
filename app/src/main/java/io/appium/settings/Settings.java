@@ -37,6 +37,11 @@ public class Settings extends Activity {
         setContentView(R.layout.main);
         Log.d(TAG, "Entering Appium settings");
 
+        registerLocaleSettingReceiver();
+        registerAnimationSettingReceiver();
+        registerDataConnectionSettingReceiver();
+        registerLocationInfoReceiver();
+
         // Close yourself!
         Log.d(TAG, "Closing settings app");
         Handler handler = new Handler();
@@ -45,11 +50,6 @@ public class Settings extends Activity {
                 Settings.this.finish();
             }
         }, 1000);
-
-        registerLocaleSettingReceiver();
-        registerAnimationSettingReceiver();
-        registerDataConnectionSettingReceiver();
-        registerLocationInfoReceiver();
     }
 
     private void registerAnimationSettingReceiver() {
