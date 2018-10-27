@@ -19,8 +19,11 @@ package io.appium.settings.receivers;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Locale;
 
 import io.appium.settings.handlers.LocaleSettingHandler;
@@ -30,6 +33,8 @@ public class LocaleSettingReceiver extends BroadcastReceiver {
 
     private static final String LANG = "lang";
     private static final String COUNTRY = "country";
+    private static final String SCRIPT = "script";
+
 
     // am broadcast -a io.appium.settings.locale --es lang ja --es country JP
     @Override
@@ -46,9 +51,21 @@ public class LocaleSettingReceiver extends BroadcastReceiver {
         String country = intent.getStringExtra(COUNTRY);
 
         // Expect https://developer.android.com/reference/java/util/Locale.html#Locale(java.lang.String,%20java.lang.String) format.
-        // If we'd like to extend the other format like `Locale(String language, String country, String variant)`,
-        // you can implement it around here.
         Locale locale = new Locale(language, country);
+
+        // "zh-Hans-CN" style is available over API level 21
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            @Nullable String script = intent.getStringExtra(SCRIPT);
+
+            Locale.Builder builder = new Locale.Builder();
+            builder.setLocale(locale);
+            builder.setScript(script == null ? "" : script); // "Hans" part
+            locale = builder.build();
+            // "zh-Hans-CN" or "zh-CN" format
+            Log.i(TAG, "Set language tag: " + locale.toLanguageTag());
+        } else {
+            Log.i(TAG, "Set locale: " + locale.toString());
+        }
 
         LocaleSettingHandler localeSettingHandler = new LocaleSettingHandler(context);
 
