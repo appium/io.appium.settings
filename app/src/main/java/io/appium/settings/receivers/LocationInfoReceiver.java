@@ -30,6 +30,8 @@ import io.appium.settings.GPSTracker;
 public class LocationInfoReceiver extends BroadcastReceiver {
     private static final String TAG = LocationInfoReceiver.class.getSimpleName();
 
+    public static final String ACTION = "io.appium.settings.location";
+
     /**
      * Responds to broadcast requests like
      * am broadcast -a io.appium.settings.location

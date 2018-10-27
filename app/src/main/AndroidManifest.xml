@@ -81,34 +81,10 @@
                 android:resource="@xml/method" />
         </service>
 
-        <receiver android:name=".receivers.WiFiConnectionSettingReceiver">
-            <intent-filter>
-                <action android:name="io.appium.settings.wifi" />
-            </intent-filter>
-        </receiver>
-
-        <receiver android:name=".receivers.DataConnectionSettingReceiver">
-            <intent-filter>
-                <action android:name="io.appium.settings.data_connection" />
-            </intent-filter>
-        </receiver>
-
-        <receiver android:name=".receivers.AnimationSettingReceiver">
-            <intent-filter>
-                <action android:name="io.appium.settings.animation" />
-            </intent-filter>
-        </receiver>
-
-        <receiver android:name=".receivers.LocaleSettingReceiver">
-            <intent-filter>
-                <action android:name="io.appium.settings.locale" />
-            </intent-filter>
-        </receiver>
-
-        <receiver android:name=".receivers.LocationInfoReceiver">
-            <intent-filter>
-                <action android:name="io.appium.settings.location" />
-            </intent-filter>
-        </receiver>
+        <receiver android:name=".receivers.WiFiConnectionSettingReceiver"></receiver>
+        <receiver android:name=".receivers.DataConnectionSettingReceiver"></receiver>
+        <receiver android:name=".receivers.AnimationSettingReceiver"></receiver>
+        <receiver android:name=".receivers.LocaleSettingReceiver"></receiver>
+        <receiver android:name=".receivers.LocationInfoReceiver"></receiver>
     </application>
 </manifest>
