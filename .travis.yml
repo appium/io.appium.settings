@@ -21,15 +21,14 @@ env:
     - ANDROID_PLATFORM=android-28
     - CC=gcc-6 CXX=g++-6
 before_install:
-  - |
-    echo y | android update sdk --no-ui -t tools
-    echo yes | sdkmanager tools > /dev/null
-    echo yes | sdkmanager --update > /dev/null
-    echo yes | sdkmanager "platforms;${ANDROID_PLATFORM}" > /dev/null
-    echo yes | sdkmanager "build-tools;${ANDROID_BUILD_TOOLS}" > /dev/null
-    echo yes | sdkmanager "extras;android;m2repository" > /dev/null
-    echo yes | sdkmanager "extras;google;m2repository" > /dev/null
-    sdkmanager --list
+  - echo y | android update sdk --no-ui -t tools
+  - echo yes | sdkmanager tools > /dev/null
+  - echo yes | sdkmanager --update > /dev/null
+  - echo yes | sdkmanager "platforms;${ANDROID_PLATFORM}" > /dev/null
+  - echo yes | sdkmanager "build-tools;${ANDROID_BUILD_TOOLS}" > /dev/null
+  - echo yes | sdkmanager "extras;android;m2repository" > /dev/null
+  - echo yes | sdkmanager "extras;google;m2repository" > /dev/null
+  - sdkmanager --list
 install:
   # node stuff
   - curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.1/install.sh | bash
@@ -40,5 +39,4 @@ install:
   # npm stuff
   - npm install
 script:
-  - npm run clean
   - npm run build
