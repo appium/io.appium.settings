@@ -17,9 +17,16 @@
 package io.appium.settings;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+
+import io.appium.settings.receivers.AnimationSettingReceiver;
+import io.appium.settings.receivers.DataConnectionSettingReceiver;
+import io.appium.settings.receivers.LocaleSettingReceiver;
+import io.appium.settings.receivers.LocationInfoReceiver;
 
 public class Settings extends Activity {
     private static final String TAG = "APPIUM SETTINGS";
@@ -30,6 +37,11 @@ public class Settings extends Activity {
         setContentView(R.layout.main);
         Log.d(TAG, "Entering Appium settings");
 
+        registerLocaleSettingReceiver();
+        registerAnimationSettingReceiver();
+        registerDataConnectionSettingReceiver();
+        registerLocationInfoReceiver();
+
         // Close yourself!
         Log.d(TAG, "Closing settings app");
         Handler handler = new Handler();
@@ -38,5 +50,29 @@ public class Settings extends Activity {
                 Settings.this.finish();
             }
         }, 1000);
+    }
+
+    private void registerAnimationSettingReceiver() {
+        BroadcastReceiver animationSettingReceiver = new AnimationSettingReceiver();
+        IntentFilter filter = new IntentFilter(AnimationSettingReceiver.ACTION);
+        getApplicationContext().registerReceiver(animationSettingReceiver, filter);
+    }
+
+    private void registerDataConnectionSettingReceiver() {
+        BroadcastReceiver dataConnectionSettingReceiver = new DataConnectionSettingReceiver();
+        IntentFilter filter = new IntentFilter(DataConnectionSettingReceiver.ACTION);
+        getApplicationContext().registerReceiver(dataConnectionSettingReceiver, filter);
+    }
+
+    private void registerLocaleSettingReceiver() {
+        BroadcastReceiver localeSettingReceiver = new LocaleSettingReceiver();
+        IntentFilter filter = new IntentFilter(LocaleSettingReceiver.ACTION);
+        getApplicationContext().registerReceiver(localeSettingReceiver, filter);
+    }
+
+    private void registerLocationInfoReceiver() {
+        BroadcastReceiver locationInfoReceiver = new LocationInfoReceiver();
+        IntentFilter filter = new IntentFilter(LocationInfoReceiver.ACTION);
+        getApplicationContext().registerReceiver(locationInfoReceiver, filter);
     }
 }

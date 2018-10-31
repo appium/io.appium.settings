@@ -141,6 +141,10 @@ $ adb shell pm grant io.appium.settings android.permission.SET_ANIMATION_SCALE
 ```shell
 $ adb shell pm grant io.appium.settings android.permission.CHANGE_CONFIGURATION
 ```
+* To get location, app should be granted `ACCESS_FINE_LOCATION` permission at least:
+```shell
+$ adb shell pm grant io.appium.settings android.permission.ACCESS_FINE_LOCATION
+```
 
 * On Android 6.0+ you must enable the corresponding permissions for the app first. This can be
 done in application settings, Permissions entry.

@@ -25,6 +25,8 @@ import io.appium.settings.handlers.WiFiConnectionSettingHandler;
 */
 public class WiFiConnectionSettingReceiver extends AbstractSettingReceiver {
 
+    public static final String ACTION = "io.appium.settings.wifi";
+
     @Override
     protected WiFiConnectionSettingHandler getHandler(Context context) {
         return new WiFiConnectionSettingHandler(context);

@@ -25,6 +25,8 @@ import io.appium.settings.handlers.AnimationSettingHandler;
 */
 public class AnimationSettingReceiver extends AbstractSettingReceiver {
 
+    public static final String ACTION = "io.appium.settings.animation";
+
     @Override
     protected AnimationSettingHandler getHandler(Context context) {
         return new AnimationSettingHandler(context);

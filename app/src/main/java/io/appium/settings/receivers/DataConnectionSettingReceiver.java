@@ -25,6 +25,8 @@ import io.appium.settings.handlers.DataConnectionSettingHandler;
 */
 public class DataConnectionSettingReceiver extends AbstractSettingReceiver {
 
+    public static final String ACTION = "io.appium.settings.data_connection";
+
     @Override
     protected DataConnectionSettingHandler getHandler(Context context) {
         return new DataConnectionSettingHandler(context);

@@ -32,6 +32,7 @@ public class LocaleSettingReceiver extends BroadcastReceiver {
     private static final String COUNTRY = "country";
     private static final String SCRIPT = "script";
 
+    public static final String ACTION = "io.appium.settings.locale";
 
     // am broadcast -a io.appium.settings.locale --es lang ja --es country JP
     @Override
