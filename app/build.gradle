@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion '25.0.0'
+    buildToolsVersion '28.0.3'
 
     defaultConfig {
         minSdkVersion 17
@@ -28,9 +28,7 @@ android {
 }
 
 static def renameAPK(variant) {
-    variant.outputs.each { output ->
-        def file = output.packageApplication.outputFile
-        def fileName = "settings_apk-debug.apk"
-        output.packageApplication.outputFile = new File(file.parent, fileName)
+    variant.outputs.all {
+        outputFileName =  "settings_apk-debug.apk"
     }
 }
