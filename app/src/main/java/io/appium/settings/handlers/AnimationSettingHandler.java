@@ -16,6 +16,7 @@
 
 package io.appium.settings.handlers;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.IBinder;
 import android.util.Log;
@@ -31,6 +32,7 @@ public class AnimationSettingHandler extends AbstractSettingHandler {
         super(context, ANIMATION_PERMISSION);
     }
 
+    @SuppressLint("LongLogTag")
     @Override
     protected boolean setState(boolean state) {
         try {

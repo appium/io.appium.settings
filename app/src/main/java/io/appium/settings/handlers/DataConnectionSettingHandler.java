@@ -16,6 +16,7 @@
 
 package io.appium.settings.handlers;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.os.Build;
@@ -77,7 +78,7 @@ public class DataConnectionSettingHandler extends AbstractSettingHandler {
                     .getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
             for (int i = 0; i < mSubscriptionManager.getActiveSubscriptionInfoCountMax(); i++) {
                 if (transactionCode.length() > 0) {
-                    final int subscriptionId = mSubscriptionManager
+                    @SuppressLint("MissingPermission") final int subscriptionId = mSubscriptionManager
                             .getActiveSubscriptionInfoList().get(i).getSubscriptionId();
                     final String command = String.format("service call phone %s i32 %s i32 %s",
                             transactionCode, subscriptionId, state);

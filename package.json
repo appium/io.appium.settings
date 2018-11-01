@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "bump-gradle-version": "gulp gradle-version-update --package-version=${npm_package_version} && git add app/build.gradle",
+    "lint": "./gradlew lint",
     "build": "./gradlew clean assembleDebug",
     "prepublish": "npm run build",
     "version": "npm run bump-gradle-version && npm run build"
