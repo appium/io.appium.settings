@@ -6,9 +6,11 @@
   "scripts": {
     "bump-gradle-version": "gulp gradle-version-update --package-version=${npm_package_version} && git add app/build.gradle",
     "lint": "./gradlew lint",
-    "build": "./gradlew clean assembleDebug",
-    "prepublish": "npm run build",
-    "version": "npm run bump-gradle-version && npm run build"
+    "move-apks": "rm -rf apks && mkdir -p apks && cp app/build/outputs/apk/debug/settings_apk-debug.apk apks",
+    "build": "./gradlew clean assembleDebug && npm run move-apks",
+    "prepare": "npm run build",
+    "version": "npm run bump-gradle-version && npm run build",
+    "clean": "rm -rf node_modules && rm -f package-lock.json && npm install"
   },
   "repository": {
     "type": "git",
@@ -24,8 +26,8 @@
     "gradle*",
     "build.gradle",
     "settings.gradle",
+    "apks/",
     "app/build.gradle",
-    "app/build/outputs/apk/",
     "app/src/",
     "gradle/"
   ],
@@ -36,6 +38,8 @@
   },
   "homepage": "https://github.com/appium/io.appium.settings",
   "devDependencies": {
-    "appium-gulp-plugins": "^3.1.0"
+    "@babel/runtime": "^7.0.0",
+    "appium-gulp-plugins": "^3.1.0",
+    "gulp": "^4.0.0"
   }
 }
