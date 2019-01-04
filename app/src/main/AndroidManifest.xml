@@ -21,6 +21,7 @@
         tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.CHANGE_CONFIGURATION"
         tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <uses-feature android:name="android.hardware.wifi" />
 
@@ -87,6 +88,10 @@
                 android:name="android.view.im"
                 android:resource="@xml/method" />
         </service>
+
+        <service android:name=".ForegroundService"
+            android:enabled="true"
+            android:exported="true" />
 
         <receiver android:name=".receivers.WiFiConnectionSettingReceiver"
             android:exported="true"
