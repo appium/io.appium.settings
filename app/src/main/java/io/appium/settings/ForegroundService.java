@@ -40,11 +40,6 @@ public class ForegroundService extends Service {
         return null;
     }
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-    }
-
     @RequiresApi(Build.VERSION_CODES.O)
     private void createChannel() {
         NotificationManager mNotificationManager = (NotificationManager) this.getSystemService(NOTIFICATION_SERVICE);
