@@ -1,6 +1,6 @@
 {
   "name": "io.appium.settings",
-  "version": "2.12.0",
+  "version": "2.12.1",
   "description": "App for dealing with Android settings",
   "main": "index.js",
   "scripts": {
