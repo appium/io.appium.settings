@@ -18,7 +18,9 @@ package io.appium.settings;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
+import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -41,6 +43,14 @@ public class Settings extends Activity {
         registerAnimationSettingReceiver();
         registerDataConnectionSettingReceiver();
         registerLocationInfoReceiver();
+
+        // https://developer.android.com/about/versions/oreo/background-location-limits
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Log.d(TAG, "Initializing the foreground service");
+            Intent intent = new Intent(Settings.this, ForegroundService.class);
+            intent.setAction(ForegroundService.ACTION_START);
+            startService(intent);
+        }
 
         // Close yourself!
         Log.d(TAG, "Closing settings app");
