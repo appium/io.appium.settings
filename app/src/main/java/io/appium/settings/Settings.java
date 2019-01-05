@@ -45,7 +45,7 @@ public class Settings extends Activity {
         registerLocationInfoReceiver();
 
         // https://developer.android.com/about/versions/oreo/background-location-limits
-        if (Build.VERSION.SDK_INT >= 26) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Log.d(TAG, "Initializing the foreground service");
             Intent intent = new Intent(Settings.this, ForegroundService.class);
             intent.setAction(ForegroundService.ACTION_START);

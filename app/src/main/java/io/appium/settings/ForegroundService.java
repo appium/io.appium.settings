@@ -48,6 +48,9 @@ public class ForegroundService extends Service {
     @RequiresApi(Build.VERSION_CODES.O)
     private void createChannel() {
         NotificationManager mNotificationManager = (NotificationManager) this.getSystemService(NOTIFICATION_SERVICE);
+        if (mNotificationManager == null) {
+            return;
+        }
         NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_DEFAULT);
         mChannel.setDescription(CHANNEL_DESCRIPTION);
         mChannel.setShowBadge(true);
@@ -57,7 +60,7 @@ public class ForegroundService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent != null) {
+        if (intent != null && intent.getAction() != null) {
             switch (intent.getAction()) {
                 case ACTION_START:
                     startForegroundService();
