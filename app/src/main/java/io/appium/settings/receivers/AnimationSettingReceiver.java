@@ -23,12 +23,18 @@ import io.appium.settings.handlers.AnimationSettingHandler;
 /**
 * am broadcast -a io.appium.settings.animation --es setstatus [enable|disable]
 */
-public class AnimationSettingReceiver extends AbstractSettingReceiver {
+public class AnimationSettingReceiver extends AbstractSettingReceiver
+    implements HasAction{
 
-    public static final String ACTION = "io.appium.settings.animation";
+    private static final String ACTION = "io.appium.settings.animation";
 
     @Override
     protected AnimationSettingHandler getHandler(Context context) {
         return new AnimationSettingHandler(context);
+    }
+
+    @Override
+    public String getAction() {
+        return ACTION;
     }
 }

@@ -16,24 +16,6 @@
 
 package io.appium.settings.receivers;
 
-import android.content.Context;
-
-import io.appium.settings.handlers.WiFiConnectionSettingHandler;
-
-/**
-* am broadcast -a io.appium.settings.wifi --es setstatus [enable|disable]
-*/
-public class WiFiConnectionSettingReceiver extends AbstractSettingReceiver
-        implements HasAction {
-    private static final String ACTION = "io.appium.settings.wifi";
-
-    @Override
-    protected WiFiConnectionSettingHandler getHandler(Context context) {
-        return new WiFiConnectionSettingHandler(context);
-    }
-
-    @Override
-    public String getAction() {
-        return ACTION;
-    }
+public interface HasAction {
+    String getAction();
 }

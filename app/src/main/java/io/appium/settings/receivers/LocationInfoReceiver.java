@@ -27,10 +27,11 @@ import java.util.Locale;
 
 import io.appium.settings.GPSTracker;
 
-public class LocationInfoReceiver extends BroadcastReceiver {
+public class LocationInfoReceiver extends BroadcastReceiver
+    implements HasAction {
     private static final String TAG = LocationInfoReceiver.class.getSimpleName();
 
-    public static final String ACTION = "io.appium.settings.location";
+    private static final String ACTION = "io.appium.settings.location";
 
     /**
      * Responds to broadcast requests like
@@ -50,5 +51,10 @@ public class LocationInfoReceiver extends BroadcastReceiver {
             setResultCode(Activity.RESULT_CANCELED);
             setResultData("");
         }
+    }
+
+    @Override
+    public String getAction() {
+        return ACTION;
     }
 }

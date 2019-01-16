@@ -25,8 +25,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import io.appium.settings.receivers.AnimationSettingReceiver;
 import io.appium.settings.receivers.DataConnectionSettingReceiver;
+import io.appium.settings.receivers.HasAction;
 import io.appium.settings.receivers.LocaleSettingReceiver;
 import io.appium.settings.receivers.LocationInfoReceiver;
 import io.appium.settings.receivers.WiFiConnectionSettingReceiver;
@@ -40,11 +44,13 @@ public class Settings extends Activity {
         setContentView(R.layout.main);
         Log.d(TAG, "Entering Appium settings");
 
-        registerLocaleSettingReceiver();
-        registerAnimationSettingReceiver();
-        registerDataConnectionSettingReceiver();
-        registerLocationInfoReceiver();
-        registerWiFiConnectionSettingReceiver();
+        final List<Class<? extends BroadcastReceiver>> receiverClasses = new ArrayList<>();
+        receiverClasses.add(WiFiConnectionSettingReceiver.class);
+        receiverClasses.add(AnimationSettingReceiver.class);
+        receiverClasses.add(DataConnectionSettingReceiver.class);
+        receiverClasses.add(LocaleSettingReceiver.class);
+        receiverClasses.add(LocationInfoReceiver.class);
+        registerSettingsReceivers(receiverClasses);
 
         // https://developer.android.com/about/versions/oreo/background-location-limits
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -64,33 +70,17 @@ public class Settings extends Activity {
         }, 1000);
     }
 
-    private void registerWiFiConnectionSettingReceiver() {
-        BroadcastReceiver wiFiConnectionSettingReceiver = new WiFiConnectionSettingReceiver();
-        IntentFilter filter = new IntentFilter(WiFiConnectionSettingReceiver.ACTION);
-        getApplicationContext().registerReceiver(wiFiConnectionSettingReceiver, filter);
-    }
-
-    private void registerAnimationSettingReceiver() {
-        BroadcastReceiver animationSettingReceiver = new AnimationSettingReceiver();
-        IntentFilter filter = new IntentFilter(AnimationSettingReceiver.ACTION);
-        getApplicationContext().registerReceiver(animationSettingReceiver, filter);
-    }
-
-    private void registerDataConnectionSettingReceiver() {
-        BroadcastReceiver dataConnectionSettingReceiver = new DataConnectionSettingReceiver();
-        IntentFilter filter = new IntentFilter(DataConnectionSettingReceiver.ACTION);
-        getApplicationContext().registerReceiver(dataConnectionSettingReceiver, filter);
-    }
-
-    private void registerLocaleSettingReceiver() {
-        BroadcastReceiver localeSettingReceiver = new LocaleSettingReceiver();
-        IntentFilter filter = new IntentFilter(LocaleSettingReceiver.ACTION);
-        getApplicationContext().registerReceiver(localeSettingReceiver, filter);
-    }
-
-    private void registerLocationInfoReceiver() {
-        BroadcastReceiver locationInfoReceiver = new LocationInfoReceiver();
-        IntentFilter filter = new IntentFilter(LocationInfoReceiver.ACTION);
-        getApplicationContext().registerReceiver(locationInfoReceiver, filter);
+    private void registerSettingsReceivers(List<Class<? extends BroadcastReceiver>> receiverClasses) {
+        for (Class<? extends BroadcastReceiver> receiverClass: receiverClasses) {
+            try {
+                final BroadcastReceiver receiver = receiverClass.newInstance();
+                IntentFilter filter = new IntentFilter(((HasAction) receiver).getAction());
+                getApplicationContext().registerReceiver(receiver, filter);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InstantiationException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

@@ -21,14 +21,20 @@ import android.content.Context;
 import io.appium.settings.handlers.DataConnectionSettingHandler;
 
 /**
-* am broadcast -a io.appium.settings.data_connection --es setstatus [enable|disable]
-*/
-public class DataConnectionSettingReceiver extends AbstractSettingReceiver {
+ * am broadcast -a io.appium.settings.data_connection --es setstatus [enable|disable]
+ */
+public class DataConnectionSettingReceiver extends AbstractSettingReceiver
+        implements HasAction {
 
-    public static final String ACTION = "io.appium.settings.data_connection";
+    private static final String ACTION = "io.appium.settings.data_connection";
 
     @Override
     protected DataConnectionSettingHandler getHandler(Context context) {
         return new DataConnectionSettingHandler(context);
+    }
+
+    @Override
+    public String getAction() {
+        return ACTION;
     }
 }
