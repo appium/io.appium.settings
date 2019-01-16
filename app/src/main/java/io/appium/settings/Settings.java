@@ -29,6 +29,7 @@ import io.appium.settings.receivers.AnimationSettingReceiver;
 import io.appium.settings.receivers.DataConnectionSettingReceiver;
 import io.appium.settings.receivers.LocaleSettingReceiver;
 import io.appium.settings.receivers.LocationInfoReceiver;
+import io.appium.settings.receivers.WiFiConnectionSettingReceiver;
 
 public class Settings extends Activity {
     private static final String TAG = "APPIUM SETTINGS";
@@ -43,6 +44,7 @@ public class Settings extends Activity {
         registerAnimationSettingReceiver();
         registerDataConnectionSettingReceiver();
         registerLocationInfoReceiver();
+        registerWiFiConnectionSettingReceiver();
 
         // https://developer.android.com/about/versions/oreo/background-location-limits
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -60,6 +62,12 @@ public class Settings extends Activity {
                 Settings.this.finish();
             }
         }, 1000);
+    }
+
+    private void registerWiFiConnectionSettingReceiver() {
+        BroadcastReceiver wiFiConnectionSettingReceiver = new WiFiConnectionSettingReceiver();
+        IntentFilter filter = new IntentFilter(WiFiConnectionSettingReceiver.ACTION);
+        getApplicationContext().registerReceiver(wiFiConnectionSettingReceiver, filter);
     }
 
     private void registerAnimationSettingReceiver() {
