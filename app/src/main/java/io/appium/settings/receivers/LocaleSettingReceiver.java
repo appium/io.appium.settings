@@ -25,14 +25,14 @@ import java.util.Locale;
 
 import io.appium.settings.handlers.LocaleSettingHandler;
 
-public class LocaleSettingReceiver extends BroadcastReceiver {
+public class LocaleSettingReceiver extends BroadcastReceiver implements HasAction {
     private static final String TAG = LocaleSettingReceiver.class.getSimpleName();
 
     private static final String LANG = "lang";
     private static final String COUNTRY = "country";
     private static final String SCRIPT = "script";
 
-    public static final String ACTION = "io.appium.settings.locale";
+    private static final String ACTION = "io.appium.settings.locale";
 
     // am broadcast -a io.appium.settings.locale --es lang ja --es country JP
     @Override
@@ -71,5 +71,10 @@ public class LocaleSettingReceiver extends BroadcastReceiver {
 
     private boolean hasExtraLocale(Intent intent) {
         return intent.hasExtra(LANG) && intent.hasExtra(COUNTRY);
+    }
+
+    @Override
+    public String getAction() {
+        return ACTION;
     }
 }
