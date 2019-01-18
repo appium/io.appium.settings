@@ -1,14 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 26
     buildToolsVersion '28.0.3'
 
     defaultConfig {
         minSdkVersion 17
-        targetSdkVersion 28
-        versionCode 16
-        versionName "2.13.0"
+        targetSdkVersion 26
+        versionCode 15
+        versionName "2.13.1"
         applicationId "io.appium.settings"
     }
 
@@ -28,7 +28,7 @@ android {
 }
 
 dependencies {
-    implementation 'com.google.android.gms:play-services-location:16.0.0'
+    implementation "com.google.android.gms:play-services-location:12.0.1"
 }
 
 static def renameAPK(variant) {
