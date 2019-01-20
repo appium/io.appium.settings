@@ -46,7 +46,6 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
     private LocationManager mLocationManager;
     private GoogleApiClient mGoogleApiClient;
     private volatile Location mLocation;
-    private Context mContext;
     private String locationProvider;
 
     @SuppressLint("StaticFieldLeak")
@@ -95,11 +94,6 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
     }
 
     void start(Context mContext) {
-        if (mContext == this.mContext) {
-            return;
-        }
-
-        this.mContext = mContext;
         if (PlayServicesHelpers.isAvailable(mContext)) {
             Log.i(TAG, "Configuring location provider for Google Play Services");
             stopLocationUpdatesWithPlayServices();
@@ -143,6 +137,8 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
         if (mGoogleApiClient == null || !mGoogleApiClient.isConnected()) {
             return;
         }
+
+        Log.i(TAG, "Stopping Google Play Services location provider");
         //noinspection deprecation
         LocationServices.FusedLocationApi
                 .removeLocationUpdates(mGoogleApiClient, this);
@@ -193,6 +189,8 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
         if (mLocationManager == null) {
             return;
         }
+
+        Log.i(TAG, "Stopping Android location provider");
         mLocationManager.removeUpdates(this);
         mLocationManager = null;
     }
