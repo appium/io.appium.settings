@@ -42,7 +42,9 @@ public class Settings extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-        Log.d(TAG, "Entering Appium settings");
+        Log.d(TAG, "Entering the app");
+
+        LocationTracker.getInstance().start(this);
 
         final List<Class<? extends BroadcastReceiver>> receiverClasses = new ArrayList<>();
         receiverClasses.add(WiFiConnectionSettingReceiver.class);
@@ -60,8 +62,7 @@ public class Settings extends Activity {
             startService(intent);
         }
 
-        // Close yourself!
-        Log.d(TAG, "Closing settings app");
+        Log.d(TAG, "Closing the app");
         Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
             public void run() {
