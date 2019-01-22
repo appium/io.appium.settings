@@ -1,6 +1,6 @@
 {
   "name": "io.appium.settings",
-  "version": "2.13.0",
+  "version": "2.13.1",
   "description": "App for dealing with Android settings",
   "main": "index.js",
   "scripts": {
@@ -9,7 +9,7 @@
     "move-apks": "rm -rf apks && mkdir -p apks && cp app/build/outputs/apk/debug/settings_apk-debug.apk apks",
     "build": "./gradlew clean assembleDebug && npm run move-apks",
     "prepare": "npm run build",
-    "version": "npm run bump-gradle-version && npm run build && git add apks",
+    "version": "npm run bump-gradle-version && npm run build",
     "clean": "rm -rf node_modules && rm -f package-lock.json && npm install"
   },
   "repository": {
