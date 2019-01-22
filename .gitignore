@@ -8,3 +8,4 @@ local.properties
 package-lock.json
 .DS_Store
 node_modules/
+apks/
