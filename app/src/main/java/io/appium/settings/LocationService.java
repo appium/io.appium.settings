@@ -241,6 +241,6 @@ public class LocationService extends Service {
                 .addApi(LocationServices.API)
                 .build();
         FusedLocationProviderClient locationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-        return new FusedLocationProvider(googleApiClient, locationProviderClient);
+        return new FusedLocationProvider(googleApiClient, locationProviderClient, this);
     }
 }
