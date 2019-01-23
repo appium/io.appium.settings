@@ -9,6 +9,10 @@ import android.util.Log;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
 
+import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
+import static android.content.pm.PackageManager.PERMISSION_GRANTED;
+import static android.support.v4.content.ContextCompat.checkSelfPermission;
+
 public class FusedLocationProvider implements MockLocationProvider {
 
     private final static String TAG = FusedLocationProvider.class.getSimpleName();
