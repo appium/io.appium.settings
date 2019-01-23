@@ -106,14 +106,14 @@ The first value in the returned `data` string is the current latitude, the secon
 
 Start sending scheduled updates (every 2s) for mock location with the specified values by executing:
 ```shell
-$ adb shell am startservice --user 0 -n io.appium.settings/.LocationService --es longitude {longitude-value} --es latitude {latitude-value}
+$ adb shell am startservice --user 0 -n io.appium.settings/.LocationService --es longitude {longitude-value} --es latitude {latitude-value} [--es altitude {altitude-value}]
 ```
 Running the command again stops sending the previously specified location and starts sending updates for the
 new mock location.
 
 Stop sending new mocklocations and clean up everything (remove the mock location providers) by executing:
 ```shell
-$ adb shell am io.appium.settings/.LocationService
+$ adb shell am stopservice io.appium.settings/.LocationService
 ```
 
 
