@@ -87,8 +87,7 @@ public class FusedLocationProvider implements MockLocationProvider {
     }
 
     private boolean hasPermissions() {
-        if (checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PERMISSION_GRANTED &&
-                checkSelfPermission(context, ACCESS_COARSE_LOCATION) != PERMISSION_GRANTED) {
+        if (checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PERMISSION_GRANTED) {
             Log.e(TAG, String.format("Missing permission: '%s'", Manifest.permission.ACCESS_FINE_LOCATION));
             return false;
         }
