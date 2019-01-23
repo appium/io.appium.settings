@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import io.appium.settings.helpers.PlayServicesHelpers;
 import io.appium.settings.location.FusedLocationProvider;
 import io.appium.settings.location.LocationFactory;
 import io.appium.settings.location.LocationManagerProvider;
@@ -128,7 +129,7 @@ public class LocationService extends Service {
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
         providers.addAll(createMockProviders(locationManager));
-        if (isGoogleApiAvailable()) {
+        if (PlayServicesHelpers.isAvailable(this)) {
             Log.d(TAG, "Adding FusedLocationProvider");
             providers.add(createFusedLocationProvider());
         }
@@ -230,10 +231,6 @@ public class LocationService extends Service {
                 locationProvider.supportsBearing(),
                 locationProvider.getPowerRequirement(),
                 locationProvider.getAccuracy());
-    }
-
-    private boolean isGoogleApiAvailable() {
-        return GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this) == ConnectionResult.SUCCESS;
     }
 
     private FusedLocationProvider createFusedLocationProvider() {
