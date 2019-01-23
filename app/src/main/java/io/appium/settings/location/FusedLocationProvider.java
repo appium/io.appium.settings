@@ -37,7 +37,7 @@ public class FusedLocationProvider implements MockLocationProvider {
     @SuppressLint("MissingPermission")
     @Override
     public void setLocation(Location location) {
-        if (hasPermissions()) {
+        if (!hasPermissions()) {
             return;
         }
         fusedLocationProviderClient.setMockLocation(location);
@@ -46,7 +46,7 @@ public class FusedLocationProvider implements MockLocationProvider {
     @SuppressLint("MissingPermission")
     @Override
     public void enable() {
-        if (hasPermissions()) {
+        if (!hasPermissions()) {
             return;
         }
         googleApiClient.connect();
@@ -56,7 +56,7 @@ public class FusedLocationProvider implements MockLocationProvider {
     @SuppressLint("MissingPermission")
     @Override
     public void disable() {
-        if (hasPermissions()) {
+        if (!hasPermissions()) {
             return;
         }
         fusedLocationProviderClient.setMockMode(false);
