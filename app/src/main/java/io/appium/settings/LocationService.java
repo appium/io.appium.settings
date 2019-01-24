@@ -27,8 +27,6 @@ import android.location.LocationProvider;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -53,10 +51,10 @@ public class LocationService extends Service {
 
     private static final long UPDATE_INTERVAL_MS = 2000L;
 
-    private LocationFactory locationFactory = new LocationFactory();
-    private Timer locationUpdatesTimer = new Timer();
+    private final List<MockLocationProvider> mockLocationProviders = new LinkedList<>();
+    private final LocationFactory locationFactory = new LocationFactory();
+    private final Timer locationUpdatesTimer = new Timer();
     private TimerTask locationUpdateTask;
-    private List<MockLocationProvider> mockLocationProviders;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -66,7 +64,7 @@ public class LocationService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        mockLocationProviders = createLocationProviders();
+        initializeLocationProviders();
         enableLocationProviders();
     }
 
@@ -123,20 +121,15 @@ public class LocationService extends Service {
         }
     }
 
-    private List<MockLocationProvider> createLocationProviders() {
-        List<MockLocationProvider> providers = new LinkedList<>();
-
+    private void initializeLocationProviders() {
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-        providers.addAll(createMockProviders(locationManager));
+        mockLocationProviders.addAll(createMockProviders(locationManager));
         if (PlayServicesHelpers.isAvailable(this)) {
             Log.d(TAG, "Adding FusedLocationProvider");
-            providers.add(createFusedLocationProvider());
+            mockLocationProviders.add(createFusedLocationProvider());
         }
-
-        Log.d(TAG, String.format("Created mock providers: %s", providers.toString()));
-
-        return providers;
+        Log.d(TAG, String.format("Created mock providers: %s", mockLocationProviders.toString()));
     }
 
     private void scheduleLocationUpdate() {
