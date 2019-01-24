@@ -86,6 +86,11 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
+        if (mGoogleApiClient == null) {
+            googleApiStartupLatch.countDown();
+            return;
+        }
+
         LocationRequest locationRequest = new LocationRequest();
         locationRequest.setPriority(LocationRequest.PRIORITY_LOW_POWER);
         locationRequest.setInterval(LOCATION_UPDATES_INTERVAL);
@@ -108,6 +113,11 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        if (mGoogleApiClient == null) {
+            googleApiStartupLatch.countDown();
+            return;
+        }
+
         Log.e(TAG, String.format("Google Play Services location provider has failed to connect (code %s)",
                 connectionResult.toString()));
         stopLocationUpdatesWithPlayServices();
@@ -120,7 +130,8 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
         }
         isStarted = true;
 
-        if (PlayServicesHelpers.isAvailable(context)) {
+        boolean isPlayServicesAvailable = PlayServicesHelpers.isAvailable(context);
+        if (isPlayServicesAvailable) {
             Log.d(TAG, "Configuring location provider for Google Play Services");
             stopLocationUpdatesWithPlayServices();
             mGoogleApiClient = new GoogleApiClient.Builder(context)
@@ -134,10 +145,12 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
                 try {
                     googleApiStartupLatch.await(googleApiConnectTimeout, TimeUnit.MILLISECONDS);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    Log.w(TAG, e);
                 }
             }
-        } else {
+        }
+
+        if (!isPlayServicesAvailable || mGoogleApiClient == null) {
             Log.d(TAG, "Configuring the default Android location provider");
             stopLocationUpdatesWithoutPlayServices();
             mLocationManager = (LocationManager) context.getSystemService(LOCATION_SERVICE);
@@ -165,6 +178,10 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
     }
 
     private void startLocationUpdatesWithoutPlayServices() {
+        if (mLocationManager == null) {
+            return;
+        }
+
         boolean isGPSEnabled = mLocationManager
                 .isProviderEnabled(LocationManager.GPS_PROVIDER);
         boolean isNetworkEnabled = mLocationManager
@@ -237,7 +254,10 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
             } else if (isLocationManagerConnected() || mGoogleApiClient != null) {
                 // Try fallback to the default provider if Google API is available but is still not connected
                 if (mGoogleApiClient != null && !isLocationManagerConnected()) {
-                    startLocationUpdatesWithoutPlayServices();
+                    mLocationManager = (LocationManager) context.getSystemService(LOCATION_SERVICE);
+                    if (mLocationManager != null) {
+                        startLocationUpdatesWithoutPlayServices();
+                    }
                 }
                 if (mLocationManager != null) {
                     try {
