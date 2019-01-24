@@ -46,7 +46,7 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
     private static final long FAST_INTERVAL = 5000; // 5 seconds
     private static final long GOOGLE_API_CONNECT_TIMEOUT = 5000;
 
-    private CountDownLatch googleApiStartupLatch;
+    private CountDownLatch googleApiStartupLatch = new CountDownLatch(1);
     private volatile LocationManager mLocationManager;
     private volatile GoogleApiClient mGoogleApiClient;
     private volatile Location mLocation;
@@ -108,6 +108,10 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Log.e(TAG, String.format("Google Play Services location provider has failed to connect (code %s)",
+                connectionResult.toString()));
+        stopLocationUpdatesWithPlayServices();
+        googleApiStartupLatch.countDown();
     }
 
     synchronized void start(Context context, long googleApiConnectTimeout, boolean force) {
