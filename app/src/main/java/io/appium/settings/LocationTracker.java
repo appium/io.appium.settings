@@ -52,6 +52,7 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
     private volatile Location mLocation;
     private volatile boolean isStarted = false;
     private String mLocationProvider;
+    private volatile Boolean hasAccessToLocationServices = null;
 
     private static LocationTracker instance = null;
 
@@ -68,6 +69,7 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
     @Override
     public void onLocationChanged(Location location) {
         if (location != null) {
+            Log.d(TAG, "Got an updated location");
             mLocation = location;
         }
     }
@@ -100,8 +102,10 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
             LocationServices.FusedLocationApi
                     .requestLocationUpdates(mGoogleApiClient, locationRequest, this);
             Log.d(TAG, "Google Play Services location provider is connected");
+            hasAccessToLocationServices = true;
         } catch (SecurityException e) {
             Log.e(TAG, "Appium Settings has no access to location permission", e);
+            hasAccessToLocationServices = false;
             stopLocationUpdatesWithPlayServices();
         }
         googleApiStartupLatch.countDown();
@@ -199,6 +203,7 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
                         MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
                 mLocationProvider = LocationManager.GPS_PROVIDER;
                 Log.d(TAG, "GPS location provider is enabled. Getting FINE location");
+                hasAccessToLocationServices = true;
                 return;
             } catch (SecurityException e) {
                 Log.e(TAG, "Appium Settings has no access to FINE location permission", e);
@@ -211,7 +216,9 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
                     MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
             mLocationProvider = LocationManager.NETWORK_PROVIDER;
             Log.d(TAG, "NETWORK location provider is enabled. Getting COARSE location");
+            hasAccessToLocationServices = true;
         } catch (SecurityException e) {
+            hasAccessToLocationServices = false;
             Log.e(TAG, "Appium Settings has no access to COARSE location permission", e);
         }
     }
@@ -236,36 +243,48 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
 
     @Nullable
     public synchronized Location getLocation(Context context) {
-        if (mLocation == null) {
-            // Make sure the service has been started
-            start(context, GOOGLE_API_CONNECT_TIMEOUT, false);
+        if (mLocation != null) {
+            return mLocation;
+        }
 
-            if (isPlayServicesConnected()) {
-                // Make sure the fallback is removed after play services connection succeeds
-                if (isLocationManagerConnected()) {
-                    stopLocationUpdatesWithoutPlayServices();
-                }
-                try {
-                    //noinspection deprecation
-                    mLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-                } catch (SecurityException e) {
-                    Log.e(TAG, "Appium Settings has no access to location permission", e);
-                }
-            } else if (isLocationManagerConnected() || mGoogleApiClient != null) {
-                // Try fallback to the default provider if Google API is available but is still not connected
-                if (mGoogleApiClient != null && !isLocationManagerConnected()) {
-                    mLocationManager = (LocationManager) context.getSystemService(LOCATION_SERVICE);
-                    if (mLocationManager != null) {
-                        startLocationUpdatesWithoutPlayServices();
-                    }
-                }
+        // Make sure the service has been started
+        final boolean forceStart = hasAccessToLocationServices != null && !hasAccessToLocationServices;
+        start(context, GOOGLE_API_CONNECT_TIMEOUT, forceStart);
+
+        if (!hasAccessToLocationServices) {
+            Log.w(TAG, "Cannot retrieve the current location since the corresponding permissions have not been granted");
+            return null;
+        }
+
+        if (isPlayServicesConnected()) {
+            // Make sure the fallback is removed after play services connection succeeds
+            if (isLocationManagerConnected()) {
+                stopLocationUpdatesWithoutPlayServices();
+            }
+            try {
+                //noinspection deprecation
+                mLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+                hasAccessToLocationServices = true;
+            } catch (SecurityException e) {
+                hasAccessToLocationServices = false;
+                Log.e(TAG, "Appium Settings has no access to location permission", e);
+            }
+        } else if (isLocationManagerConnected() || mGoogleApiClient != null) {
+            // Try fallback to the default provider if Google API is available but is still not connected
+            if (mGoogleApiClient != null && !isLocationManagerConnected()) {
+                mLocationManager = (LocationManager) context.getSystemService(LOCATION_SERVICE);
                 if (mLocationManager != null) {
-                    try {
-                        mLocation = mLocationManager.getLastKnownLocation(mLocationProvider);
-                    } catch (SecurityException e) {
-                        Log.e(TAG, String.format("Appium Settings has no access to %s location permission",
-                                mLocationProvider), e);
-                    }
+                    startLocationUpdatesWithoutPlayServices();
+                }
+            }
+            if (mLocationManager != null) {
+                try {
+                    mLocation = mLocationManager.getLastKnownLocation(mLocationProvider);
+                    hasAccessToLocationServices = true;
+                } catch (SecurityException e) {
+                    hasAccessToLocationServices = false;
+                    Log.e(TAG, String.format("Appium Settings has no access to %s location permission",
+                            mLocationProvider), e);
                 }
             }
         }
