@@ -251,11 +251,6 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
         final boolean forceStart = hasAccessToLocationServices != null && !hasAccessToLocationServices;
         start(context, GOOGLE_API_CONNECT_TIMEOUT, forceStart);
 
-        if (!hasAccessToLocationServices) {
-            Log.w(TAG, "Cannot retrieve the current location since the corresponding permissions have not been granted");
-            return null;
-        }
-
         if (isPlayServicesConnected()) {
             // Make sure the fallback is removed after play services connection succeeds
             if (isLocationManagerConnected()) {
