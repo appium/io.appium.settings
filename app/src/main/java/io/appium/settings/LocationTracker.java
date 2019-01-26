@@ -272,7 +272,7 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
                     startLocationUpdatesWithoutPlayServices();
                 }
             }
-            if (mLocationManager != null) {
+            if (mLocationManager != null && mLocationProvider != null) {
                 try {
                     mLocation = mLocationManager.getLastKnownLocation(mLocationProvider);
                     hasAccessToLocationServices = true;
