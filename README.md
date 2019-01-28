@@ -105,6 +105,11 @@ The first value in the returned `data` string is the current latitude, the secon
 ## Setting Mock Locations
 
 Start sending scheduled updates (every 2s) for mock location with the specified values by executing:
+(API versions 26+):
+```shell
+$ adb shell am start-foreground-service --user 0 -n io.appium.settings/.LocationService --es longitude {longitude-value} --es latitude {latitude-value} [--es altitude {altitude-value}]
+```
+(Older versions):
 ```shell
 $ adb shell am startservice --user 0 -n io.appium.settings/.LocationService --es longitude {longitude-value} --es latitude {latitude-value} [--es altitude {altitude-value}]
 ```
