@@ -25,7 +25,6 @@ import android.util.Log;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
 
-import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static android.support.v4.content.ContextCompat.checkSelfPermission;
 
@@ -54,6 +53,10 @@ public class FusedLocationProvider implements MockLocationProvider {
     @Override
     public void setLocation(Location location) {
         if (!hasPermissions()) {
+            return;
+        }
+        if (!googleApiClient.isConnected()) {
+            Log.d(TAG, "GoogleApiClient is not connected");
             return;
         }
         fusedLocationProviderClient.setMockLocation(location);
