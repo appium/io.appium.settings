@@ -124,6 +124,7 @@ public class LocationService extends Service {
     private void initializeLocationProviders() {
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
+        mockLocationProviders.clear();
         mockLocationProviders.addAll(createMockProviders(locationManager));
         if (PlayServicesHelpers.isAvailable(this)) {
             Log.d(TAG, "Adding FusedLocationProvider");
