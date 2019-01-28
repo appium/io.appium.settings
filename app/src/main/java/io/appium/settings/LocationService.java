@@ -150,8 +150,8 @@ public class LocationService extends Service {
                     try {
                         mockLocationProvider.setLocation(location);
                     } catch (Exception e) {
-                        Log.e(TAG, String.format("Could not set location for '%s': %s",
-                                mockLocationProvider.getProviderName(), e.getMessage()));
+                        Log.e(TAG, String.format("Could not set location for '%s'",
+                                mockLocationProvider.getProviderName()), e);
                     }
                 }
             }
