@@ -102,6 +102,25 @@ $ adb shell am broadcast -a io.appium.settings.location -n io.appium.settings/.r
 
 The first value in the returned `data` string is the current latitude, the second is the longitude and the last one is the altitude. An empty string is returned if the data cannot be retrieved (more details on the failure cause can be found in the logcat output).
 
+## Setting Mock Locations
+
+Start sending scheduled updates (every 2s) for mock location with the specified values by executing:
+(API versions 26+):
+```shell
+$ adb shell am start-foreground-service --user 0 -n io.appium.settings/.LocationService --es longitude {longitude-value} --es latitude {latitude-value} [--es altitude {altitude-value}]
+```
+(Older versions):
+```shell
+$ adb shell am startservice --user 0 -n io.appium.settings/.LocationService --es longitude {longitude-value} --es latitude {latitude-value} [--es altitude {altitude-value}]
+```
+Running the command again stops sending the previously specified location and starts sending updates for the
+new mock location.
+
+Stop sending new mocklocations and clean up everything (remove the mock location providers) by executing:
+```shell
+$ adb shell am stopservice io.appium.settings/.LocationService
+```
+
 
 ## IME actions generation
 
