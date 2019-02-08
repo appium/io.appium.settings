@@ -1,5 +1,7 @@
 # Settings
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/appium/io.appium.settings.svg)](https://greenkeeper.io/)
+
 Toggle settings in Android device or emulator.
 
 A small and simple Android application that deals with the system settings. Then the application shuts down.
