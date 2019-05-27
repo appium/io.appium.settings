@@ -44,7 +44,7 @@ public class Settings extends Activity {
         setContentView(R.layout.main);
         Log.d(TAG, "Entering the app");
 
-        LocationTracker.getInstance().start(this, 0, true);
+        LocationTracker.getInstance().start(this, 2000, true);
 
         final List<Class<? extends BroadcastReceiver>> receiverClasses = new ArrayList<>();
         receiverClasses.add(WiFiConnectionSettingReceiver.class);
