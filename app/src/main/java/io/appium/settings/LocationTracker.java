@@ -150,11 +150,12 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
             }
 
             Log.d(TAG, "Configuring the default Android location provider");
-            mLocationManager = (LocationManager) context.getSystemService(LOCATION_SERVICE);
-            if (mLocationManager == null) {
+            Object locationManager = context.getSystemService(LOCATION_SERVICE);
+            if (locationManager == null) {
                 Log.e(TAG, "Cannot retrieve the location manager");
                 return;
             }
+            mLocationManager = (LocationManager) locationManager;
             startLocationUpdatesWithoutPlayServices();
         }
     }
@@ -167,8 +168,7 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
         Log.d(TAG, "Stopping Google Play Services location provider");
         if (mGoogleApiClient.isConnected()) {
             //noinspection deprecation
-            LocationServices.FusedLocationApi
-                    .removeLocationUpdates(mGoogleApiClient, this);
+            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
             mGoogleApiClient.disconnect();
         }
         mGoogleApiClient = null;
@@ -254,8 +254,9 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
         } else if (isLocationManagerConnected() || mGoogleApiClient != null) {
             // Try fallback to the default provider if Google API is available but is still not connected
             if (mGoogleApiClient != null && !isLocationManagerConnected()) {
-                mLocationManager = (LocationManager) context.getSystemService(LOCATION_SERVICE);
-                if (mLocationManager != null) {
+                Object locationManager = context.getSystemService(LOCATION_SERVICE);
+                if (locationManager != null) {
+                    mLocationManager = (LocationManager) locationManager;
                     startLocationUpdatesWithoutPlayServices();
                 }
             }
