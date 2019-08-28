@@ -82,7 +82,7 @@ public class LocationService extends Service {
         // https://stackoverflow.com/a/45047542
         // https://developer.android.com/about/versions/oreo/android-8.0-changes.html
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Log.w(TAG, "Starting location service");
+            Log.i(TAG, "Starting location service");
             startService(ForegroundService.getForegroundServiceIntent(LocationService.this));
         }
 
