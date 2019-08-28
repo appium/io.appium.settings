@@ -20,14 +20,17 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 
 public class ForegroundService extends Service {
+    private static final String TAG = "APPIUM SERVICE";
     public static final String ACTION_START = "start";
     public static final String ACTION_STOP = "stop";
     private static final String CHANNEL_ID = "main_channel";
@@ -87,5 +90,12 @@ public class ForegroundService extends Service {
     private void stopForegroundService() {
         stopForeground(true);
         stopSelf();
+    }
+
+    public static Intent getForegroundServiceIntent(Context context) {
+        Log.d(TAG, "Initializing the foreground service");
+        Intent intent = new Intent(context, ForegroundService.class);
+        intent.setAction(ForegroundService.ACTION_START);
+        return intent;
     }
 }

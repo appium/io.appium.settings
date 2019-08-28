@@ -16,22 +16,16 @@
 
 package io.appium.settings;
 
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.BitmapFactory;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.location.LocationProvider;
 import android.os.Build;
 import android.os.IBinder;
-import android.support.annotation.RequiresApi;
-import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -63,29 +57,9 @@ public class LocationService extends Service {
     private final Timer locationUpdatesTimer = new Timer();
     private TimerTask locationUpdateTask;
 
-    public static final String ACTION_START = "start";
-    public static final String ACTION_STOP = "stop";
-    private static final String CHANNEL_ID = "main_channel";
-    private static final String CHANNEL_NAME = "Appium Settings";
-    private static final String CHANNEL_DESCRIPTION = "Keep this service running, " +
-            "so Appium for Android can properly interact with several system APIs";
-
     @Override
     public IBinder onBind(Intent intent) {
         return null;
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private void createChannel() {
-        NotificationManager mNotificationManager = (NotificationManager) this.getSystemService(NOTIFICATION_SERVICE);
-        if (mNotificationManager == null) {
-            return;
-        }
-        NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_DEFAULT);
-        mChannel.setDescription(CHANNEL_DESCRIPTION);
-        mChannel.setShowBadge(true);
-        mChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
-        mNotificationManager.createNotificationChannel(mChannel);
     }
 
     @Override
@@ -104,27 +78,17 @@ public class LocationService extends Service {
                 return START_NOT_STICKY;
             }
         }
-        startForegroundService();
+
+        // https://stackoverflow.com/a/45047542
+        // https://developer.android.com/about/versions/oreo/android-8.0-changes.html
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Log.w(TAG, "Starting location service");
+            startService(ForegroundService.getForegroundServiceIntent(LocationService.this));
+        }
 
         handleIntent(intent);
 
         return START_NOT_STICKY;
-    }
-
-    private void startForegroundService() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            createChannel();
-        }
-        NotificationCompat.BigTextStyle bigTextStyle = new NotificationCompat.BigTextStyle();
-        bigTextStyle.setBigContentTitle(CHANNEL_NAME);
-        bigTextStyle.bigText(CHANNEL_DESCRIPTION);
-        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setStyle(bigTextStyle)
-                .setWhen(System.currentTimeMillis())
-                .setSmallIcon(R.drawable.ic_launcher)
-                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher))
-                .build();
-        startForeground(2, notification);
     }
 
     @Override
