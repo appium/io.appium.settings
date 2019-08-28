@@ -88,7 +88,7 @@ public class LocationService extends Service {
 
         handleIntent(intent);
 
-        return START_NOT_STICKY;
+        return START_STICKY;
     }
 
     @Override
