@@ -24,6 +24,7 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.location.LocationProvider;
+import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -77,9 +78,17 @@ public class LocationService extends Service {
                 return START_NOT_STICKY;
             }
         }
+
+        // https://stackoverflow.com/a/45047542
+        // https://developer.android.com/about/versions/oreo/android-8.0-changes.html
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Log.i(TAG, "Starting location service");
+            startService(ForegroundService.getForegroundServiceIntent(LocationService.this));
+        }
+
         handleIntent(intent);
 
-        return START_NOT_STICKY;
+        return START_STICKY;
     }
 
     @Override
