@@ -39,7 +39,11 @@ public class ClipboardReceiver extends BroadcastReceiver implements HasAction {
     private String getClipboardText(Context context) {
         final ClipboardManager cm = (ClipboardManager) context
                 .getSystemService(Context.CLIPBOARD_SERVICE);
-        if (cm == null || !cm.hasPrimaryClip()) {
+        if (cm == null) {
+            Log.e(TAG, "Cannot get an instance of ClipboardManager");
+            return null;
+        }
+        if (!cm.hasPrimaryClip()) {
             return "";
         }
         final ClipData cd = cm.getPrimaryClip();
@@ -58,8 +62,11 @@ public class ClipboardReceiver extends BroadcastReceiver implements HasAction {
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.d(TAG, "Getting current clipboard content");
-        setResultCode(Activity.RESULT_OK);
         String clipboardContent = getClipboardText(context);
+        if (clipboardContent == null) {
+            setResultCode(Activity.RESULT_CANCELED);
+            clipboardContent = "";
+        }
         String clipboardContentBase64 = "";
         try {
             // TODO: Use StandardCharsets.UTF_8 after the minimum supported API version
@@ -67,7 +74,9 @@ public class ClipboardReceiver extends BroadcastReceiver implements HasAction {
             //noinspection CharsetObjectCanBeUsed
             clipboardContentBase64 = Base64.encodeToString(
                     clipboardContent.getBytes("UTF-8"), Base64.DEFAULT);
+            setResultCode(Activity.RESULT_OK);
         } catch (UnsupportedEncodingException e) {
+            setResultCode(Activity.RESULT_CANCELED);
             e.printStackTrace();
         }
         setResultData(clipboardContentBase64);
