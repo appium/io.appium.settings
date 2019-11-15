@@ -62,24 +62,26 @@ public class ClipboardReceiver extends BroadcastReceiver implements HasAction {
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.d(TAG, "Getting current clipboard content");
-        String clipboardContent = getClipboardText(context);
+        final String clipboardContent = getClipboardText(context);
         if (clipboardContent == null) {
             setResultCode(Activity.RESULT_CANCELED);
-            clipboardContent = "";
+            setResultData("");
+            return;
         }
-        String clipboardContentBase64 = "";
+
         try {
             // TODO: Use StandardCharsets.UTF_8 after the minimum supported API version
             // TODO: is bumped above 18
             //noinspection CharsetObjectCanBeUsed
-            clipboardContentBase64 = Base64.encodeToString(
+            String clipboardContentBase64 = Base64.encodeToString(
                     clipboardContent.getBytes("UTF-8"), Base64.DEFAULT);
             setResultCode(Activity.RESULT_OK);
+            setResultData(clipboardContentBase64);
         } catch (UnsupportedEncodingException e) {
-            setResultCode(Activity.RESULT_CANCELED);
             e.printStackTrace();
+            setResultCode(Activity.RESULT_CANCELED);
+            setResultData("");
         }
-        setResultData(clipboardContentBase64);
     }
 
     @Override
