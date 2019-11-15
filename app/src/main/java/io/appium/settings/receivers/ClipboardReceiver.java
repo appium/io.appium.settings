@@ -22,7 +22,10 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Base64;
 import android.util.Log;
+
+import java.nio.charset.StandardCharsets;
 
 public class ClipboardReceiver extends BroadcastReceiver implements HasAction {
     private static final String TAG = ClipboardReceiver.class.getSimpleName();
@@ -49,14 +52,17 @@ public class ClipboardReceiver extends BroadcastReceiver implements HasAction {
     /**
      * Responds to broadcast requests like
      * am broadcast -a io.appium.settings.clipboard.get
-     * with the current textual clipboard content
-     * or empty string if no content has been received
+     * with the base64-encoded current clipboard text content
+     * or an empty string if no content has been received
      */
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.d(TAG, "Getting current clipboard content");
         setResultCode(Activity.RESULT_OK);
-        setResultData(getClipboardText(context));
+        String clipboardContent = getClipboardText(context);
+        String clipboardContentBase64 = Base64.encodeToString(
+                clipboardContent.getBytes(StandardCharsets.UTF_8), Base64.DEFAULT);
+        setResultData(clipboardContentBase64);
     }
 
     @Override

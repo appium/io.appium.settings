@@ -150,7 +150,8 @@ adb shell ime set io.appium.settings/.UnicodeIME
 
 ## Clipboard
 
-This action allows to retrieve the text content of the current clipboard.
+This action allows to retrieve the text content of the current clipboard
+as base64-encoded string.
 An empty string is returned if the clipboard cannot be retrieved
 or the clipboard is empty. 
 Remember, that since Android Q the clipboard content can only be retrieved if
