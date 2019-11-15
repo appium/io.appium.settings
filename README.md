@@ -9,7 +9,7 @@ A small and simple Android application that deals with the system settings. Then
 
 ## Requirements
 
-* [Android SDK](developer.android.com)
+* [Android SDK](http://developer.android.com)
 * [Java JDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
 * [Gradle](https://gradle.org/)
 
@@ -148,21 +148,37 @@ adb shell ime set io.appium.settings/.UnicodeIME
 ```
 
 
+## Clipboard
+
+This action allows to retrieve the text content of the current clipboard.
+An empty string is returned if the clipboard cannot be retrieved
+or the clipboard is empty. 
+Remember, that since Android Q the clipboard content can only be retrieved if
+the requester application is set as the default IME in the system:
+
+```bash
+adb shell ime enable io.appium.settings/.AppiumIME
+adb shell ime set io.appium.settings/.AppiumIME
+adb shell am broadcast -a io.appium.settings.clipboard.get
+adb shell ime set com.google.android.inputmethod.latin/com.android.inputmethod.latin.LatinIME
+```
+
+
 ## Notes:
 
-* You have to specify the receiver class if app never executed before:
+* You have to specify the receiver class if the app has never been executed before:
 ```shell
 $ adb shell am broadcast -a io.appium.settings.wifi -n io.appium.settings/.receivers.WiFiConnectionSettingReceiver --es setstatus disable
 ```
-* To change animation setting, app should be granted `SET_ANIMATION_SCALE` permission:
+* To change animation setting, the app should be granted `SET_ANIMATION_SCALE` permission:
 ```shell
 $ adb shell pm grant io.appium.settings android.permission.SET_ANIMATION_SCALE
 ```
-* To change locale setting, app should be granted `CHANGE_CONFIGURATION` permission:
+* To change locale setting, the app should be granted `CHANGE_CONFIGURATION` permission:
 ```shell
 $ adb shell pm grant io.appium.settings android.permission.CHANGE_CONFIGURATION
 ```
-* To get location, app should be granted `ACCESS_FINE_LOCATION` permission at least:
+* To get location, the app should be granted `ACCESS_FINE_LOCATION` permission at least:
 ```shell
 $ adb shell pm grant io.appium.settings android.permission.ACCESS_FINE_LOCATION
 ```
