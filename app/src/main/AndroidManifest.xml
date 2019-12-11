@@ -22,6 +22,8 @@
     <uses-permission android:name="android.permission.CHANGE_CONFIGURATION"
         tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
 
     <uses-feature android:name="android.hardware.wifi" />
 
@@ -109,6 +111,9 @@
                   android:exported="true"
                   tools:ignore="ExportedReceiver" />
         <receiver android:name=".receivers.LocationInfoReceiver"
+            android:exported="true"
+            tools:ignore="ExportedReceiver" />
+        <receiver android:name=".receivers.BluetoothConnectionSettingReceiver"
             android:exported="true"
             tools:ignore="ExportedReceiver" />
     </application>

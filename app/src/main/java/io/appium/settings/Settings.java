@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.appium.settings.receivers.AnimationSettingReceiver;
+import io.appium.settings.receivers.BluetoothConnectionSettingReceiver;
 import io.appium.settings.receivers.ClipboardReceiver;
 import io.appium.settings.receivers.DataConnectionSettingReceiver;
 import io.appium.settings.receivers.HasAction;
@@ -53,6 +54,7 @@ public class Settings extends Activity {
         receiverClasses.add(LocaleSettingReceiver.class);
         receiverClasses.add(LocationInfoReceiver.class);
         receiverClasses.add(ClipboardReceiver.class);
+        receiverClasses.add(BluetoothConnectionSettingReceiver.class);
         registerSettingsReceivers(receiverClasses);
 
         // https://developer.android.com/about/versions/oreo/background-location-limits
