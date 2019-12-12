@@ -16,9 +16,9 @@
 
 package io.appium.settings.receivers;
 
-import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -31,26 +31,31 @@ public class UnpairBluetoothDevicesReceiver extends BroadcastReceiver implements
 
     private static final String ACTION = "io.appium.settings.unpair_bluetooth";
     private boolean isFailed = false;
+
     /**
      * am broadcast -a io.appium.settings.unpair_bluetooth
      */
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.d(TAG, "Unpairing bluetooth devices");
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            @SuppressLint("WrongConstant")
-            Set<BluetoothDevice> bondedBluetoothDevices = ((BluetoothManager) context.getSystemService("bluetooth")).getAdapter().getBondedDevices();
-            if (bondedBluetoothDevices.size() > 0) {
-                unpairBluetoothDevices(bondedBluetoothDevices);
-                setResultCode(!isFailed ? -1 : 0);
-            } else {
-                Log.d(TAG, "No paired devices found");
-                setResultCode(-1);
-                setResultData("No paired devices found");
-            }
+        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (bluetoothAdapter == null) {
+            String message = "No Bluetooth adapter found";
+            Log.e(TAG, message);
+            setResultCode(Activity.RESULT_CANCELED);
+            setResultData(message);
+            return;
+        }
+        Set<BluetoothDevice> bondedBluetoothDevices = bluetoothAdapter.getBondedDevices();
+        if (bondedBluetoothDevices.size() > 0) {
+            unpairBluetoothDevices(bondedBluetoothDevices);
+            setResultCode(!isFailed ? Activity.RESULT_OK : Activity.RESULT_CANCELED);
         } else {
-            setResultCode(0);
-            setResultData("Unpair bluetooth works from Android 4.3 - API Level 18");
+            String message = "No paired devices found";
+            Log.d(TAG, message);
+            setResultCode(Activity.RESULT_OK);
+            setResultData(message);
+
         }
     }
 
@@ -60,7 +65,7 @@ public class UnpairBluetoothDevicesReceiver extends BroadcastReceiver implements
                 device.getClass().getMethod("removeBond", null).invoke(device, null);
             } catch (Exception e) {
                 isFailed = true;
-                Log.e("FRAU_UnpairBluetooth", "Unpairing bluetooth device " + device + " failed. " + e.getMessage());
+                Log.e("UnpairBluetooth", String.format("Unpairing bluetooth device %s failed. %s", device, e.getMessage()));
             }
         }
     }
