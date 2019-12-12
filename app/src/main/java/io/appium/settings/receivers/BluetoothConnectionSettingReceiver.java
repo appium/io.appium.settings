@@ -16,6 +16,7 @@
 
 package io.appium.settings.receivers;
 
+import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 
 import io.appium.settings.handlers.BluetoothConnectionSettingHandler;
@@ -30,7 +31,8 @@ public class BluetoothConnectionSettingReceiver extends AbstractSettingReceiver
 
     @Override
     protected BluetoothConnectionSettingHandler getHandler(Context context) {
-        return new BluetoothConnectionSettingHandler(context);
+        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        return bluetoothAdapter == null ? null : new BluetoothConnectionSettingHandler(context, bluetoothAdapter);
     }
 
     @Override

@@ -21,13 +21,15 @@ import android.content.Context;
 
 public class BluetoothConnectionSettingHandler extends AbstractSettingHandler {
 
-    public BluetoothConnectionSettingHandler(Context context) {
+    private BluetoothAdapter bluetoothAdapter;
+
+    public BluetoothConnectionSettingHandler(Context context, BluetoothAdapter bluetoothAdapter) {
         super(context);
+        this.bluetoothAdapter = bluetoothAdapter;
     }
 
     @Override
     protected boolean setState(boolean state) {
-        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         return state ? bluetoothAdapter.enable() : bluetoothAdapter.disable();
     }
 

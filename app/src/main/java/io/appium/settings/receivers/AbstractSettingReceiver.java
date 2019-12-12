@@ -34,7 +34,7 @@ public abstract class AbstractSettingReceiver extends BroadcastReceiver {
     private static final String COMMAND_ENABLE = "enable";
     private static final String COMMAND_DISABLE = "disable";
 
-    // am broadcast -a io.appium.settings.[wifi|data_connection|animation] --es setstatus [enable|disable]
+    // am broadcast -a io.appium.settings.[wifi|data_connection|animation|bluetooth] --es setstatus [enable|disable]
     @Override
     public void onReceive(Context context, Intent intent) {
         String command = intent.getStringExtra(COMMAND);
@@ -45,6 +45,11 @@ public abstract class AbstractSettingReceiver extends BroadcastReceiver {
             return;
         }
         boolean isSuccessful;
+        AbstractSettingHandler handler = getHandler(context);
+        if (handler == null) {
+            setResultCode(Activity.RESULT_CANCELED);
+            return;
+        }
         if (command.equals(COMMAND_ENABLE)) {
             isSuccessful = getHandler(context).enable();
         } else {
