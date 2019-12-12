@@ -14,7 +14,7 @@ android:
     - build-tools
 env:
   global:
-    - NODE_VERSION=8
+    - NODE_VERSION=10
     - ANDROID_BUILD_TOOLS=28.0.3
     - ANDROID_PLATFORM=android-28
     - CC=gcc-6 CXX=g++-6
@@ -29,7 +29,6 @@ before_install:
   - sdkmanager --list
 install:
   # node stuff
-  - curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.1/install.sh | bash
   - nvm install ${NODE_VERSION}
   - node --version
   - npm --version
