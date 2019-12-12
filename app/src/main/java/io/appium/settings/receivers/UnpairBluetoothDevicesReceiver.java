@@ -24,13 +24,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Set;
 
 public class UnpairBluetoothDevicesReceiver extends BroadcastReceiver implements HasAction {
     private static final String TAG = UnpairBluetoothDevicesReceiver.class.getSimpleName();
 
     private static final String ACTION = "io.appium.settings.unpair_bluetooth";
-    private boolean isFailed = false;
 
     /**
      * am broadcast -a io.appium.settings.unpair_bluetooth
@@ -47,27 +47,29 @@ public class UnpairBluetoothDevicesReceiver extends BroadcastReceiver implements
             return;
         }
         Set<BluetoothDevice> bondedBluetoothDevices = bluetoothAdapter.getBondedDevices();
-        if (bondedBluetoothDevices.size() > 0) {
-            unpairBluetoothDevices(bondedBluetoothDevices);
-            setResultCode(!isFailed ? Activity.RESULT_OK : Activity.RESULT_CANCELED);
-        } else {
-            String message = "No paired devices found";
-            Log.d(TAG, message);
+        if (bondedBluetoothDevices.isEmpty()) {
             setResultCode(Activity.RESULT_OK);
-            setResultData(message);
+            setResultData("No paired devices found");
+        }
+        unpairBluetoothDevices(bondedBluetoothDevices);
+    }
 
+    private void unpairBluetoothDevices(Set<BluetoothDevice> bondedDevices) {
+        try {
+            for (BluetoothDevice device : bondedDevices) {
+                unpairBluetoothDevice(device);
+            }
+            setResultCode(Activity.RESULT_OK);
+        } catch (Exception e) {
+            String message = String.format("Unpairing bluetooth devices failed with exception: %s", e.getMessage());
+            Log.e(TAG, message);
+            setResultCode(Activity.RESULT_CANCELED);
+            setResultData(message);
         }
     }
 
-    private void unpairBluetoothDevices(Set<BluetoothDevice> pairedDevices) {
-        for (BluetoothDevice device : pairedDevices) {
-            try {
-                device.getClass().getMethod("removeBond", null).invoke(device, null);
-            } catch (Exception e) {
-                isFailed = true;
-                Log.e("UnpairBluetooth", String.format("Unpairing bluetooth device %s failed. %s", device, e.getMessage()));
-            }
-        }
+    private void unpairBluetoothDevice(BluetoothDevice device) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+        device.getClass().getMethod("removeBond", null).invoke(device, null);
     }
 
     @Override
