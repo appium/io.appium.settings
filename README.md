@@ -70,6 +70,24 @@ To turn off `data`:
 $ adb shell am broadcast -a io.appium.settings.data_connection --es setstatus disable
 ```
 
+To turn on `bluetooth`:
+
+```shell
+$ adb shell am broadcast -a io.appium.settings.bluetooth --es setstatus enable
+```
+
+To turn off `bluetooth`:
+
+```shell
+$ adb shell am broadcast -a io.appium.settings.bluetooth --es setstatus disable
+```
+
+To unpair known `bluetooth devices`:
+
+```shell
+$ adb shell am broadcast -a io.appium.settings.unpair_bluetooth
+```
+
 To turn on `animation`:
 
 ```shell
