@@ -116,5 +116,8 @@
         <receiver android:name=".receivers.BluetoothConnectionSettingReceiver"
             android:exported="true"
             tools:ignore="ExportedReceiver" />
+        <receiver android:name=".receivers.UnpairBluetoothDevicesReceiver"
+            android:exported="true"
+            tools:ignore="ExportedReceiver" />
     </application>
 </manifest>
