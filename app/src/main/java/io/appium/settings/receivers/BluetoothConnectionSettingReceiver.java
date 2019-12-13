@@ -16,7 +16,6 @@
 
 package io.appium.settings.receivers;
 
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.util.Log;
