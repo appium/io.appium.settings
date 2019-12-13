@@ -50,6 +50,7 @@ public class UnpairBluetoothDevicesReceiver extends BroadcastReceiver implements
         if (bondedBluetoothDevices.isEmpty()) {
             setResultCode(Activity.RESULT_OK);
             setResultData("No paired devices found");
+            return;
         }
         unpairBluetoothDevices(bondedBluetoothDevices);
     }
