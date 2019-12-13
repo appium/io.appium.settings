@@ -51,9 +51,9 @@ public abstract class AbstractSettingReceiver extends BroadcastReceiver {
             return;
         }
         if (command.equals(COMMAND_ENABLE)) {
-            isSuccessful = getHandler(context).enable();
+            isSuccessful = handler.enable();
         } else {
-            isSuccessful = getHandler(context).disable();
+            isSuccessful = handler.disable();
         }
         setResultCode(isSuccessful ? Activity.RESULT_OK : Activity.RESULT_CANCELED);
     }

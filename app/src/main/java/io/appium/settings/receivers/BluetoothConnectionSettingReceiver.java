@@ -16,23 +16,31 @@
 
 package io.appium.settings.receivers;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
+import android.util.Log;
 
 import io.appium.settings.handlers.BluetoothConnectionSettingHandler;
-import io.appium.settings.handlers.WiFiConnectionSettingHandler;
 
 /**
-* am broadcast -a io.appium.settings.bluetooth --es setstatus [enable|disable]
-*/
+ * am broadcast -a io.appium.settings.bluetooth --es setstatus [enable|disable]
+ */
 public class BluetoothConnectionSettingReceiver extends AbstractSettingReceiver
         implements HasAction {
+    private static final String TAG = BluetoothConnectionSettingReceiver.class.getSimpleName();
     private static final String ACTION = "io.appium.settings.bluetooth";
 
     @Override
     protected BluetoothConnectionSettingHandler getHandler(Context context) {
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        return bluetoothAdapter == null ? null : new BluetoothConnectionSettingHandler(context, bluetoothAdapter);
+        if (bluetoothAdapter == null) {
+            String errorMessage = "No default bluetooth adapter found";
+            Log.e(TAG, errorMessage);
+            setResultData(errorMessage);
+            return null;
+        }
+        return new BluetoothConnectionSettingHandler(context, bluetoothAdapter);
     }
 
     @Override
