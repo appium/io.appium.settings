@@ -269,7 +269,8 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
             }
             if (mLocationManager != null && mLocationProvider != null) {
                 try {
-                    return mLocationManager.getLastKnownLocation(mLocationProvider);
+                    mLocation = mLocationManager.getLastKnownLocation(mLocationProvider);
+                    return mLocation;
                 } catch (SecurityException e) {
                     Log.e(TAG, String.format("Appium Settings has no access to %s location permission",
                             mLocationProvider), e);
