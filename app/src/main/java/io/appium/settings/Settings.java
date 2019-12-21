@@ -61,7 +61,7 @@ public class Settings extends Activity {
 
         // https://developer.android.com/about/versions/oreo/background-location-limits
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startService(ForegroundService.getForegroundServiceIntent(Settings.this));
+            startForegroundService(ForegroundService.getForegroundServiceIntent(Settings.this));
         }
 
         Log.d(TAG, "Closing the app");
