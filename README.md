@@ -183,6 +183,57 @@ adb shell ime set com.google.android.inputmethod.latin/com.android.inputmethod.l
 ```
 
 
+## Notifications
+
+Since version 2.16.0 Appium Settings supports retrieval of system notifications.
+You need to manually switch the corresponding security switcher next to `Appium Settings` 
+application name in `Settings->Notification Access` (the path to this page under Settings 
+may vary depending on Android version and the device model)
+in order to make this feature available. The next step would be to send the following broadcast command:
+```bash
+$ adb shell am broadcast -a io.appium.settings.notifications
+```
+The notifications listener service is running in the background and collects
+all the active and newly created notifications into the internal buffer with maximum
+size of `100`. The collected data (e.g. the properties and texts of each notification)
+is returned as JSON-formatted string. An error description string is returned instead if the 
+notifications list cannot be retrieved.
+The example of the resulting data:
+```json
+{
+  "statusBarNotifications": [
+    {
+      "isGroup":false,
+      "packageName":"io.appium.settings",
+      "isClearable":false,
+      "isOngoing":true,
+      "id":1,
+      "tag":null,
+      "notification":{
+        "title":null,
+        "bigTitle":"Appium Settings",
+        "text":null,
+        "bigText":"Keep this service running, so Appium for Android can properly interact with several system APIs",
+        "tickerText":null,
+        "subText":null,
+        "infoText":null,
+        "template":"android.app.Notification$BigTextStyle"
+      },
+      "userHandle":0,
+      "groupKey":"0|io.appium.settings|1|null|10133",
+      "overrideGroupKey":null,
+      "postTime":1576853518850,
+      "key":"0|io.appium.settings|1|null|10133",
+      "isRemoved":false
+    }
+  ]
+}
+```
+See https://developer.android.com/reference/android/service/notification/StatusBarNotification
+and https://developer.android.com/reference/android/app/Notification.html
+for more information on available notification properties and their values.
+
+
 ## Notes:
 
 * You have to specify the receiver class if the app has never been executed before:
