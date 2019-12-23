@@ -91,7 +91,6 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
             mGoogleApiClient = null;
             return;
         }
-
         LocationRequest locationRequest = new LocationRequest();
         locationRequest.setPriority(LocationRequest.PRIORITY_LOW_POWER);
         locationRequest.setInterval(LOCATION_UPDATES_INTERVAL);
@@ -133,31 +132,39 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
 
         boolean isPlayServicesAvailable = PlayServicesHelpers.isAvailable(context);
         if (isPlayServicesAvailable) {
-            if (isPlayServicesConnected()) {
-                return;
-            }
-
-            Log.d(TAG, "Configuring location provider for Google Play Services");
-            mGoogleApiClient = new GoogleApiClient.Builder(context)
-                    .addApi(LocationServices.API)
-                    .addConnectionCallbacks(this)
-                    .addOnConnectionFailedListener(this)
-                    .build();
-            mGoogleApiClient.connect();
+            initializePlayServices(context);
         } else {
-            if (isLocationManagerConnected()) {
-                return;
-            }
-
-            Log.d(TAG, "Configuring the default Android location provider");
-            Object locationManager = context.getSystemService(LOCATION_SERVICE);
-            if (locationManager == null) {
-                Log.e(TAG, "Cannot retrieve the location manager");
-                return;
-            }
-            mLocationManager = (LocationManager) locationManager;
-            startLocationUpdatesWithoutPlayServices();
+            initializeLocationManager(context);
         }
+    }
+
+    private void initializePlayServices(Context context) {
+        if (isPlayServicesConnected()) {
+            return;
+        }
+
+        Log.d(TAG, "Configuring location provider for Google Play Services");
+        mGoogleApiClient = new GoogleApiClient.Builder(context)
+                .addApi(LocationServices.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
+        mGoogleApiClient.connect();
+    }
+
+    private void initializeLocationManager(Context context) {
+        if (isLocationManagerConnected()) {
+            return;
+        }
+
+        Log.d(TAG, "Configuring the default Android location provider");
+        Object locationManager = context.getSystemService(LOCATION_SERVICE);
+        if (locationManager == null) {
+            Log.e(TAG, "Cannot retrieve the location manager");
+            return;
+        }
+        mLocationManager = (LocationManager) locationManager;
+        startLocationUpdatesWithoutPlayServices();
     }
 
     private void stopLocationUpdatesWithPlayServices() {
@@ -242,7 +249,6 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
 
         if (isPlayServicesConnected()) {
             try {
-                //noinspection deprecation
                 mLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
                 if (mLocation != null) {
                     // Make sure the fallback is removed after play services connection succeeds
@@ -250,12 +256,17 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
                         stopLocationUpdatesWithoutPlayServices();
                     }
                     return mLocation;
+                } else {
+                    stopLocationUpdatesWithPlayServices();
+                    // If GPS didn't work, try location manager
+                    if (!isLocationManagerConnected()) {
+                        initializeLocationManager(context);
+                    }
                 }
             } catch (SecurityException e) {
                 Log.e(TAG, "Appium Settings has no access to location permission", e);
             }
         }
-
         if (isLocationManagerConnected() || mGoogleApiClient != null) {
             // Try fallback to the default provider if Google API is available but is still not connected
             if (mGoogleApiClient != null && !isLocationManagerConnected()) {
