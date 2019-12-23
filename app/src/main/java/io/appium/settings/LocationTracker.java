@@ -250,18 +250,17 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
         if (isPlayServicesConnected()) {
             try {
                 mLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-                if (mLocation != null) {
+                if (mLocation == null) {
+                    // If GPS didn't work, try location manager
+                    if (!isLocationManagerConnected()) {
+                        initializeLocationManager(context);
+                    }
+                } else {
                     // Make sure the fallback is removed after play services connection succeeds
                     if (isLocationManagerConnected()) {
                         stopLocationUpdatesWithoutPlayServices();
                     }
                     return mLocation;
-                } else {
-                    stopLocationUpdatesWithPlayServices();
-                    // If GPS didn't work, try location manager
-                    if (!isLocationManagerConnected()) {
-                        initializeLocationManager(context);
-                    }
                 }
             } catch (SecurityException e) {
                 Log.e(TAG, "Appium Settings has no access to location permission", e);
