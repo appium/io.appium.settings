@@ -29,7 +29,8 @@
     "apks/",
     "app/build.gradle",
     "app/src/",
-    "gradle/"
+    "gradle/",
+    "!.DS_Store"
   ],
   "author": "https://github.com/appium",
   "license": "Apache-2.0",
