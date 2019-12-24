@@ -70,6 +70,7 @@ public class UnpairBluetoothDevicesReceiver extends BroadcastReceiver implements
     }
 
     private void unpairBluetoothDevice(BluetoothDevice device) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+        //noinspection JavaReflectionMemberAccess,ConstantConditions,ConfusingArgumentToVarargsMethod
         device.getClass().getMethod("removeBond", null).invoke(device, null);
     }
 
