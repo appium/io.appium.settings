@@ -39,7 +39,7 @@
   },
   "homepage": "https://github.com/appium/io.appium.settings",
   "devDependencies": {
-    "appium-gulp-plugins": "^4.0.0",
+    "appium-gulp-plugins": "^5.0.0",
     "gulp": "^4.0.0"
   }
 }
