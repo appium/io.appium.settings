@@ -252,6 +252,11 @@ $ adb shell pm grant io.appium.settings android.permission.CHANGE_CONFIGURATION
 ```shell
 $ adb shell pm grant io.appium.settings android.permission.ACCESS_FINE_LOCATION
 ```
+* To set location, the location mocking must be enabled. On Android 5 this requires enabling option
+`Allow mock locations` in Developer Settings. In later versions following command can be used:
+```shell
+$ adb shell appops set io.appium.settings android:mock_location allow
+```
 
 * On Android 6.0+ you must enable the corresponding permissions for the app first. This can be
 done in application settings, Permissions entry.
@@ -259,7 +264,7 @@ done in application settings, Permissions entry.
 * Switching mobile data on/off requires the phone to be rooted on Android 5.0+
 ('su' binary is expected to be available on internal phone file system).
 Read [this](http://stackoverflow.com/questions/26539445/the-setmobiledataenabled-method-is-no-longer-callable-as-of-android-l-and-later)
-StackOveflow thread for more details.
+StackOverflow thread for more details.
 
 Voila!
 

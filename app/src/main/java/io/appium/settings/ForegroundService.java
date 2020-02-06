@@ -16,44 +16,22 @@
 
 package io.appium.settings;
 
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.BitmapFactory;
-import android.os.Build;
 import android.os.IBinder;
-import android.support.annotation.RequiresApi;
-import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+
+import io.appium.settings.helpers.NotificationHelpers;
 
 public class ForegroundService extends Service {
     private static final String TAG = "APPIUM SERVICE";
     public static final String ACTION_START = "start";
     public static final String ACTION_STOP = "stop";
-    private static final String CHANNEL_ID = "main_channel";
-    private static final String CHANNEL_NAME = "Appium Settings";
-    private static final String CHANNEL_DESCRIPTION = "Keep this service running, " +
-            "so Appium for Android can properly interact with several system APIs";
 
     @Override
     public IBinder onBind(Intent intent) {
         return null;
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private void createChannel() {
-        NotificationManager mNotificationManager = (NotificationManager) this.getSystemService(NOTIFICATION_SERVICE);
-        if (mNotificationManager == null) {
-            return;
-        }
-        NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_DEFAULT);
-        mChannel.setDescription(CHANNEL_DESCRIPTION);
-        mChannel.setShowBadge(true);
-        mChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
-        mNotificationManager.createNotificationChannel(mChannel);
     }
 
     @Override
@@ -72,19 +50,8 @@ public class ForegroundService extends Service {
     }
 
     private void startForegroundService() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            createChannel();
-        }
-        NotificationCompat.BigTextStyle bigTextStyle = new NotificationCompat.BigTextStyle();
-        bigTextStyle.setBigContentTitle(CHANNEL_NAME);
-        bigTextStyle.bigText(CHANNEL_DESCRIPTION);
-        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setStyle(bigTextStyle)
-                .setWhen(System.currentTimeMillis())
-                .setSmallIcon(R.drawable.ic_launcher)
-                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher))
-                .build();
-        startForeground(1, notification);
+        startForeground(NotificationHelpers.APPIUM_NOTIFICATION_IDENTIFIER,
+                NotificationHelpers.getNotification(this));
     }
 
     private void stopForegroundService() {
