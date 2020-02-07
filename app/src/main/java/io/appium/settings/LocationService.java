@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import io.appium.settings.helpers.NotificationHelpers;
 import io.appium.settings.helpers.PlayServicesHelpers;
 import io.appium.settings.location.FusedLocationProvider;
 import io.appium.settings.location.LocationFactory;
@@ -82,9 +83,9 @@ public class LocationService extends Service {
         // https://stackoverflow.com/a/45047542
         // https://developer.android.com/about/versions/oreo/android-8.0-changes.html
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Log.i(TAG, "Starting location service");
-            startService(ForegroundService.getForegroundServiceIntent(LocationService.this));
+            finishForegroundSetup();
         }
+        Log.i(TAG, "INTENT " + intent.getExtras());
 
         handleIntent(intent);
 
@@ -242,5 +243,11 @@ public class LocationService extends Service {
                 .build();
         FusedLocationProviderClient locationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         return new FusedLocationProvider(googleApiClient, locationProviderClient, this);
+    }
+
+    private void finishForegroundSetup() {
+        startForeground(NotificationHelpers.APPIUM_NOTIFICATION_IDENTIFIER,
+                NotificationHelpers.getNotification(this));
+        Log.d(TAG, "After start foreground");
     }
 }
