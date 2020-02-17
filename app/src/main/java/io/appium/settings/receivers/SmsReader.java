@@ -22,7 +22,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
-import android.provider.Telephony;
 import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -36,6 +35,18 @@ public class SmsReader extends BroadcastReceiver implements HasAction {
     private static final String ACTION = "io.appium.settings.sms.read";
     private static final int MAX_ITEMS = 100;
     private static final String MAX_ITEMS_SETTING_NAME = "max";
+    private static final String[][] SMS_INFO_MAPPING = new String[][]{
+            {"_id", "id"},
+            {"address", "address"},
+            {"person", "person"},
+            {"date", "date"},
+            {"read", "read"},
+            {"status", "status"},
+            {"type", "type"},
+            {"subject", "subject"},
+            {"body", "body"},
+            {"service_center", "serviceCenter"}
+    };
 
     private JSONObject listSms(Context context, int maxCount) throws JSONException {
         Cursor cursor = context.getContentResolver().query(INCOMING_SMS,
@@ -46,18 +57,7 @@ public class SmsReader extends BroadcastReceiver implements HasAction {
             if (cursor != null && cursor.moveToFirst()) {
                 do {
                     JSONObject item = new JSONObject();
-                    for (String[] entry : new String[][]{
-                            {Telephony.Sms._ID, "id"},
-                            {Telephony.Sms.ADDRESS, "address"},
-                            {Telephony.Sms.PERSON, "person"},
-                            {Telephony.Sms.DATE, "date"},
-                            {Telephony.Sms.READ, "read"},
-                            {Telephony.Sms.STATUS, "status"},
-                            {Telephony.Sms.TYPE, "type"},
-                            {Telephony.Sms.SUBJECT, "subject"},
-                            {Telephony.Sms.BODY, "body"},
-                            {Telephony.Sms.SERVICE_CENTER, "serviceCenter"}
-                    }) {
+                    for (String[] entry : SMS_INFO_MAPPING) {
                         item.put(entry[1], formatJsonNull(cursor.getString(cursor.getColumnIndex(entry[0]))));
                     }
                     items.put(item);
