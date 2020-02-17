@@ -37,11 +37,6 @@ public class SmsReader extends BroadcastReceiver implements HasAction {
     private static final int MAX_ITEMS = 100;
     private static final String MAX_ITEMS_SETTING_NAME = "max";
 
-    private static void putSmsField(JSONObject dst, Cursor cursor, String fieldName, String name)
-            throws JSONException {
-        dst.put(name, formatJsonNull(cursor.getString(cursor.getColumnIndex(fieldName))));
-    }
-
     private JSONObject listSms(Context context, int maxCount) throws JSONException {
         Cursor cursor = context.getContentResolver().query(INCOMING_SMS,
                 null, null, null, "date desc");
@@ -63,7 +58,7 @@ public class SmsReader extends BroadcastReceiver implements HasAction {
                             {Telephony.Sms.BODY, "body"},
                             {Telephony.Sms.SERVICE_CENTER, "serviceCenter"}
                     }) {
-                        putSmsField(item, cursor, entry[0], entry[1]);
+                        item.put(entry[1], formatJsonNull(cursor.getString(cursor.getColumnIndex(entry[0]))));
                     }
                     items.put(item);
                 } while (cursor.moveToNext() && items.length() < maxCount);
