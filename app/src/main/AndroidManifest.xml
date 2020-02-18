@@ -24,6 +24,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.READ_SMS" />
 
     <uses-feature android:name="android.hardware.wifi" />
 
@@ -128,5 +129,8 @@
         <receiver android:name=".receivers.UnpairBluetoothDevicesReceiver"
             android:exported="true"
             tools:ignore="ExportedReceiver" />
+        <receiver android:name=".receivers.SmsReader"
+                  android:exported="true"
+                  tools:ignore="ExportedReceiver" />
     </application>
 </manifest>

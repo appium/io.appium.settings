@@ -234,6 +234,54 @@ and https://developer.android.com/reference/android/app/Notification.html
 for more information on available notification properties and their values.
 
 
+## SMS
+
+Since version 3.1 Appium Settings supports retrieval of SMS messages.
+Make sure the corresponding permission has been granted to the app
+in order to make this feature available. The next step would be to send 
+the following broadcast command:
+```bash
+$ adb shell am broadcast -a io.appium.settings.sms.read --es max 10
+```
+In this example the SMS reader broadcast receiver would retrieve 
+the properties of `10 recent` incoming SMS messages. By default the limit
+is set to `100`. The collected data (e.g. the properties and texts of each SMS)
+is returned as JSON-formatted string. An error description string is returned instead if the 
+SMS list cannot be retrieved.
+The example of the resulting data:
+```json
+{
+  "items":[
+    {
+      "id":"2",
+      "address":"+123456789",
+      "person":null,
+      "date":"1581936422203",
+      "read":"0",
+      "status":"-1",
+      "type":"1",
+      "subject":null,
+      "body":"\"text message2\"",
+      "serviceCenter":null
+    },
+    {
+      "id":"1",
+      "address":"+123456789",
+      "person":null,
+      "date":"1581936382740",
+      "read":"0",
+      "status":"-1",
+      "type":"1",
+      "subject":null,
+      "body":"\"text message\"",
+      "serviceCenter":null
+    }
+  ],
+  "total":2
+}
+```
+
+
 ## Notes:
 
 * You have to specify the receiver class if the app has never been executed before:
