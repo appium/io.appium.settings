@@ -1,7 +1,5 @@
 # Settings
 
-[![Greenkeeper badge](https://badges.greenkeeper.io/appium/io.appium.settings.svg)](https://greenkeeper.io/)
-
 Toggle settings in Android device or emulator.
 
 A small and simple Android application that deals with the system settings. Then the application shuts down.
@@ -171,7 +169,7 @@ adb shell ime set io.appium.settings/.UnicodeIME
 This action allows to retrieve the text content of the current clipboard
 as base64-encoded string.
 An empty string is returned if the clipboard cannot be retrieved
-or the clipboard is empty. 
+or the clipboard is empty.
 Remember, that since Android Q the clipboard content can only be retrieved if
 the requester application is set as the default IME in the system:
 
@@ -186,8 +184,8 @@ adb shell ime set com.google.android.inputmethod.latin/com.android.inputmethod.l
 ## Notifications
 
 Since version 2.16.0 Appium Settings supports retrieval of system notifications.
-You need to manually switch the corresponding security switcher next to `Appium Settings` 
-application name in `Settings->Notification Access` (the path to this page under Settings 
+You need to manually switch the corresponding security switcher next to `Appium Settings`
+application name in `Settings->Notification Access` (the path to this page under Settings
 may vary depending on Android version and the device model)
 in order to make this feature available. The next step would be to send the following broadcast command:
 ```bash
@@ -196,7 +194,7 @@ $ adb shell am broadcast -a io.appium.settings.notifications
 The notifications listener service is running in the background and collects
 all the active and newly created notifications into the internal buffer with maximum
 size of `100`. The collected data (e.g. the properties and texts of each notification)
-is returned as JSON-formatted string. An error description string is returned instead if the 
+is returned as JSON-formatted string. An error description string is returned instead if the
 notifications list cannot be retrieved.
 The example of the resulting data:
 ```json
@@ -238,15 +236,15 @@ for more information on available notification properties and their values.
 
 Since version 3.1 Appium Settings supports retrieval of SMS messages.
 Make sure the corresponding permission has been granted to the app
-in order to make this feature available. The next step would be to send 
+in order to make this feature available. The next step would be to send
 the following broadcast command:
 ```bash
 $ adb shell am broadcast -a io.appium.settings.sms.read --es max 10
 ```
-In this example the SMS reader broadcast receiver would retrieve 
+In this example the SMS reader broadcast receiver would retrieve
 the properties of `10 recent` incoming SMS messages. By default the limit
 is set to `100`. The collected data (e.g. the properties and texts of each SMS)
-is returned as JSON-formatted string. An error description string is returned instead if the 
+is returned as JSON-formatted string. An error description string is returned instead if the
 SMS list cannot be retrieved.
 The example of the resulting data:
 ```json
