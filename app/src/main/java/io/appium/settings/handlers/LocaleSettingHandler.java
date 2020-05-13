@@ -67,6 +67,7 @@ public class LocaleSettingHandler extends AbstractSettingHandler {
         f.setBoolean(config, true);
 
         config.locale = locale;
+        config.setLayoutDirection(locale);
 
         Method methodUpdateConfiguration = activityManagerNativeClass.getMethod("updateConfiguration", Configuration.class);
         methodUpdateConfiguration.setAccessible(true);
