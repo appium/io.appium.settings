@@ -105,7 +105,7 @@ public class LocationService extends Service {
         }
         Log.i(TAG, "INTENT " + intent.getExtras());
 
-        // update the locationFactory also if the service is already running to mock
+        // update the locationFactory also if the service is already running to mock.
         updateMockLocationFactory(intent);
         scheduleLocationUpdate();
     }
