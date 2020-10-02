@@ -85,7 +85,6 @@ public class LocationService extends Service {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             finishForegroundSetup();
         }
-        Log.i(TAG, "INTENT " + intent.getExtras());
 
         handleIntent(intent);
 
@@ -104,6 +103,8 @@ public class LocationService extends Service {
         if (intent == null) {
             return;
         }
+        Log.i(TAG, "INTENT " + intent.getExtras());
+
         // update the locationFactory also if the service is already running to mock
         updateMockLocationFactory(intent);
         scheduleLocationUpdate();
