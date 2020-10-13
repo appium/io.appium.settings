@@ -45,7 +45,7 @@ public class LocationInfoReceiver extends BroadcastReceiver
         if (location != null) {
             setResultCode(Activity.RESULT_OK);
             // Decimal separator is a dot
-            setResultData(String.format(Locale.US, "%.5f %.5f %.5f",
+            setResultData(String.format(Locale.US, "%.7f %.7f %.7f",
                     location.getLatitude(), location.getLongitude(), location.getAltitude()));
         } else {
             setResultCode(Activity.RESULT_CANCELED);
