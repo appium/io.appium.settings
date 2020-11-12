@@ -21,13 +21,17 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 
 import io.appium.settings.helpers.PlayServicesHelpers;
@@ -41,6 +45,10 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 10; // 10 meters
     private static final long LOCATION_UPDATES_INTERVAL = 1000 * 60; // 1 minute
     private static final long FAST_INTERVAL = 5000; // 5 seconds
+
+    private static final long UPDATE_INTERVAL_IN_MILLISECONDS = 1000;
+    private static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS =
+            UPDATE_INTERVAL_IN_MILLISECONDS / 2;
 
     private volatile LocationManager mLocationManager;
     private volatile GoogleApiClient mGoogleApiClient;
@@ -138,6 +146,45 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
         }
     }
 
+    synchronized void start(Context context, FusedLocationProviderClient fusedLocationProviderClient) {
+        mFusedLocationClient = fusedLocationProviderClient;
+        start(context);
+    }
+
+
+    private FusedLocationProviderClient mFusedLocationClient;
+    private LocationRequest mLocationRequest;
+    private LocationCallback mLocationCallback;
+
+    private void createLocationRequest() {
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
+        mLocationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    }
+
+    private void initializeRequestLocation(){
+        if (mFusedLocationClient == null){
+            Log.d(TAG, "Failed to initialize request location");
+            return;
+        }
+        createLocationRequest();
+        mLocationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                super.onLocationResult(locationResult);
+                // This is the result!!!
+                Log.d(TAG, "Frequent request location get update from FusedLocationClient");
+                mLocation = locationResult.getLastLocation();
+            }
+        };
+        try {
+            mFusedLocationClient.requestLocationUpdates(mLocationRequest,
+                    mLocationCallback, Looper.getMainLooper());
+        } catch (SecurityException unlikely) {
+            Log.e(TAG, "Lost location permission. Could not request updates. " + unlikely);
+        }
+    }
     private void initializePlayServices(Context context) {
         if (isPlayServicesConnected()) {
             return;
@@ -150,6 +197,9 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
                 .addOnConnectionFailedListener(this)
                 .build();
         mGoogleApiClient.connect();
+        Log.d(TAG, "Try to request update");
+        initializeRequestLocation();
+
     }
 
     private void initializeLocationManager(Context context) {
@@ -179,6 +229,13 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
             mGoogleApiClient.disconnect();
         }
         mGoogleApiClient = null;
+        stopLocationRequestInFusedLocationClient();
+    }
+
+    private void stopLocationRequestInFusedLocationClient(){
+        if (mLocationCallback!=null) {
+            mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+        }
     }
 
     private void startLocationUpdatesWithoutPlayServices() {

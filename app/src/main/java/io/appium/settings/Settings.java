@@ -24,6 +24,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,7 +51,8 @@ public class Settings extends Activity {
         setContentView(R.layout.main);
         Log.d(TAG, "Entering the app");
 
-        LocationTracker.getInstance().start(this);
+        FusedLocationProviderClient fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        LocationTracker.getInstance().start(this, fusedLocationClient);
 
         final List<Class<? extends BroadcastReceiver>> receiverClasses = new ArrayList<>();
         receiverClasses.add(WiFiConnectionSettingReceiver.class);
