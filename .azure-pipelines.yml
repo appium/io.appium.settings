@@ -18,12 +18,12 @@ jobs:
 - ${{ each jdk in parameters.jdks }}:
   - template: .azure-templates/gradle_job.yml
     parameters:
-      name: Lint_java_${{ jdk }}
+      name: Lint_java_${{ replace(jdk, '.', '_') }}
       task: lint
       jdk: ${{ jdk }}
 
   - template: .azure-templates/gradle_job.yml
     parameters:
-      name: Build_java_${{ jdk }}
+      name: Build_java_${{ replace(jdk, '.', '_') }}
       task: build
       jdk: ${{ jdk }}
