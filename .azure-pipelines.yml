@@ -1,0 +1,28 @@
+variables:
+  # https://github.com/Microsoft/azure-pipelines-image-generation/blob/master/images/
+  VM_IMAGE: ubuntu-18.04
+  DEFAULT_NODE_VERSION: 12.x
+
+parameters:
+- name: jdks
+  type: object
+  default:
+  - '1.8'
+  - '1.11'
+
+pool:
+  vmImage: "$(VM_IMAGE)"
+
+jobs:
+- ${{ each jdk in parameters.jdks }}:
+  - template: .azure-templates/gradle_job.yml
+    parameters:
+      name: Lint_java_${{ replace(jdk, '.', '_') }}
+      task: lint
+      jdk: ${{ jdk }}
+
+  - template: .azure-templates/gradle_job.yml
+    parameters:
+      name: Build_java_${{ replace(jdk, '.', '_') }}
+      task: build
+      jdk: ${{ jdk }}
