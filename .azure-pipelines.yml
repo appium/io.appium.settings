@@ -8,8 +8,7 @@ parameters:
   type: object
   default:
   - '1.8'
-  - '11'
-  - '14'
+  - '1.11'
 
 pool:
   vmImage: "$(VM_IMAGE)"
