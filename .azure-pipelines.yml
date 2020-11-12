@@ -16,13 +16,13 @@ pool:
 
 jobs:
 - ${{ each jdk in parameters.jdks }}:
-  - template: ./azure-templates/gradle_job.yml
+  - template: .azure-templates/gradle_job.yml
     parameters:
       name: Lint_java_${{ jdk }}
       task: lint
       jdk: ${{ jdk }}
 
-  - template: ./azure-templates/gradle_job.yml
+  - template: .azure-templates/gradle_job.yml
     parameters:
       name: Build_java_${{ jdk }}
       task: build
