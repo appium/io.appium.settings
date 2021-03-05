@@ -25,6 +25,7 @@ public class LocationFactory {
     private double latitude;
     private double longitude;
     private double altitude;
+    private float speed;
 
 
     public synchronized Location createLocation(String providerName, float accuracy) {
@@ -34,7 +35,7 @@ public class LocationFactory {
         l.setLatitude(latitude);
         l.setLongitude(longitude);
         l.setAltitude(altitude);
-        l.setSpeed(0);
+        l.setSpeed(speed);
         l.setBearing(0);
 
         l.setTime(System.currentTimeMillis());
@@ -44,9 +45,10 @@ public class LocationFactory {
         return l;
     }
 
-    public synchronized void setLocation(double latitude, double longitude, double altitude) {
+    public synchronized void setLocation(double latitude, double longitude, double altitude, float speed) {
         this.latitude = latitude;
         this.longitude = longitude;
         this.altitude = altitude;
+        this.speed = speed;
     }
 }
