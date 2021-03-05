@@ -202,13 +202,15 @@ public class LocationService extends Service {
         try {
             if (intent.hasExtra(SPEED_PARAMETER_KEY)) {
                 speed = Float.valueOf(intent.getStringExtra(SPEED_PARAMETER_KEY));
+                locationFactory.setLocation(latitude, longitude, altitude, speed);
+                return;
             }
         } catch (NumberFormatException e) {
             Log.e(TAG, String.format("speed should be a valid number. '%s' is given instead",
                     intent.getStringExtra(SPEED_PARAMETER_KEY)));
         }
 
-        locationFactory.setLocation(latitude, longitude, altitude, speed);
+        locationFactory.setLocation(latitude, longitude, altitude);
     }
 
     private List<MockLocationProvider> createMockProviders(LocationManager locationManager) {

@@ -35,7 +35,9 @@ public class LocationFactory {
         l.setLatitude(latitude);
         l.setLongitude(longitude);
         l.setAltitude(altitude);
-        l.setSpeed(speed);
+        if (speed == Float.MAX_VALUE) {
+            l.setSpeed(speed);
+        }
         l.setBearing(0);
 
         l.setTime(System.currentTimeMillis());
@@ -50,5 +52,9 @@ public class LocationFactory {
         this.longitude = longitude;
         this.altitude = altitude;
         this.speed = speed;
+    }
+
+    public synchronized void setLocation(double latitude, double longitude, double altitude) {
+        this.setLocation(latitude, longitude, altitude, Float.MAX_VALUE);
     }
 }
