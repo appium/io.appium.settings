@@ -50,6 +50,7 @@ public class LocationService extends Service {
     private static final String LONGITUDE_PARAMETER_KEY = "longitude";
     private static final String LATITUDE_PARAMETER_KEY = "latitude";
     private static final String ALTITUDE_PARAMETER_KEY = "altitude";
+    private static final String SPEED_PARAMETER_KEY = "speed";
 
     private static final long UPDATE_INTERVAL_MS = 2000L;
 
@@ -196,6 +197,17 @@ public class LocationService extends Service {
         } catch (NumberFormatException e) {
             Log.e(TAG, String.format("altitude should be a valid number. '%s' is given instead",
                     intent.getStringExtra(ALTITUDE_PARAMETER_KEY)));
+        }
+        try {
+            if (intent.hasExtra(SPEED_PARAMETER_KEY)) {
+                float speed = Float.valueOf(intent.getStringExtra(SPEED_PARAMETER_KEY));
+
+                locationFactory.setLocation(latitude, longitude, altitude, speed);
+                return;
+            }
+        } catch (NumberFormatException e) {
+            Log.e(TAG, String.format("speed should be a valid number larger then 0.0. '%s' is given instead",
+                    intent.getStringExtra(SPEED_PARAMETER_KEY)));
         }
 
         locationFactory.setLocation(latitude, longitude, altitude);
