@@ -58,7 +58,10 @@ public class SmsReader extends BroadcastReceiver implements HasAction {
                 do {
                     JSONObject item = new JSONObject();
                     for (String[] entry : SMS_INFO_MAPPING) {
-                        item.put(entry[1], formatJsonNull(cursor.getString(cursor.getColumnIndex(entry[0]))));
+                        int columnIndex = cursor.getColumnIndex(entry[0]);
+                        if (columnIndex >= 0) {
+                            item.put(entry[1], formatJsonNull(cursor.getString(columnIndex)));
+                        }
                     }
                     items.put(item);
                 } while (cursor.moveToNext() && items.length() < maxCount);
