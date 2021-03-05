@@ -198,10 +198,10 @@ public class LocationService extends Service {
             Log.e(TAG, String.format("altitude should be a valid number. '%s' is given instead",
                     intent.getStringExtra(ALTITUDE_PARAMETER_KEY)));
         }
-        float speed = 0.0f;
         try {
             if (intent.hasExtra(SPEED_PARAMETER_KEY)) {
-                speed = Float.valueOf(intent.getStringExtra(SPEED_PARAMETER_KEY));
+                float speed = Float.valueOf(intent.getStringExtra(SPEED_PARAMETER_KEY));
+
                 locationFactory.setLocation(latitude, longitude, altitude, speed);
                 return;
             }
