@@ -188,7 +188,7 @@ public class LocationService extends Service {
                             intent.getStringExtra(LATITUDE_PARAMETER_KEY)));
         }
 
-        double altitude = 0.0f;
+        double altitude = 0.0;
         try {
             if (intent.hasExtra(ALTITUDE_PARAMETER_KEY)) {
                 altitude = Double.parseDouble(intent.getStringExtra(ALTITUDE_PARAMETER_KEY));

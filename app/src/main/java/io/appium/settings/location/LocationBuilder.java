@@ -25,9 +25,9 @@ public class LocationBuilder {
 
     final private String providerName;
 
-    private double latitude = 0.0f;
-    private double longitude = 0.0f;
-    private double altitude = 0.0f;
+    private double latitude = 0.0;
+    private double longitude = 0.0;
+    private double altitude = 0.0;
     private float bearing = 0.0f;
     private float speed = 0.0f;
     private float accuracy = 0.0f;
