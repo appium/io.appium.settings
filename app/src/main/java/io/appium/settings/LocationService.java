@@ -170,53 +170,29 @@ public class LocationService extends Service {
         locationUpdatesTimer.schedule(locationUpdateTask, 0, UPDATE_INTERVAL_MS);
     }
 
+    private double extractParam(Intent intent, String paramKey) {
+        double value = 0.0;
+
+        try {
+            if (intent.hasExtra(paramKey)) {
+                value = Double.parseDouble(intent.getStringExtra(paramKey));
+            } else {
+                Log.w(TAG, String.format("Parameter %s is missing, using default value %s",
+                        paramKey, value));
+            }
+        } catch (NumberFormatException e) {
+            Log.e(TAG, String.format("%s should be a valid number. '%s' is given instead",
+                            paramKey, intent.getStringExtra(paramKey)));
+        }
+        return value;
+    }
+
     private Location getLocation(Intent intent, String providerName) {
-        double longitude;
-        try {
-            longitude = Double.parseDouble(intent.getStringExtra("longitude"));
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException(
-                    String.format("longitude should be a valid number. '%s' is given instead",
-                            intent.getStringExtra(LONGITUDE_PARAMETER_KEY)));
-        }
-        double latitude;
-        try {
-            latitude = Double.parseDouble(intent.getStringExtra("latitude"));
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException(
-                    String.format("latitude should be a valid number. '%s' is given instead",
-                            intent.getStringExtra(LATITUDE_PARAMETER_KEY)));
-        }
-
-        double altitude = 0.0;
-        try {
-            if (intent.hasExtra(ALTITUDE_PARAMETER_KEY)) {
-                altitude = Double.parseDouble(intent.getStringExtra(ALTITUDE_PARAMETER_KEY));
-            }
-        } catch (NumberFormatException e) {
-            Log.e(TAG, String.format("altitude should be a valid number. '%s' is given instead",
-                    intent.getStringExtra(ALTITUDE_PARAMETER_KEY)));
-        }
-
-        float speed = 0.0f;
-        try {
-            if (intent.hasExtra(SPEED_PARAMETER_KEY)) {
-                speed = Float.parseFloat(intent.getStringExtra(SPEED_PARAMETER_KEY));
-            }
-        } catch (NumberFormatException e) {
-            Log.e(TAG, String.format("speed should be a valid number larger then 0.0. '%s' is given instead",
-                    intent.getStringExtra(SPEED_PARAMETER_KEY)));
-        }
-
-        float bearing = 0.0f;
-        try {
-            if (intent.hasExtra(BEARING_PARAMETER_KEY)) {
-                bearing = Float.parseFloat(intent.getStringExtra(BEARING_PARAMETER_KEY));
-            }
-        } catch (NumberFormatException e) {
-            Log.e(TAG, String.format("Bearing should be a valid number. '%s' is given instead",
-                    intent.getStringExtra(BEARING_PARAMETER_KEY)));
-        }
+        double longitude = extractParam(intent, LONGITUDE_PARAMETER_KEY);
+        double latitude = extractParam(intent, LATITUDE_PARAMETER_KEY);
+        double altitude = extractParam(intent, ALTITUDE_PARAMETER_KEY);
+        float speed = (float) extractParam(intent, SPEED_PARAMETER_KEY);
+        float bearing = (float) extractParam(intent, BEARING_PARAMETER_KEY);
 
         return new LocationBuilder(providerName)
                 .setAccuracy(Criteria.ACCURACY_FINE)
