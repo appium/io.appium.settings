@@ -20,7 +20,6 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.location.LocationProvider;
@@ -46,12 +45,6 @@ import io.appium.settings.location.MockLocationProvider;
 
 public class LocationService extends Service {
     private static final String TAG = "MOCKED LOCATION SERVICE";
-
-    private static final String LONGITUDE_PARAMETER_KEY = "longitude";
-    private static final String LATITUDE_PARAMETER_KEY = "latitude";
-    private static final String ALTITUDE_PARAMETER_KEY = "altitude";
-    private static final String SPEED_PARAMETER_KEY = "speed";
-    private static final String BEARING_PARAMETER_KEY = "bearing";
 
     private static final long UPDATE_INTERVAL_MS = 2000L;
 
@@ -155,7 +148,7 @@ public class LocationService extends Service {
             @Override
             public void run() {
                 for (MockLocationProvider mockLocationProvider : mockLocationProviders) {
-                    Location location = getLocation(intent, mockLocationProvider.getProviderName());
+                    Location location = LocationBuilder.buildFromIntent(intent, mockLocationProvider.getProviderName());
                     Log.d(TAG, String.format("Setting location of '%s' to '%s'", mockLocationProvider.getProviderName(), location));
                     try {
                         mockLocationProvider.setLocation(location);
@@ -168,39 +161,6 @@ public class LocationService extends Service {
         };
 
         locationUpdatesTimer.schedule(locationUpdateTask, 0, UPDATE_INTERVAL_MS);
-    }
-
-    private double extractParam(Intent intent, String paramKey) {
-        double value = 0.0;
-
-        try {
-            if (intent.hasExtra(paramKey)) {
-                value = Double.parseDouble(intent.getStringExtra(paramKey));
-            } else {
-                Log.i(TAG, String.format("Parameter %s is missing, using default value %s",
-                        paramKey, value));
-            }
-        } catch (NumberFormatException e) {
-            Log.e(TAG, String.format("%s should be a valid number. '%s' is given instead",
-                            paramKey, intent.getStringExtra(paramKey)));
-        }
-        return value;
-    }
-
-    private Location getLocation(Intent intent, String providerName) {
-        double longitude = extractParam(intent, LONGITUDE_PARAMETER_KEY);
-        double latitude = extractParam(intent, LATITUDE_PARAMETER_KEY);
-        double altitude = extractParam(intent, ALTITUDE_PARAMETER_KEY);
-        float speed = (float) extractParam(intent, SPEED_PARAMETER_KEY);
-        float bearing = (float) extractParam(intent, BEARING_PARAMETER_KEY);
-
-        return new LocationBuilder(providerName)
-                .setAccuracy(Criteria.ACCURACY_FINE)
-                .setLatitude(latitude)
-                .setLongitude(longitude)
-                .setAltitude(altitude)
-                .setBearing(bearing)
-                .setSpeed(speed).build();
     }
 
     private List<MockLocationProvider> createMockProviders(LocationManager locationManager) {

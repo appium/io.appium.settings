@@ -16,68 +16,68 @@
 
 package io.appium.settings.location;
 
+import android.content.Intent;
+import android.location.Criteria;
 import android.location.Location;
 import android.os.Build;
 import android.os.SystemClock;
+import android.support.annotation.Nullable;
+import android.util.Log;
 
 
 public class LocationBuilder {
 
-    final private String providerName;
+    private static final String TAG = "MOCKED LOCATION BUILDER";
+    private static final String LONGITUDE_PARAMETER_KEY = "longitude";
+    private static final String LATITUDE_PARAMETER_KEY = "latitude";
+    private static final String ALTITUDE_PARAMETER_KEY = "altitude";
+    private static final String SPEED_PARAMETER_KEY = "speed";
+    private static final String BEARING_PARAMETER_KEY = "bearing";
 
-    private double latitude = 0.0;
-    private double longitude = 0.0;
-    private double altitude = 0.0;
-    private float bearing = 0.0f;
-    private float speed = 0.0f;
-    private float accuracy = 0.0f;
+    @Nullable
+    private static Double extractParam(Intent intent, String paramKey) {
+        Double value = null;
 
-    public LocationBuilder (String providerName) {
-        this.providerName = providerName;
-    }
-
-    public LocationBuilder setAccuracy(float accuracy) {
-        this.accuracy = accuracy;
-        return this;
-    }
-
-    public LocationBuilder setLatitude(double latitude) {
-        this.latitude = latitude;
-        return this;
-    }
-
-    public LocationBuilder setLongitude(double longitude) {
-        this.longitude = longitude;
-        return this;
-    }
-
-    public LocationBuilder setAltitude(double altitude) {
-        this.altitude = altitude;
-        return this;
-    }
-
-    public LocationBuilder setSpeed(float speed) {
-        this.speed = speed;
-        return this;
-    }
-
-    public LocationBuilder setBearing(float bearing) {
-        this.bearing = bearing;
-        return this;
-    }
-
-    public Location build() {
-        Location l = new Location(this.providerName);
-        l.setAccuracy(this.accuracy);
-        l.setLatitude(this.latitude);
-        l.setLongitude(this.longitude);
-        l.setAltitude(this.altitude);
-        l.setBearing(this.bearing);
-        l.setSpeed(this.speed);
-        l.setTime(System.currentTimeMillis());
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            l.setElapsedRealtimeNanos(SystemClock.elapsedRealtimeNanos());
+        try {
+            if (intent.hasExtra(paramKey)) {
+                value = Double.parseDouble(intent.getStringExtra(paramKey));
+                Log.i(TAG, String.format("Received parameter: %s, value: %s", paramKey, value));
+            }
+        } catch (NumberFormatException e) {
+            Log.e(TAG, String.format("%s should be a valid number. '%s' is given instead",
+                    paramKey, intent.getStringExtra(paramKey)));
         }
-        return l;
+        return value;
+    }
+
+    public static Location buildFromIntent(Intent intent, String providerName) {
+        Double longitude = extractParam(intent, LONGITUDE_PARAMETER_KEY);
+        Double latitude = extractParam(intent, LATITUDE_PARAMETER_KEY);
+        Double altitude = extractParam(intent, ALTITUDE_PARAMETER_KEY);
+        Double speed = extractParam(intent, SPEED_PARAMETER_KEY);
+        Double bearing = extractParam(intent, BEARING_PARAMETER_KEY);
+        Location location = new Location(providerName);
+        location.setAccuracy(Criteria.ACCURACY_FINE);
+        if (longitude != null) {
+            location.setLongitude(longitude);
+        }
+        if (latitude != null) {
+            location.setLatitude(latitude);
+        }
+        if (altitude != null) {
+            location.setAltitude(altitude);
+        }
+        if (speed != null) {
+            location.setSpeed((float) ((double) speed));
+        }
+        if (bearing != null) {
+            location.setBearing((float) ((double) bearing));
+        }
+
+        location.setTime(System.currentTimeMillis());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            location.setElapsedRealtimeNanos(SystemClock.elapsedRealtimeNanos());
+        }
+        return location;
     }
 }
