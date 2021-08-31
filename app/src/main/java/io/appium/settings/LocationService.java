@@ -177,7 +177,7 @@ public class LocationService extends Service {
             if (intent.hasExtra(paramKey)) {
                 value = Double.parseDouble(intent.getStringExtra(paramKey));
             } else {
-                Log.w(TAG, String.format("Parameter %s is missing, using default value %s",
+                Log.i(TAG, String.format("Parameter %s is missing, using default value %s",
                         paramKey, value));
             }
         } catch (NumberFormatException e) {
