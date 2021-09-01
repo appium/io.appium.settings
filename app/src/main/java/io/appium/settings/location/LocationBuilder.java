@@ -68,10 +68,10 @@ public class LocationBuilder {
             location.setAltitude(altitude);
         }
         if (speed != null) {
-            location.setSpeed((float) ((double) speed));
+            location.setSpeed(speed.floatValue());
         }
         if (bearing != null) {
-            location.setBearing((float) ((double) bearing));
+            location.setBearing(bearing.floatValue());
         }
 
         location.setTime(System.currentTimeMillis());
