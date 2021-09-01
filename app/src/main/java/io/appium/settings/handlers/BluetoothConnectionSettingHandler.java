@@ -16,9 +16,11 @@
 
 package io.appium.settings.handlers;
 
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 
+@SuppressLint("MissingPermission")
 public class BluetoothConnectionSettingHandler extends AbstractSettingHandler {
 
     private BluetoothAdapter bluetoothAdapter;

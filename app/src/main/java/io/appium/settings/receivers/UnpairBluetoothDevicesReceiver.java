@@ -16,6 +16,7 @@
 
 package io.appium.settings.receivers;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -27,6 +28,7 @@ import android.util.Log;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Set;
 
+@SuppressLint("MissingPermission")
 public class UnpairBluetoothDevicesReceiver extends BroadcastReceiver implements HasAction {
     private static final String TAG = UnpairBluetoothDevicesReceiver.class.getSimpleName();
 

@@ -20,7 +20,6 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.location.LocationProvider;
@@ -40,22 +39,16 @@ import java.util.TimerTask;
 import io.appium.settings.helpers.NotificationHelpers;
 import io.appium.settings.helpers.PlayServicesHelpers;
 import io.appium.settings.location.FusedLocationProvider;
-import io.appium.settings.location.LocationFactory;
+import io.appium.settings.location.LocationBuilder;
 import io.appium.settings.location.LocationManagerProvider;
 import io.appium.settings.location.MockLocationProvider;
 
 public class LocationService extends Service {
     private static final String TAG = "MOCKED LOCATION SERVICE";
 
-    private static final String LONGITUDE_PARAMETER_KEY = "longitude";
-    private static final String LATITUDE_PARAMETER_KEY = "latitude";
-    private static final String ALTITUDE_PARAMETER_KEY = "altitude";
-    private static final String SPEED_PARAMETER_KEY = "speed";
-
     private static final long UPDATE_INTERVAL_MS = 2000L;
 
     private final List<MockLocationProvider> mockLocationProviders = new LinkedList<>();
-    private final LocationFactory locationFactory = new LocationFactory();
     private final Timer locationUpdatesTimer = new Timer();
     private TimerTask locationUpdateTask;
 
@@ -106,9 +99,7 @@ public class LocationService extends Service {
         }
         Log.i(TAG, "INTENT " + intent.getExtras());
 
-        // update the locationFactory also if the service is already running to mock.
-        updateMockLocationFactory(intent);
-        scheduleLocationUpdate();
+        scheduleLocationUpdate(intent);
     }
 
     private void enableLocationProviders() {
@@ -145,7 +136,7 @@ public class LocationService extends Service {
         Log.d(TAG, String.format("Created mock providers: %s", mockLocationProviders.toString()));
     }
 
-    private void scheduleLocationUpdate() {
+    private void scheduleLocationUpdate(final Intent intent) {
         Log.i(TAG, "Scheduling mock location updates");
 
         // If we run 'startservice' again we should schedule an update right away to avoid a delay
@@ -157,7 +148,7 @@ public class LocationService extends Service {
             @Override
             public void run() {
                 for (MockLocationProvider mockLocationProvider : mockLocationProviders) {
-                    Location location = locationFactory.createLocation(mockLocationProvider.getProviderName(), Criteria.ACCURACY_FINE);
+                    Location location = LocationBuilder.buildFromIntent(intent, mockLocationProvider.getProviderName());
                     Log.d(TAG, String.format("Setting location of '%s' to '%s'", mockLocationProvider.getProviderName(), location));
                     try {
                         mockLocationProvider.setLocation(location);
@@ -170,47 +161,6 @@ public class LocationService extends Service {
         };
 
         locationUpdatesTimer.schedule(locationUpdateTask, 0, UPDATE_INTERVAL_MS);
-    }
-
-    private void updateMockLocationFactory(Intent intent) {
-        double longitude;
-        try {
-            longitude = Double.valueOf(intent.getStringExtra("longitude"));
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException(
-                    String.format("longitude should be a valid number. '%s' is given instead",
-                            intent.getStringExtra(LONGITUDE_PARAMETER_KEY)));
-        }
-        double latitude;
-        try {
-            latitude = Double.valueOf(intent.getStringExtra("latitude"));
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException(
-                    String.format("latitude should be a valid number. '%s' is given instead",
-                            intent.getStringExtra(LATITUDE_PARAMETER_KEY)));
-        }
-        double altitude = 0.0;
-        try {
-            if (intent.hasExtra(ALTITUDE_PARAMETER_KEY)) {
-                altitude = Double.valueOf(intent.getStringExtra(ALTITUDE_PARAMETER_KEY));
-            }
-        } catch (NumberFormatException e) {
-            Log.e(TAG, String.format("altitude should be a valid number. '%s' is given instead",
-                    intent.getStringExtra(ALTITUDE_PARAMETER_KEY)));
-        }
-        try {
-            if (intent.hasExtra(SPEED_PARAMETER_KEY)) {
-                float speed = Float.valueOf(intent.getStringExtra(SPEED_PARAMETER_KEY));
-
-                locationFactory.setLocation(latitude, longitude, altitude, speed);
-                return;
-            }
-        } catch (NumberFormatException e) {
-            Log.e(TAG, String.format("speed should be a valid number larger then 0.0. '%s' is given instead",
-                    intent.getStringExtra(SPEED_PARAMETER_KEY)));
-        }
-
-        locationFactory.setLocation(latitude, longitude, altitude);
     }
 
     private List<MockLocationProvider> createMockProviders(LocationManager locationManager) {
