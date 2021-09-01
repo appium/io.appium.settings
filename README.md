@@ -134,6 +134,12 @@ $ adb shell am startservice --user 0 -n io.appium.settings/.LocationService --es
 Running the command again stops sending the previously specified location and starts sending updates for the
 new mock location.
 
+Additionally the service allows to provide the following optional parameters to the mocked
+location:
+
+- `speed`: the speed, in meters/second over ground. A float value greater than zero is acceptable.
+- `bearing`: the bearing, in degrees. Bearing is the horizontal direction of travel of this device, and is not related to the device orientation. The input will be wrapped into the range (0.0, 360.0]
+
 Stop sending new mocklocations and clean up everything (remove the mock location providers) by executing:
 ```shell
 $ adb shell am stopservice io.appium.settings/.LocationService
