@@ -1,14 +1,13 @@
 variables:
   # https://github.com/Microsoft/azure-pipelines-image-generation/blob/master/images/
   VM_IMAGE: ubuntu-18.04
-  DEFAULT_NODE_VERSION: 12.x
+  DEFAULT_NODE_VERSION: 14.x
 
 parameters:
 - name: jdks
   type: object
   default:
-  - '1.8'
-  - '1.11'
+  - '11'
 
 pool:
   vmImage: "$(VM_IMAGE)"
