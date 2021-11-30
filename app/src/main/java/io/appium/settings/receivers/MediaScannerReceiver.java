@@ -63,12 +63,14 @@ public class MediaScannerReceiver extends BroadcastReceiver
             Log.e(TAG, "No path has been provided");
             setResultCode(Activity.RESULT_CANCELED);
             setResultData("");
+            return;
         }
         File item = new File(intent.getStringExtra(PATH));
         if (!item.exists()) {
             Log.e(TAG, String.format("The item at '%s' does not exist", item.toString()));
             setResultCode(Activity.RESULT_CANCELED);
             setResultData("");
+            return;
         }
         List<String> filePaths = fetchFiles(item);
         if (filePaths.isEmpty()) {
