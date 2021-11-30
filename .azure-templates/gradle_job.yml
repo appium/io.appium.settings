@@ -10,12 +10,12 @@ jobs:
   - task: NodeTool@0
     inputs:
       versionSpec: "$(DEFAULT_NODE_VERSION)"
-  - script: npm install
   - task: JavaToolInstaller@0
     inputs:
       versionSpec: "${{ parameters.jdk }}"
       jdkArchitectureOption: 'x64'
       jdkSourceOption: 'PreInstalled'
+  - script: npm install
   - task: Gradle@2
     inputs:
       gradleWrapperFile: 'gradlew'
