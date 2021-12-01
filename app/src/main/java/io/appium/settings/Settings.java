@@ -24,7 +24,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import io.appium.settings.receivers.AnimationSettingReceiver;
@@ -34,6 +34,7 @@ import io.appium.settings.receivers.DataConnectionSettingReceiver;
 import io.appium.settings.receivers.HasAction;
 import io.appium.settings.receivers.LocaleSettingReceiver;
 import io.appium.settings.receivers.LocationInfoReceiver;
+import io.appium.settings.receivers.MediaScannerReceiver;
 import io.appium.settings.receivers.NotificationsReceiver;
 import io.appium.settings.receivers.SmsReader;
 import io.appium.settings.receivers.UnpairBluetoothDevicesReceiver;
@@ -50,18 +51,19 @@ public class Settings extends Activity {
 
         LocationTracker.getInstance().start(this);
 
-        final List<Class<? extends BroadcastReceiver>> receiverClasses = new ArrayList<>();
-        receiverClasses.add(WiFiConnectionSettingReceiver.class);
-        receiverClasses.add(AnimationSettingReceiver.class);
-        receiverClasses.add(DataConnectionSettingReceiver.class);
-        receiverClasses.add(LocaleSettingReceiver.class);
-        receiverClasses.add(LocationInfoReceiver.class);
-        receiverClasses.add(ClipboardReceiver.class);
-        receiverClasses.add(BluetoothConnectionSettingReceiver.class);
-        receiverClasses.add(UnpairBluetoothDevicesReceiver.class);
-        receiverClasses.add(NotificationsReceiver.class);
-        receiverClasses.add(SmsReader.class);
-        registerSettingsReceivers(receiverClasses);
+        registerSettingsReceivers(Arrays.asList(
+                WiFiConnectionSettingReceiver.class,
+                AnimationSettingReceiver.class,
+                DataConnectionSettingReceiver.class,
+                LocaleSettingReceiver.class,
+                LocationInfoReceiver.class,
+                ClipboardReceiver.class,
+                BluetoothConnectionSettingReceiver.class,
+                UnpairBluetoothDevicesReceiver.class,
+                NotificationsReceiver.class,
+                SmsReader.class,
+                MediaScannerReceiver.class
+        ));
 
         // https://developer.android.com/about/versions/oreo/background-location-limits
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

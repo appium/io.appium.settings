@@ -4,6 +4,7 @@
     package="io.appium.settings">
 
     <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
@@ -132,5 +133,8 @@
         <receiver android:name=".receivers.SmsReader"
                   android:exported="true"
                   tools:ignore="ExportedReceiver" />
+        <receiver android:name=".receivers.MediaScannerReceiver"
+            android:exported="true"
+            tools:ignore="ExportedReceiver" />
     </application>
 </manifest>

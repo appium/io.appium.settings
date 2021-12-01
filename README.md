@@ -286,6 +286,23 @@ The example of the resulting data:
 ```
 
 
+## Media Scanning
+
+Since version 3.5 Appium Settings supports broadcast messages handling
+that performs media scanning in response to `io.appium.settings.scan_media`
+intent. This was done due to `android.intent.action.MEDIA_SCANNER_SCAN_FILE` deprecation
+since Android API version 30. To scan the given file or folder for media data simply run:
+
+```bash
+$ adb shell am broadcast -a io.appium.settings.scan_media --es path /sdcard/media
+```
+
+This command will _recursively_ scan all files inside of `/sdcard/media` folder
+and add them to the media library if their MIME types are supported. If the
+file/folder in _path_ does not exist/is not readable or is not provided then an
+error will be returned and the corresponding log message would be written into logs.
+
+
 ## Notes:
 
 * You have to specify the receiver class if the app has never been executed before:
