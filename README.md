@@ -120,10 +120,9 @@ $ adb shell am broadcast -a io.appium.settings.location -n io.appium.settings/.r
 
 The first value in the returned `data` string is the current latitude, the second is the longitude and the last one is the altitude. An empty string is returned if the data cannot be retrieved (more details on the failure cause can be found in the logcat output).
 
-Since version 3.6.0 it is also possible to provide `mode` argument, which accepts two values: `current` and `cached`. The default mode is `cached`, where the recent cached location is always
-returned when requested. The `current` mode only has an effect if Google Play Services are available
-and tries to request the actual non-cached location within 5 seconds timeout before
-defaulting to `cached` mode.
+Since version 3.6.0 it is also possible to provide `forceUpdate` boolean argument. If it is set to
+`true` then location update request is going to be send asynchronously every time when the
+current location is requested. By default the cached location value is returned instead.
 
 ## Setting Mock Locations
 

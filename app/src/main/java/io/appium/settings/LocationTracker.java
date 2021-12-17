@@ -20,9 +20,9 @@ import android.content.Context;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
-import android.os.HandlerThread;
-import android.os.SystemClock;
+import android.os.Looper;
 import android.util.Log;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -31,9 +31,7 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.CancellationTokenSource;
-import com.google.android.gms.tasks.Task;
 
-import io.appium.settings.helpers.LocationMode;
 import io.appium.settings.helpers.PlayServicesHelpers;
 
 import static android.content.Context.LOCATION_SERVICE;
@@ -41,9 +39,7 @@ import static android.content.Context.LOCATION_SERVICE;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class LocationTracker implements
         com.google.android.gms.location.LocationListener, LocationListener {
@@ -51,30 +47,18 @@ public class LocationTracker implements
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 10; // 10 meters
     private static final long LOCATION_UPDATES_INTERVAL_MS = 1000 * 60; // 1 minute
     private static final long FAST_INTERVAL_MS = 5000;
-    private static final int MAX_LOCATION_RETRIEVAL_DELAY_SEC = 5;
 
     private volatile LocationManager mLocationManager;
     private volatile FusedLocationProviderClient mFusedLocationProviderClient;
-    private final HandlerThread locationHandler = new HandlerThread("LocationHandler");
     private final LocationCallback locationCallback = new LocationCallback() {
         @Override
         public void onLocationResult(@NonNull LocationResult locationResult) {
-            try {
-                Log.d(TAG, "Got a location update from Play Services");
-                mLocation = locationResult.getLastLocation();
-            } finally {
-                try {
-                    cachedLocationRetrievalGuard.unlock();
-                } catch (RuntimeException e) {
-                    // ignore
-                }
-            }
+            Log.d(TAG, "Got a location update from Play Services");
+            mLocation = locationResult.getLastLocation();
         }
     };
-    private final Lock cachedLocationRetrievalGuard = new ReentrantLock(false);
-    private final Lock currentLocationRetrievalGuard = new ReentrantLock(false);
     private volatile Location mLocation;
-    private volatile boolean isStarted = false;
+    private final AtomicBoolean isStarted = new AtomicBoolean(false);
     private String mLocationProvider;
 
     private static LocationTracker instance = null;
@@ -91,28 +75,20 @@ public class LocationTracker implements
 
     @Override
     public void onLocationChanged(@Nullable Location location) {
-        try {
-            if (location == null) {
-                return;
-            }
-
-            Log.d(TAG, "Got a location update from Location Manager");
-            mLocation = location;
-        } finally {
-            try {
-                cachedLocationRetrievalGuard.unlock();
-            } catch (RuntimeException e) {
-                // ignore
-            }
+        if (location == null) {
+            return;
         }
+
+        Log.d(TAG, "Got a location update from Location Manager");
+        mLocation = location;
     }
 
     @Override
-    public void onProviderDisabled(String provider) {
+    public void onProviderDisabled(@NonNull String provider) {
     }
 
     @Override
-    public void onProviderEnabled(String provider) {
+    public void onProviderEnabled(@NonNull String provider) {
     }
 
     @Override
@@ -120,10 +96,10 @@ public class LocationTracker implements
     }
 
     synchronized void start(Context context) {
-        if (isStarted) {
+        if (isStarted.get()) {
             return;
         }
-        isStarted = true;
+        isStarted.set(true);
 
         if (PlayServicesHelpers.isAvailable(context)) {
             initializePlayServices(context);
@@ -143,12 +119,9 @@ public class LocationTracker implements
                 .setPriority(LocationRequest.PRIORITY_LOW_POWER)
                 .setInterval(LOCATION_UPDATES_INTERVAL_MS)
                 .setFastestInterval(FAST_INTERVAL_MS);
-        if (!locationHandler.isAlive()) {
-            locationHandler.start();
-        }
         try {
             mFusedLocationProviderClient.requestLocationUpdates(
-                    locationRequest, locationCallback, locationHandler.getLooper());
+                    locationRequest, locationCallback, Looper.getMainLooper());
             Log.d(TAG, "Google Play Services location provider is connected");
             return;
         } catch (SecurityException e) {
@@ -246,75 +219,53 @@ public class LocationTracker implements
 
     @Nullable
     private Location getCachedLocation() {
-        try {
-            if (mLocation != null) {
-                Log.d(TAG, "The cached location has been successfully retrieved");
-                return mLocation;
-            }
-
-            Log.d(TAG, String.format("Waiting up to %s seconds to retrieve the cached location",
-                    MAX_LOCATION_RETRIEVAL_DELAY_SEC));
-            long msStarted = SystemClock.uptimeMillis();
-            if (cachedLocationRetrievalGuard.tryLock(MAX_LOCATION_RETRIEVAL_DELAY_SEC, TimeUnit.SECONDS)
-                    && mLocation != null) {
-                Log.d(TAG, String.format("The location has been successfully retrieved in %sms",
-                        SystemClock.uptimeMillis() - msStarted));
-                return mLocation;
-            }
-        } catch (InterruptedException e) {
-            // ignore
+        if (mLocation != null) {
+            Log.d(TAG, "The cached location has been successfully retrieved");
+            return mLocation;
         }
-        Log.d(TAG, String.format("The location has not been retrieved within %s seconds timeout",
-                MAX_LOCATION_RETRIEVAL_DELAY_SEC));
+        Log.d(TAG, "The cached location has not been retrieved");
         return null;
     }
 
-    @Nullable
-    private Location getCurrentLocation() {
-        if (isFusedLocationProviderInitialized()) {
-            try {
-                Task<Location> task = mFusedLocationProviderClient.getCurrentLocation(
-                        LocationRequest.PRIORITY_HIGH_ACCURACY, new CancellationTokenSource().getToken());
-                task.addOnSuccessListener(location -> {
-                    try {
-                        mLocation = location;
-                        Log.d(TAG, "The current location has been successfully retrieved");
-                    } finally {
-                        try {
-                            currentLocationRetrievalGuard.unlock();
-                        } catch (RuntimeException e) {
-                            // ignore
-                        }
-                    }
-                });
-            } catch (SecurityException e) {
-                Log.e(TAG, "Appium Settings has no access to location permission", e);
-            }
-            try {
-                if (currentLocationRetrievalGuard.tryLock(MAX_LOCATION_RETRIEVAL_DELAY_SEC,
-                        TimeUnit.SECONDS)) {
-                    return mLocation;
-                }
-            } catch (InterruptedException e) {
-                // ignore
-            }
-        }
-        return null;
-    }
-
-    @Nullable
-    public synchronized Location getLocation(Context context, LocationMode mode) {
+    public synchronized void forceLocationUpdate(Context context) {
         // Make sure the service has been started
         start(context);
 
-        if (mode == LocationMode.CURRENT) {
-            Location location = getCurrentLocation();
-            if (location != null) {
-                return location;
+        if (isFusedLocationProviderInitialized()) {
+            try {
+                mFusedLocationProviderClient.getCurrentLocation(
+                        LocationRequest.PRIORITY_HIGH_ACCURACY, new CancellationTokenSource().getToken())
+                        .addOnCompleteListener(t -> {
+                            if (t.isSuccessful()) {
+                                mLocation = t.getResult();
+                                Log.d(TAG, "The current location has been successfully retrieved from " +
+                                        "Play Services");
+                            } else {
+                                Log.w(TAG, "Failed to retrieve the current location from Play Services",
+                                        t.getException());
+                            }
+                        });
+            } catch (SecurityException e) {
+                Log.e(TAG, "Appium Settings has no access to location permission", e);
             }
-            Log.d(TAG, "The current location cannot be retrieved. Falling back " +
-                    "to the cached one");
+        } else if (isLocationManagerConnected() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            try {
+                mLocationManager.getCurrentLocation(mLocationProvider, null,
+                        context.getMainExecutor(), location -> {
+                            mLocation = location;
+                            Log.d(TAG, "The current location has been successfully retrieved " +
+                                    "from Location Manager");
+                        });
+            } catch (SecurityException e) {
+                Log.e(TAG, "Appium Settings has no access to location permission", e);
+            }
         }
+    }
+
+    @Nullable
+    public synchronized Location getLocation(Context context) {
+        // Make sure the service has been started
+        start(context);
 
         if (isFusedLocationProviderInitialized()) {
             Location location = getCachedLocation();
@@ -333,9 +284,6 @@ public class LocationTracker implements
         } catch (SecurityException e) {
             Log.e(TAG, "Appium Settings has no access to location permission", e);
         }
-        if (isLocationManagerConnected()) {
-            return getCachedLocation();
-        }
-        return null;
+        return isLocationManagerConnected() ? getCachedLocation() : null;
     }
 }
