@@ -22,11 +22,12 @@ import android.content.Context;
 import android.location.Location;
 import android.util.Log;
 
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
 
-import static android.content.pm.PackageManager.PERMISSION_GRANTED;
-import static android.support.v4.content.ContextCompat.checkSelfPermission;
+import static androidx.core.content.PermissionChecker.PERMISSION_GRANTED;
+import static androidx.core.content.PermissionChecker.checkSelfPermission;
+
+import androidx.annotation.NonNull;
 
 public class FusedLocationProvider implements MockLocationProvider {
 
@@ -34,12 +35,10 @@ public class FusedLocationProvider implements MockLocationProvider {
 
     private final static String PROVIDER_NAME = "fused";
 
-    private final GoogleApiClient googleApiClient;
     private final FusedLocationProviderClient fusedLocationProviderClient;
     private final Context context;
 
-    public FusedLocationProvider(GoogleApiClient googleApiClient, FusedLocationProviderClient fusedLocationProviderClient, Context context) {
-        this.googleApiClient = googleApiClient;
+    public FusedLocationProvider(FusedLocationProviderClient fusedLocationProviderClient, Context context) {
         this.fusedLocationProviderClient = fusedLocationProviderClient;
         this.context = context;
     }
@@ -55,7 +54,7 @@ public class FusedLocationProvider implements MockLocationProvider {
         if (!hasPermissions()) {
             return;
         }
-        if (!googleApiClient.isConnected()) {
+        if (!fusedLocationProviderClient.asGoogleApiClient().isConnected()) {
             Log.d(TAG, "GoogleApiClient is not connected");
             return;
         }
@@ -68,7 +67,7 @@ public class FusedLocationProvider implements MockLocationProvider {
         if (!hasPermissions()) {
             return;
         }
-        googleApiClient.connect();
+        fusedLocationProviderClient.asGoogleApiClient().connect();
         fusedLocationProviderClient.setMockMode(true);
     }
 
@@ -79,10 +78,11 @@ public class FusedLocationProvider implements MockLocationProvider {
             return;
         }
         fusedLocationProviderClient.setMockMode(false);
-        googleApiClient.disconnect();
+        fusedLocationProviderClient.asGoogleApiClient().disconnect();
     }
 
     @Override
+    @NonNull
     public String toString() {
         return "FusedLocationProvider{" +
                 "name='" + PROVIDER_NAME + '\'' +

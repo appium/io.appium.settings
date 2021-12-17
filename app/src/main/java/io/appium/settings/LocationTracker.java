@@ -21,29 +21,58 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import android.os.HandlerThread;
+import android.os.SystemClock;
 import android.util.Log;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.CancellationTokenSource;
+import com.google.android.gms.tasks.Task;
 
+import io.appium.settings.helpers.LocationMode;
 import io.appium.settings.helpers.PlayServicesHelpers;
 
 import static android.content.Context.LOCATION_SERVICE;
 
-public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener,
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+public class LocationTracker implements
         com.google.android.gms.location.LocationListener, LocationListener {
     private static final String TAG = LocationTracker.class.getSimpleName();
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 10; // 10 meters
-    private static final long LOCATION_UPDATES_INTERVAL = 1000 * 60; // 1 minute
-    private static final long FAST_INTERVAL = 5000; // 5 seconds
+    private static final long LOCATION_UPDATES_INTERVAL_MS = 1000 * 60; // 1 minute
+    private static final long FAST_INTERVAL_MS = 5000;
+    private static final int MAX_LOCATION_RETRIEVAL_DELAY_SEC = 5;
 
     private volatile LocationManager mLocationManager;
-    private volatile GoogleApiClient mGoogleApiClient;
+    private volatile FusedLocationProviderClient mFusedLocationProviderClient;
+    private final HandlerThread locationHandler = new HandlerThread("LocationHandler");
+    private final LocationCallback locationCallback = new LocationCallback() {
+        @Override
+        public void onLocationResult(@NonNull LocationResult locationResult) {
+            try {
+                Log.d(TAG, "Got a location update from Play Services");
+                mLocation = locationResult.getLastLocation();
+            } finally {
+                try {
+                    cachedLocationRetrievalGuard.unlock();
+                } catch (RuntimeException e) {
+                    // ignore
+                }
+            }
+        }
+    };
+    private final Lock cachedLocationRetrievalGuard = new ReentrantLock(false);
+    private final Lock currentLocationRetrievalGuard = new ReentrantLock(false);
     private volatile Location mLocation;
     private volatile boolean isStarted = false;
     private String mLocationProvider;
@@ -61,10 +90,20 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
     }
 
     @Override
-    public void onLocationChanged(Location location) {
-        if (location != null) {
-            Log.d(TAG, "Got an updated location");
+    public void onLocationChanged(@Nullable Location location) {
+        try {
+            if (location == null) {
+                return;
+            }
+
+            Log.d(TAG, "Got a location update from Location Manager");
             mLocation = location;
+        } finally {
+            try {
+                cachedLocationRetrievalGuard.unlock();
+            } catch (RuntimeException e) {
+                // ignore
+            }
         }
     }
 
@@ -80,25 +119,36 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
     public void onStatusChanged(String provider, int status, Bundle extras) {
     }
 
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        if (mGoogleApiClient == null) {
+    synchronized void start(Context context) {
+        if (isStarted) {
             return;
         }
-        if (!mGoogleApiClient.isConnected()) {
-            // This should never happen, but it's happening on some phones
-            Log.e(TAG, "Google API is still connecting being inside onConnected callback");
-            mGoogleApiClient = null;
+        isStarted = true;
+
+        if (PlayServicesHelpers.isAvailable(context)) {
+            initializePlayServices(context);
+        } else {
+            initializeLocationManager(context);
+        }
+    }
+
+    private void initializePlayServices(Context context) {
+        if (isFusedLocationProviderInitialized()) {
             return;
         }
-        LocationRequest locationRequest = new LocationRequest();
-        locationRequest.setPriority(LocationRequest.PRIORITY_LOW_POWER);
-        locationRequest.setInterval(LOCATION_UPDATES_INTERVAL);
-        locationRequest.setFastestInterval(FAST_INTERVAL);
+
+        Log.d(TAG, "Configuring location provider for Google Play Services");
+        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context);
+        LocationRequest locationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_LOW_POWER)
+                .setInterval(LOCATION_UPDATES_INTERVAL_MS)
+                .setFastestInterval(FAST_INTERVAL_MS);
+        if (!locationHandler.isAlive()) {
+            locationHandler.start();
+        }
         try {
-            //noinspection deprecation
-            LocationServices.FusedLocationApi
-                    .requestLocationUpdates(mGoogleApiClient, locationRequest, this);
+            mFusedLocationProviderClient.requestLocationUpdates(
+                    locationRequest, locationCallback, locationHandler.getLooper());
             Log.d(TAG, "Google Play Services location provider is connected");
             return;
         } catch (SecurityException e) {
@@ -107,49 +157,6 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
             Log.e(TAG, "Cannot connect to Google location service", e);
         }
         stopLocationUpdatesWithPlayServices();
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        if (mGoogleApiClient == null) {
-            return;
-        }
-
-        Log.e(TAG, String.format("Google Play Services location provider has failed to connect (code %s)",
-                connectionResult.toString()));
-        stopLocationUpdatesWithPlayServices();
-    }
-
-    synchronized void start(Context context) {
-        if (isStarted) {
-            return;
-        }
-        isStarted = true;
-
-        boolean isPlayServicesAvailable = PlayServicesHelpers.isAvailable(context);
-        if (isPlayServicesAvailable) {
-            initializePlayServices(context);
-        } else {
-            initializeLocationManager(context);
-        }
-    }
-
-    private void initializePlayServices(Context context) {
-        if (isPlayServicesConnected()) {
-            return;
-        }
-
-        Log.d(TAG, "Configuring location provider for Google Play Services");
-        mGoogleApiClient = new GoogleApiClient.Builder(context)
-                .addApi(LocationServices.API)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build();
-        mGoogleApiClient.connect();
     }
 
     private void initializeLocationManager(Context context) {
@@ -168,17 +175,16 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
     }
 
     private void stopLocationUpdatesWithPlayServices() {
-        if (mGoogleApiClient == null) {
+        if (!isFusedLocationProviderInitialized()) {
             return;
         }
 
         Log.d(TAG, "Stopping Google Play Services location provider");
-        if (mGoogleApiClient.isConnected()) {
-            //noinspection deprecation
-            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-            mGoogleApiClient.disconnect();
+        mFusedLocationProviderClient.removeLocationUpdates(locationCallback);
+        if (mFusedLocationProviderClient.asGoogleApiClient().isConnected()) {
+            mFusedLocationProviderClient.asGoogleApiClient().disconnect();
         }
-        mGoogleApiClient = null;
+        mFusedLocationProviderClient = null;
     }
 
     private void startLocationUpdatesWithoutPlayServices() {
@@ -199,7 +205,7 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
             try {
                 mLocationManager.requestLocationUpdates(
                         LocationManager.GPS_PROVIDER,
-                        LOCATION_UPDATES_INTERVAL,
+                        LOCATION_UPDATES_INTERVAL_MS,
                         MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
                 mLocationProvider = LocationManager.GPS_PROVIDER;
                 Log.d(TAG, "GPS location provider is enabled. Getting FINE location");
@@ -211,7 +217,7 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
         try {
             mLocationManager.requestLocationUpdates(
                     LocationManager.NETWORK_PROVIDER,
-                    LOCATION_UPDATES_INTERVAL,
+                    LOCATION_UPDATES_INTERVAL_MS,
                     MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
             mLocationProvider = LocationManager.NETWORK_PROVIDER;
             Log.d(TAG, "NETWORK location provider is enabled. Getting COARSE location");
@@ -230,8 +236,8 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
         mLocationManager = null;
     }
 
-    private boolean isPlayServicesConnected() {
-        return mGoogleApiClient != null && mGoogleApiClient.isConnected();
+    private boolean isFusedLocationProviderInitialized() {
+        return mFusedLocationProviderClient != null;
     }
 
     private boolean isLocationManagerConnected() {
@@ -239,51 +245,96 @@ public class LocationTracker implements GoogleApiClient.ConnectionCallbacks,
     }
 
     @Nullable
-    public synchronized Location getLocation(Context context) {
-        if (mLocation != null) {
-            return mLocation;
+    private Location getCachedLocation() {
+        try {
+            if (mLocation != null) {
+                Log.d(TAG, "The cached location has been successfully retrieved");
+                return mLocation;
+            }
+
+            Log.d(TAG, String.format("Waiting up to %s seconds to retrieve the cached location",
+                    MAX_LOCATION_RETRIEVAL_DELAY_SEC));
+            long msStarted = SystemClock.uptimeMillis();
+            if (cachedLocationRetrievalGuard.tryLock(MAX_LOCATION_RETRIEVAL_DELAY_SEC, TimeUnit.SECONDS)
+                    && mLocation != null) {
+                Log.d(TAG, String.format("The location has been successfully retrieved in %sms",
+                        SystemClock.uptimeMillis() - msStarted));
+                return mLocation;
+            }
+        } catch (InterruptedException e) {
+            // ignore
         }
+        Log.d(TAG, String.format("The location has not been retrieved within %s seconds timeout",
+                MAX_LOCATION_RETRIEVAL_DELAY_SEC));
+        return null;
+    }
 
-        // Make sure the service has been started
-        start(context);
-
-        if (isPlayServicesConnected()) {
+    @Nullable
+    private Location getCurrentLocation() {
+        if (isFusedLocationProviderInitialized()) {
             try {
-                mLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-                if (mLocation == null) {
-                    // If GPS didn't work, try location manager
-                    if (!isLocationManagerConnected()) {
-                        initializeLocationManager(context);
+                Task<Location> task = mFusedLocationProviderClient.getCurrentLocation(
+                        LocationRequest.PRIORITY_HIGH_ACCURACY, new CancellationTokenSource().getToken());
+                task.addOnSuccessListener(location -> {
+                    try {
+                        mLocation = location;
+                        Log.d(TAG, "The current location has been successfully retrieved");
+                    } finally {
+                        try {
+                            currentLocationRetrievalGuard.unlock();
+                        } catch (RuntimeException e) {
+                            // ignore
+                        }
                     }
-                } else {
-                    // Make sure the fallback is removed after play services connection succeeds
-                    if (isLocationManagerConnected()) {
-                        stopLocationUpdatesWithoutPlayServices();
-                    }
-                    return mLocation;
-                }
+                });
             } catch (SecurityException e) {
                 Log.e(TAG, "Appium Settings has no access to location permission", e);
             }
-        }
-        if (isLocationManagerConnected() || mGoogleApiClient != null) {
-            // Try fallback to the default provider if Google API is available but is still not connected
-            if (mGoogleApiClient != null && !isLocationManagerConnected()) {
-                Object locationManager = context.getSystemService(LOCATION_SERVICE);
-                if (locationManager != null) {
-                    mLocationManager = (LocationManager) locationManager;
-                    startLocationUpdatesWithoutPlayServices();
-                }
-            }
-            if (mLocationManager != null && mLocationProvider != null) {
-                try {
-                    mLocation = mLocationManager.getLastKnownLocation(mLocationProvider);
+            try {
+                if (currentLocationRetrievalGuard.tryLock(MAX_LOCATION_RETRIEVAL_DELAY_SEC,
+                        TimeUnit.SECONDS)) {
                     return mLocation;
-                } catch (SecurityException e) {
-                    Log.e(TAG, String.format("Appium Settings has no access to %s location permission",
-                            mLocationProvider), e);
                 }
+            } catch (InterruptedException e) {
+                // ignore
             }
+        }
+        return null;
+    }
+
+    @Nullable
+    public synchronized Location getLocation(Context context, LocationMode mode) {
+        // Make sure the service has been started
+        start(context);
+
+        if (mode == LocationMode.CURRENT) {
+            Location location = getCurrentLocation();
+            if (location != null) {
+                return location;
+            }
+            Log.d(TAG, "The current location cannot be retrieved. Falling back " +
+                    "to the cached one");
+        }
+
+        if (isFusedLocationProviderInitialized()) {
+            Location location = getCachedLocation();
+            if (location != null) {
+                // If Play services worked, make sure location manager is disabled
+                stopLocationUpdatesWithoutPlayServices();
+                return location;
+            }
+        }
+
+        // If Play services didn't work, try location manager
+        try {
+            if (!isLocationManagerConnected()) {
+                initializeLocationManager(context);
+            }
+        } catch (SecurityException e) {
+            Log.e(TAG, "Appium Settings has no access to location permission", e);
+        }
+        if (isLocationManagerConnected()) {
+            return getCachedLocation();
         }
         return null;
     }

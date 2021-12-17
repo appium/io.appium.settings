@@ -26,10 +26,12 @@ import android.util.Log;
 import java.util.Locale;
 
 import io.appium.settings.LocationTracker;
+import io.appium.settings.helpers.LocationMode;
 
 public class LocationInfoReceiver extends BroadcastReceiver
     implements HasAction {
     private static final String TAG = LocationInfoReceiver.class.getSimpleName();
+    private static final String MODE = "mode";
 
     private static final String ACTION = "io.appium.settings.location";
 
@@ -41,7 +43,17 @@ public class LocationInfoReceiver extends BroadcastReceiver
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.d(TAG, "Getting current location");
-        final Location location = LocationTracker.getInstance().getLocation(context);
+        LocationMode mode = LocationMode.CACHED;
+        if (intent.hasExtra(MODE)) {
+            try {
+                //noinspection ConstantConditions
+                mode = LocationMode.valueOf(intent.getStringExtra(MODE).toUpperCase());
+            } catch (IllegalArgumentException | NullPointerException e) {
+                Log.d(TAG, String.format("Unknown mode value '%s'. Defaulting to '%s'",
+                        intent.getStringExtra(MODE), mode.toString().toLowerCase()));
+            }
+        }
+        final Location location = LocationTracker.getInstance().getLocation(context, mode);
         if (location != null) {
             setResultCode(Activity.RESULT_OK);
             // Decimal separator is a dot
