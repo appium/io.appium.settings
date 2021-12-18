@@ -28,7 +28,7 @@ import java.util.Locale;
 import io.appium.settings.LocationTracker;
 
 public class LocationInfoReceiver extends BroadcastReceiver
-    implements HasAction {
+        implements HasAction {
     private static final String TAG = LocationInfoReceiver.class.getSimpleName();
     private static final String FORCE_UPDATE = "forceUpdate";
 
@@ -42,12 +42,9 @@ public class LocationInfoReceiver extends BroadcastReceiver
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.d(TAG, "Getting current location");
-        boolean shouldForceUpdate = false;
-        if (intent.hasExtra(FORCE_UPDATE)) {
-            shouldForceUpdate = intent.getBooleanExtra(FORCE_UPDATE, false);
-        }
         LocationTracker tracker = LocationTracker.getInstance();
-        if (shouldForceUpdate) {
+        if (intent.hasExtra(FORCE_UPDATE)
+                && intent.getBooleanExtra(FORCE_UPDATE, false)) {
             Log.d(TAG, "Initiating forced location update");
             tracker.forceLocationUpdate(context);
         }

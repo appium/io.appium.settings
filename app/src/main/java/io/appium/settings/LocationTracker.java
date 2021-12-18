@@ -41,10 +41,9 @@ import androidx.annotation.Nullable;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class LocationTracker implements
-        com.google.android.gms.location.LocationListener, LocationListener {
+public class LocationTracker implements LocationListener {
     private static final String TAG = LocationTracker.class.getSimpleName();
-    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 10; // 10 meters
+    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1; // 1 meter
     private static final long LOCATION_UPDATES_INTERVAL_MS = 1000 * 60; // 1 minute
     private static final long FAST_INTERVAL_MS = 5000;
 
@@ -73,6 +72,14 @@ public class LocationTracker implements
         return instance;
     }
 
+    public boolean isRunning() {
+        return isStarted.get();
+    }
+
+    private void setIsRunning(boolean value) {
+        isStarted.set(value);
+    }
+
     @Override
     public void onLocationChanged(@Nullable Location location) {
         if (location == null) {
@@ -96,15 +103,28 @@ public class LocationTracker implements
     }
 
     synchronized void start(Context context) {
-        if (isStarted.get()) {
+        if (isRunning()) {
             return;
         }
-        isStarted.set(true);
+        setIsRunning(true);
 
         if (PlayServicesHelpers.isAvailable(context)) {
             initializePlayServices(context);
         } else {
             initializeLocationManager(context);
+        }
+    }
+
+    synchronized void stop() {
+        if (!isRunning()) {
+            return;
+        }
+
+        try {
+            stopLocationUpdatesWithPlayServices();
+            stopLocationUpdatesWithoutPlayServices();
+        } finally {
+            setIsRunning(false);
         }
     }
 
@@ -228,8 +248,10 @@ public class LocationTracker implements
     }
 
     public synchronized void forceLocationUpdate(Context context) {
-        // Make sure the service has been started
-        start(context);
+        if (!isRunning()) {
+            Log.e(TAG, "The location tracker is not running");
+            return;
+        }
 
         if (isFusedLocationProviderInitialized()) {
             try {
@@ -264,8 +286,10 @@ public class LocationTracker implements
 
     @Nullable
     public synchronized Location getLocation(Context context) {
-        // Make sure the service has been started
-        start(context);
+        if (!isRunning()) {
+            Log.e(TAG, "The location tracker is not running");
+            return null;
+        }
 
         if (isFusedLocationProviderInitialized()) {
             Location location = getCachedLocation();
