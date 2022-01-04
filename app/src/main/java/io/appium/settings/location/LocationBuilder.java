@@ -19,11 +19,10 @@ package io.appium.settings.location;
 import android.content.Intent;
 import android.location.Criteria;
 import android.location.Location;
-import android.os.Build;
 import android.os.SystemClock;
-import android.support.annotation.Nullable;
 import android.util.Log;
 
+import androidx.annotation.Nullable;
 
 public class LocationBuilder {
 
@@ -75,9 +74,7 @@ public class LocationBuilder {
         }
 
         location.setTime(System.currentTimeMillis());
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            location.setElapsedRealtimeNanos(SystemClock.elapsedRealtimeNanos());
-        }
+        location.setElapsedRealtimeNanos(SystemClock.elapsedRealtimeNanos());
         return location;
     }
 }

@@ -27,7 +27,8 @@ import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.google.android.gms.common.api.GoogleApiClient;
+import androidx.annotation.Nullable;
+
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 
@@ -181,9 +182,10 @@ public class LocationService extends Service {
         return mockProviders;
     }
 
+    @Nullable
     private MockLocationProvider createLocationManagerMockProvider(LocationManager locationManager, String providerName) {
         LocationProvider provider = locationManager.getProvider(providerName);
-        return createLocationManagerMockProvider(locationManager, provider);
+        return provider == null ? null : createLocationManagerMockProvider(locationManager, provider);
     }
 
     private MockLocationProvider createLocationManagerMockProvider(LocationManager locationManager, LocationProvider locationProvider) {
@@ -201,11 +203,8 @@ public class LocationService extends Service {
     }
 
     private FusedLocationProvider createFusedLocationProvider() {
-        GoogleApiClient googleApiClient = new GoogleApiClient.Builder(this)
-                .addApi(LocationServices.API)
-                .build();
         FusedLocationProviderClient locationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-        return new FusedLocationProvider(googleApiClient, locationProviderClient, this);
+        return new FusedLocationProvider(locationProviderClient, this);
     }
 
     private void finishForegroundSetup() {

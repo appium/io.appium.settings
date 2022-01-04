@@ -120,6 +120,10 @@ $ adb shell am broadcast -a io.appium.settings.location -n io.appium.settings/.r
 
 The first value in the returned `data` string is the current latitude, the second is the longitude and the last one is the altitude. An empty string is returned if the data cannot be retrieved (more details on the failure cause can be found in the logcat output).
 
+Since version 3.6.0 it is also possible to provide `forceUpdate` boolean argument. If it is set to
+`true` then location update request is going to be send asynchronously every time when the
+current location is requested. By default the cached location value is returned instead.
+
 ## Setting Mock Locations
 
 Start sending scheduled updates (every 2s) for mock location with the specified values by executing:

@@ -49,8 +49,6 @@ public class Settings extends Activity {
         setContentView(R.layout.main);
         Log.d(TAG, "Entering the app");
 
-        LocationTracker.getInstance().start(this);
-
         registerSettingsReceivers(Arrays.asList(
                 WiFiConnectionSettingReceiver.class,
                 AnimationSettingReceiver.class,
@@ -68,15 +66,13 @@ public class Settings extends Activity {
         // https://developer.android.com/about/versions/oreo/background-location-limits
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(ForegroundService.getForegroundServiceIntent(Settings.this));
+        } else {
+            LocationTracker.getInstance().start(this);
         }
 
         Log.d(TAG, "Closing the app");
         Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            public void run() {
-                Settings.this.finish();
-            }
-        }, 1000);
+        handler.postDelayed(Settings.this::finish, 1000);
     }
 
     private void registerSettingsReceivers(List<Class<? extends BroadcastReceiver>> receiverClasses) {

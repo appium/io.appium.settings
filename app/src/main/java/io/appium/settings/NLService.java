@@ -20,8 +20,10 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
-import android.support.annotation.Nullable;
 import android.util.Log;
+
+import androidx.annotation.Nullable;
+
 import io.appium.settings.notifications.StoredNotification;
 import io.appium.settings.notifications.StoredNotifications;
 

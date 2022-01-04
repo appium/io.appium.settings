@@ -22,9 +22,11 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.provider.Settings;
-import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
+
+import androidx.annotation.Nullable;
+
 import io.appium.settings.notifications.StoredNotifications;
 import org.json.JSONArray;
 import org.json.JSONException;

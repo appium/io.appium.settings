@@ -52,9 +52,11 @@ public class ForegroundService extends Service {
     private void startForegroundService() {
         startForeground(NotificationHelpers.APPIUM_NOTIFICATION_IDENTIFIER,
                 NotificationHelpers.getNotification(this));
+        LocationTracker.getInstance().start(this);
     }
 
     private void stopForegroundService() {
+        LocationTracker.getInstance().stop();
         stopForeground(true);
         stopSelf();
     }

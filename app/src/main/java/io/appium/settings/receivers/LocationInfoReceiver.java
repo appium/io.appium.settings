@@ -28,8 +28,9 @@ import java.util.Locale;
 import io.appium.settings.LocationTracker;
 
 public class LocationInfoReceiver extends BroadcastReceiver
-    implements HasAction {
+        implements HasAction {
     private static final String TAG = LocationInfoReceiver.class.getSimpleName();
+    private static final String FORCE_UPDATE = "forceUpdate";
 
     private static final String ACTION = "io.appium.settings.location";
 
@@ -41,7 +42,13 @@ public class LocationInfoReceiver extends BroadcastReceiver
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.d(TAG, "Getting current location");
-        final Location location = LocationTracker.getInstance().getLocation(context);
+        LocationTracker tracker = LocationTracker.getInstance();
+        if (intent.hasExtra(FORCE_UPDATE)
+                && intent.getBooleanExtra(FORCE_UPDATE, false)) {
+            Log.d(TAG, "Initiating forced location update");
+            tracker.forceLocationUpdate(context);
+        }
+        final Location location = tracker.getLocation(context);
         if (location != null) {
             setResultCode(Activity.RESULT_OK);
             // Decimal separator is a dot
