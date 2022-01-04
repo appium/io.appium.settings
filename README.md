@@ -115,14 +115,22 @@ You can set the [Locale](https://developer.android.com/reference/java/util/Local
 You can retrieve the current geo location by executing:
 
 ```shell
-$ adb shell am broadcast -a io.appium.settings.location -n io.appium.settings/.receivers.LocationInfoReceiver
+$ adb shell am broadcast -a io.appium.settings.location -n io.appium.settings/.receivers.LocationInfoReceiver --ez forceUpdate false
 ```
 
 The first value in the returned `data` string is the current latitude, the second is the longitude and the last one is the altitude. An empty string is returned if the data cannot be retrieved (more details on the failure cause can be found in the logcat output).
 
 Since version 3.6.0 it is also possible to provide `forceUpdate` boolean argument. If it is set to
-`true` then location update request is going to be send asynchronously every time when the
+`true` then GPS cache refresh request is going to be send asynchronously every time when the
 current location is requested. By default the cached location value is returned instead.
+
+_Note_
+
+The forced GPS cache refresh feature only works if the device under test has
+Google Play Services installed. In case the vanilla LocationManager is used the device API level must be at
+version 30 (Android R) or higher. If none of the conditions above is satisfied then enabling of the `forceUpdate`
+option would have no effect.
+
 
 ## Setting Mock Locations
 
