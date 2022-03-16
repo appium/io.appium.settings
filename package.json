@@ -30,7 +30,8 @@
     "app/build.gradle",
     "app/src/",
     "gradle/",
-    "!.DS_Store"
+    "!.DS_Store",
+    "NOTICE.txt"
   ],
   "author": "https://github.com/appium",
   "license": "Apache-2.0",
