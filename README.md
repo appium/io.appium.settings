@@ -36,7 +36,7 @@ To install:
 
 ```shell
 $ cd app/build/outputs/apk
-$ adb install settings_apk-debug.apk
+$ adb install -g settings_apk-debug.apk
 ```
 
 To uninstall:
@@ -107,9 +107,9 @@ $ adb shell am broadcast -a io.appium.settings.animation --es setstatus disable
 Set particular locale:
 
 ```shell
-$ adb shell am broadcast -a io.appium.settings.locale --es lang ja --es country JP
+$ adb shell am broadcast -a io.appium.settings.locale -n io.appium.settings/.receivers.LocaleSettingReceiver --es lang ja --es country JP
 $ adb shell getprop persist.sys.locale # ja-JP
-$ adb shell am broadcast -a io.appium.settings.locale --es lang zh --es country CN --es script Hans
+$ adb shell am broadcast -a io.appium.settings.locale -n io.appium.settings/.receivers.LocaleSettingReceiver  --es lang zh --es country CN --es script Hans
 $ adb shell getprop persist.sys.locale # zh-Hans-CN for API level 21+
 ```
 
