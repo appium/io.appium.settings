@@ -103,7 +103,7 @@ Set particular locale:
 ```shell
 $ adb shell am broadcast -a io.appium.settings.locale -n io.appium.settings/.receivers.LocaleSettingReceiver --es lang ja --es country JP
 $ adb shell getprop persist.sys.locale # ja-JP
-$ db shell am broadcast -a io.appium.settings.locale -n io.appium.settings/.receivers.LocaleSettingReceiver  --es lang zh --es country CN --es script Hans
+$ adb shell am broadcast -a io.appium.settings.locale -n io.appium.settings/.receivers.LocaleSettingReceiver  --es lang zh --es country CN --es script Hans
 $ adb shell getprop persist.sys.locale # zh-Hans-CN for API level 21+
 ```
 
