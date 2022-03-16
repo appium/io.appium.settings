@@ -23,3 +23,16 @@ jobs:
       jdkVersionOption: "1.${{ parameters.jdk }}"
       jdkArchitectureOption: 'x64'
       tasks: "${{ parameters.task }}"
+  - task: CopyFiles@2
+  displayName: 'Copy Files to: $(build.artifactStagingDirectory)'
+    inputs:
+      Contents: '**/*.apk'
+      TargetFolder: '$(build.artifactStagingDirectory)'
+  - task: PublishBuildArtifacts@1
+  inputs:
+    pathToPublish: $(Build.ArtifactStagingDirectory)
+    artifactName: BuildApkOutputs
+  - task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: $(System.DefaultWorkingDirectory)
+    artifactName: apk
