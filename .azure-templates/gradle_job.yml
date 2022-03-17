@@ -24,10 +24,10 @@ jobs:
       jdkArchitectureOption: 'x64'
       tasks: "${{ parameters.task }}"
   - task: CopyFiles@2
-  displayName: 'Copy Files to: $(build.artifactStagingDirectory)'
+    displayName: 'Copy Files to: $(build.artifactStagingDirectory)'
     inputs:
       Contents: '**/*.apk'
-      TargetFolder: '$(build.artifactStagingDirectory)'
+      TargetFolder: '$(Build.artifactStagingDirectory)'
   - task: PublishBuildArtifacts@1
   inputs:
     pathToPublish: $(Build.ArtifactStagingDirectory)
