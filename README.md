@@ -36,7 +36,9 @@ To install:
 
 ```shell
 $ cd app/build/outputs/apk
-$ adb install -g settings_apk-debug.apk
+$ adb install settings_apk-debug.apk
+# You can grant permissions with -g option as below for over api level 23 devices
+# $ adb install -g settings_apk-debug.apk
 ```
 
 To uninstall:
@@ -109,12 +111,13 @@ Set particular locale:
 ```shell
 $ adb shell am broadcast -a io.appium.settings.locale -n io.appium.settings/.receivers.LocaleSettingReceiver --es lang ja --es country JP
 $ adb shell getprop persist.sys.locale # ja-JP
-$ adb shell am broadcast -a io.appium.settings.locale -n io.appium.settings/.receivers.LocaleSettingReceiver  --es lang zh --es country CN --es script Hans
+$ adb shell am broadcast -a io.appium.settings.locale -n io.appium.settings/.receivers.LocaleSettingReceiver --es lang zh --es country CN --es script Hans
 $ adb shell getprop persist.sys.locale # zh-Hans-CN for API level 21+
 ```
 
 You can set the [Locale](https://developer.android.com/reference/java/util/Locale.html) format, especially this feature support [Locale(String language, String country)](https://developer.android.com/reference/java/util/Locale.html#Locale(java.lang.String,%20java.lang.String)) so far.
 
+`-n io.appium.settings/.receivers.LocaleSettingReceiver` is not necessary in some devices.
 
 ## Retrieval of system settings
 
