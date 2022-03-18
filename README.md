@@ -5,7 +5,6 @@
 
 [![Release](https://github.com/appium/io.appium.settings/actions/workflows/publish.js.yml/badge.svg)](https://github.com/appium/io.appium.settings/actions/workflows/publish.js.yml)
 
-
 Toggle settings in Android device or emulator.
 
 A small and simple Android application that deals with the system settings. Then the application shuts down.
