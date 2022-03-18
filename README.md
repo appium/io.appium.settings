@@ -9,7 +9,6 @@ Toggle settings in Android device or emulator.
 
 A small and simple Android application that deals with the system settings. Then the application shuts down.
 
-
 ## Requirements
 
 * [Android SDK](http://developer.android.com)
