@@ -109,7 +109,8 @@
 
         <receiver android:name=".receivers.WiFiConnectionSettingReceiver"
             android:exported="true"
-            tools:ignore="ExportedReceiver" />
+            tools:ignore="ExportedReceiver"
+            android:permission="android.permission.BIND_DEVICE_ADMIN" />
         <receiver android:name=".receivers.DataConnectionSettingReceiver"
             android:exported="true"
             tools:ignore="ExportedReceiver" />
