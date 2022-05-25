@@ -68,7 +68,7 @@ public class LocaleSettingReceiver extends BroadcastReceiver implements HasActio
                     locale, LocaleUtils.availableLocaleList())
             );
             setResultCode(Activity.RESULT_CANCELED);
-            setResultData("");
+            setResultData(String.format("The locale %s is not known", locale));
             return;
         }
 
