@@ -16,10 +16,15 @@
 
 package io.appium.settings.receivers;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
+
+import org.apache.commons.lang3.LocaleUtils;
 
 import java.util.Locale;
 
@@ -37,40 +42,40 @@ public class LocaleSettingReceiver extends BroadcastReceiver implements HasActio
     // am broadcast -a io.appium.settings.locale --es lang ja --es country JP
     @Override
     public void onReceive(Context context, Intent intent) {
-        if(!hasExtraLocale(intent)) {
-            Log.e(TAG, "Don't forget to set lang and country like: am broadcast -a io.appium.settings.locale --es lang ja --es country JP");
-            Log.e(TAG, "Set en-US by default.");
-
-            intent.putExtra(LANG, "en");
-            intent.putExtra(COUNTRY, "US");
-        }
-
         String language = intent.getStringExtra(LANG);
         String country = intent.getStringExtra(COUNTRY);
-
+        if (language == null || country == null) {
+            Log.w(TAG, "It is required to provide both language and country, for example: " +
+                    "am broadcast -a io.appium.settings.locale --es lang ja --es country JP");
+            Log.i(TAG, "Set en-US by default.");
+            language = "en";
+            country= "US";
+        }
         // Expect https://developer.android.com/reference/java/util/Locale.html#Locale(java.lang.String,%20java.lang.String) format.
         Locale locale = new Locale(language, country);
-
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            String script = intent.getStringExtra(SCRIPT);
-
-            Locale.Builder builder = new Locale.Builder();
-            builder.setLocale(locale);
-            builder.setScript(script == null ? "" : script); // "Hans" part
-            locale = builder.build();
-            // "zh-Hans-CN" or "zh-CN" format
-            Log.i(TAG, "Set language tag: " + locale.toLanguageTag());
-        } else {
-            Log.i(TAG, "Set locale: " + locale.toString());
+        String script = intent.getStringExtra(SCRIPT);
+        if (!isBlank(script)) {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                locale = new Locale.Builder().setLocale(locale).setScript(script).build();
+            } else {
+                Log.w(TAG, String.format("Script value '%s' is ignored as " +
+                        "setting of it is not supported by the current Android version", script));
+            }
+        }
+        if (!LocaleUtils.isAvailableLocale(locale)) {
+            Log.e(TAG, String.format(
+                    "The locale %s is not known. Only the following locales are available: %s",
+                    locale, LocaleUtils.availableLocaleList())
+            );
+            setResultCode(Activity.RESULT_CANCELED);
+            setResultData(String.format("The locale %s is not known", locale));
+            return;
         }
 
-        LocaleSettingHandler localeSettingHandler = new LocaleSettingHandler(context);
-
-        localeSettingHandler.setLocale(locale);
-    }
-
-    private boolean hasExtraLocale(Intent intent) {
-        return intent.hasExtra(LANG) && intent.hasExtra(COUNTRY);
+        new LocaleSettingHandler(context).setLocale(locale);
+        Log.i(TAG, String.format("Set locale: %s", locale));
+        setResultCode(Activity.RESULT_OK);
+        setResultData(locale.toString());
     }
 
     @Override
