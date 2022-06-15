@@ -321,6 +321,36 @@ and add them to the media library if their MIME types are supported. If the
 file/folder in _path_ does not exist/is not readable or is not provided then an
 error will be returned and the corresponding log message would be written into logs.
 
+## Internal Audio & Video Recording
+
+Required steps to activate recording:
+
+```bash
+adb shell pm grant io.appium.settings android.permission.RECORD_AUDIO
+adb shell appops set io.appium.settings PROJECT_MEDIA allow
+```
+
+Start Recording:
+```bash
+adb shell am start -n "io.appium.settings/io.appium.settings.Settings" -a io.appium.settings.recording.ACTION_START --es filename abc.mp4 --es priority high --es max_duration_sec 900 --es resolution 1920x1080
+```
+
+### Arguments (see above start command as an example for giving arguments)
+- filename (Mandatory) - You can type recording video file name as you want, but recording currently supports only "mp4" format so your filename must end with ".mp4"
+- priority (Optional) - Default value: "high" which means recording thread priority is maximum however if you face performance drops during testing with recording enabled, you can reduce recording priority to "normal" or "low"
+- max_duration_sec (Optional) (in seconds) - Default value: 900 seconds which means maximum allowed duration is 15 minute, you can increase it if your test takes longer than that
+- resolution (Optional) - Default value: maximum supported resolution on-device(Detected automatically on app itself), which usually equals to Full HD 1920x1080 on most phones however you can change it to following supported resolutions as well: "1920x1080", "1280x720", "720x480", "320x240", "176x144"
+
+Stop Recording:
+```bash
+adb shell am start -n "io.appium.settings/io.appium.settings.Settings" -a io.appium.settings.recording.ACTION_STOP
+```
+
+Obtain Recording Output File:
+```bash
+adb pull /storage/emulated/0/Android/data/io.appium.settings/files/abc.mp4 abc.mp4
+```
+
 
 ## Notes:
 

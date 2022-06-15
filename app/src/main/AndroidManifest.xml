@@ -28,6 +28,8 @@
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.READ_SMS" />
 
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+
     <uses-feature android:name="android.hardware.wifi" />
 
     <application
@@ -63,6 +65,12 @@
 
         <service
             android:name=".LocationService"
+            android:exported="true">
+        </service>
+
+        <service
+            android:foregroundServiceType="mediaProjection"
+            android:name=".recorder.RecorderService"
             android:exported="true">
         </service>
 
