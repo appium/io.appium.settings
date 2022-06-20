@@ -206,7 +206,7 @@ public class Settings extends Activity {
     private void finishActivity() {
         Log.d(TAG, "Closing the app");
         Handler handler = new Handler();
-        handler.postDelayed(Settings.this::finish, 1000);
+        handler.postDelayed(Settings.this::finish, 0);
     }
 
     @Override
