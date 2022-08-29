@@ -23,6 +23,10 @@ jobs:
         cache: gradle
     - run: npm install --no-package-lock
       name: Install dependencies
+    - run: |
+        npm run lint
+        npm run js:lint
+      name: Linter
     - run: npx semantic-release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
