@@ -4,8 +4,10 @@
   "description": "App for dealing with Android settings",
   "main": "index.js",
   "scripts": {
-    "bump-gradle-version": "gulp gradle-version-update --package-version=${npm_package_version} && git add app/build.gradle",
+    "bump-gradle-version": "node scripts/gradle-version-update.js --package-version=${npm_package_version} && git add app/build.gradle",
     "lint": "./gradlew lint",
+    "js:lint": "eslint .",
+    "js:lint:fix": "npm run lint -- --fix",
     "move-apks": "rm -rf apks && mkdir -p apks && cp app/build/outputs/apk/debug/settings_apk-debug.apk apks",
     "build": "./gradlew clean assembleDebug && npm run move-apks",
     "prepare": "npm run build",
@@ -15,6 +17,10 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/appium/io.appium.settings.git"
+  },
+  "engines": {
+    "node": ">=14",
+    "npm": ">=8"
   },
   "keywords": [
     "appium",
@@ -33,16 +39,18 @@
     "!.DS_Store",
     "NOTICE.txt"
   ],
-  "author": "https://github.com/appium",
+  "author": "Appium Contributors",
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/appium/io.appium.settings/issues"
   },
   "homepage": "https://github.com/appium/io.appium.settings",
   "devDependencies": {
-    "@appium/gulp-plugins": "^7.0.0",
+    "@appium/eslint-config-appium": "^6.0.0",
+    "eslint": "^7.32.0",
+    "fancy-log": "^2.0.0",
     "@semantic-release/git": "^10.0.1",
-    "gulp": "^4.0.0",
-    "semantic-release": "^19.0.2"
+    "semantic-release": "^19.0.2",
+    "semver": "^7.3.7"
   }
 }
