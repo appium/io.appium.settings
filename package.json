@@ -18,6 +18,10 @@
     "type": "git",
     "url": "https://github.com/appium/io.appium.settings.git"
   },
+  "engines": {
+    "node": ">=14",
+    "npm": ">=8"
+  },
   "keywords": [
     "appium",
     "android",
