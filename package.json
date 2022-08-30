@@ -29,13 +29,7 @@
   ],
   "files": [
     "index.js",
-    "gradle*",
-    "build.gradle",
-    "settings.gradle",
-    "apks/",
-    "app/build.gradle",
-    "app/src/",
-    "gradle/",
+    "apks",
     "!.DS_Store",
     "NOTICE.txt"
   ],
