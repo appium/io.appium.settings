@@ -74,7 +74,7 @@ public class ClipboardReceiver extends BroadcastReceiver implements HasAction {
             // TODO: is bumped above 18
             //noinspection CharsetObjectCanBeUsed
             String clipboardContentBase64 = Base64.encodeToString(
-                    clipboardContent.getBytes("UTF-8"), Base64.DEFAULT);
+                    clipboardContent.getBytes("UTF-8"), Base64.NO_WRAP);
             setResultCode(Activity.RESULT_OK);
             setResultData(clipboardContentBase64);
         } catch (UnsupportedEncodingException e) {
