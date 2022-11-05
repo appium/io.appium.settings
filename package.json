@@ -31,7 +31,8 @@
     "index.js",
     "apks",
     "!.DS_Store",
-    "NOTICE.txt"
+    "NOTICE.txt",
+    "CHANGELOG.md"
   ],
   "author": "Appium Contributors",
   "license": "Apache-2.0",
