@@ -52,44 +52,30 @@ public class StoredNotification {
         result.put("tag", formatJsonNull(sbn.getTag()));
         result.put("postTime", sbn.getPostTime());
         result.put("isRemoved", isRemoved());
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            JSONObject notification = new JSONObject();
-            Bundle extras = sbn.getNotification().extras;
-            storeCharSequenceProperty(notification, "title", "android.title", extras);
-            storeCharSequenceProperty(notification, "bigTitle", "android.title.big", extras);
-            storeCharSequenceProperty(notification, "text", "android.text", extras);
-            storeCharSequenceProperty(notification, "bigText", "android.bigText", extras);
-            storeCharSequenceProperty(notification, "tickerText", "android.tickerText", extras);
-            storeCharSequenceProperty(notification, "subText", "android.subText", extras);
-            storeCharSequenceProperty(notification, "infoText", "android.infoText", extras);
-            storeCharSequenceProperty(notification, "template", "android.template", extras);
-            result.put("notification", notification);
-        } else {
-            result.put("notification", JSONObject.NULL);
-        }
+        JSONObject notification = new JSONObject();
+        Bundle extras = sbn.getNotification().extras;
+        storeCharSequenceProperty(notification, "title", "android.title", extras);
+        storeCharSequenceProperty(notification, "bigTitle", "android.title.big", extras);
+        storeCharSequenceProperty(notification, "text", "android.text", extras);
+        storeCharSequenceProperty(notification, "bigText", "android.bigText", extras);
+        storeCharSequenceProperty(notification, "tickerText", "android.tickerText", extras);
+        storeCharSequenceProperty(notification, "subText", "android.subText", extras);
+        storeCharSequenceProperty(notification, "infoText", "android.infoText", extras);
+        storeCharSequenceProperty(notification, "template", "android.template", extras);
+        result.put("notification", notification);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             result.put("isGroup", sbn.isGroup());
         } else {
             result.put("isGroup", false);
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            result.put("userHandle", sbn.getUser().hashCode());
-            result.put("groupKey", formatJsonNull(sbn.getGroupKey()));
-        } else {
-            //noinspection deprecation
-            result.put("userHandle", sbn.getUserId());
-            result.put("groupKey", JSONObject.NULL);
-        }
+        result.put("userHandle", sbn.getUser().hashCode());
+        result.put("groupKey", formatJsonNull(sbn.getGroupKey()));
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             result.put("overrideGroupKey", formatJsonNull(sbn.getOverrideGroupKey()));
         } else {
             result.put("overrideGroupKey", JSONObject.NULL);
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
-            result.put("key", formatJsonNull(sbn.getKey()));
-        } else {
-            result.put("key", JSONObject.NULL);
-        }
+        result.put("key", formatJsonNull(sbn.getKey()));
         return result;
     }
 

@@ -57,12 +57,7 @@ public class LocaleSettingReceiver extends BroadcastReceiver implements HasActio
         Locale locale = new Locale(language, country);
         String script = intent.getStringExtra(SCRIPT);
         if (script != null) {
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-                locale = new Locale.Builder().setLocale(locale).setScript(script).build();
-            } else {
-                Log.w(TAG, String.format("Script value '%s' is ignored as " +
-                        "setting of it is not supported by the current Android version", script));
-            }
+            locale = new Locale.Builder().setLocale(locale).setScript(script).build();
         }
         if (!LocaleUtils.isAvailableLocale(locale)) {
             List<Locale> approximateMatchesLc = matchLocales(language, country);

@@ -27,7 +27,6 @@
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.READ_SMS" />
-
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
 
     <uses-feature android:name="android.hardware.wifi" />
@@ -42,7 +41,6 @@
             android:excludeFromRecents="true"
             android:exported="true"
             android:finishOnTaskLaunch="true"
-            android:label="@string/app_name"
             android:launchMode="singleInstance"
             android:noHistory="false"
             android:stateNotNeeded="true">
@@ -52,33 +50,25 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".Unlock"
-            android:label="Unlock"
-            android:exported="true"
-            android:launchMode="singleInstance"
-            android:finishOnTaskLaunch="true"
-            android:stateNotNeeded="true"
-            android:noHistory="true"
-            android:excludeFromRecents="true">
-        </activity>
-
         <service
             android:name=".LocationService"
-            android:exported="true">
+            android:exported="true"
+            android:permission="android.permission.ACCESS_FINE_LOCATION">
         </service>
 
         <service
             android:foregroundServiceType="mediaProjection"
             android:name=".recorder.RecorderService"
-            android:exported="true">
+            android:exported="true"
+            android:permission="android.permission.RECORD_AUDIO">
         </service>
 
         <service
             android:name=".AppiumIME"
             android:label="Appium IME"
             android:enabled="true"
-            android:permission="android.permission.BIND_INPUT_METHOD" >
+            android:permission="android.permission.BIND_INPUT_METHOD"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.view.InputMethod" />
             </intent-filter>
@@ -92,7 +82,8 @@
             android:name=".UnicodeIME"
             android:label="Unicode IME"
             android:enabled="true"
-            android:permission="android.permission.BIND_INPUT_METHOD" >
+            android:permission="android.permission.BIND_INPUT_METHOD"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.view.InputMethod" />
             </intent-filter>
@@ -105,7 +96,8 @@
         <service
             android:label="@string/app_name"
             android:name=".NLService"
-            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.service.notification.NotificationListenerService"/>
             </intent-filter>
@@ -113,7 +105,8 @@
 
         <service android:name=".ForegroundService"
             android:enabled="true"
-            android:exported="true" />
+            android:exported="true"
+            android:permission="android.permission.FOREGROUND_SERVICE" />
 
         <receiver android:name=".receivers.WiFiConnectionSettingReceiver"
             android:exported="true"

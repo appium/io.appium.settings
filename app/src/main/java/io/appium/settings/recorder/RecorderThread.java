@@ -70,7 +70,6 @@ public class RecorderThread implements Runnable {
     private volatile boolean audioStopped = false;
     private volatile boolean hasAsyncError = false;
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private final VirtualDisplay.Callback displayCallback = new VirtualDisplay.Callback() {
         @Override
         public void onPaused() {
@@ -88,7 +87,7 @@ public class RecorderThread implements Runnable {
     };
 
     public RecorderThread(MediaProjection mediaProjection, String outputFilePath,
-                          int videoWidth, int videoHeight, int videoDpi,  int recordingRotation,
+                          int videoWidth, int videoHeight, int videoDpi, int recordingRotation,
                           int recordingPriority, int recordingMaxDuration) {
         this.mediaProjection = mediaProjection;
         this.outputFilePath = outputFilePath;
@@ -114,7 +113,6 @@ public class RecorderThread implements Runnable {
         return !stopped;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private MediaFormat initVideoEncoderFormat(String videoMime, int videoWidth,
                                                int videoHeight, int videoBitrate,
                                                int videoFrameRate) {
@@ -131,17 +129,15 @@ public class RecorderThread implements Runnable {
         return encoderFormat;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private VirtualDisplay initVirtualDisplay(MediaProjection mediaProjection,
-                                               Surface surface, Handler handler,
-                                               int videoWidth, int videoHeight, int videoDpi) {
+                                              Surface surface, Handler handler,
+                                              int videoWidth, int videoHeight, int videoDpi) {
         return mediaProjection.createVirtualDisplay("Appium Screen Recorder",
                 videoWidth, videoHeight, videoDpi,
                 DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
                 surface, displayCallback, handler);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private MediaCodec initAudioCodec(int sampleRate) throws IOException {
         // TODO set channelCount 2 try stereo quality
         MediaFormat encoderFormat = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC,
@@ -178,55 +174,51 @@ public class RecorderThread implements Runnable {
                 .build();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private Thread initAudioRecordThread(MediaCodec audioEncoder, final AudioRecord audioRecord,
                                          int priority) {
-        return new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Thread.currentThread().setPriority(priority);
-                try {
-                    audioRecord.startRecording();
-                } catch (Exception e) {
+        return new Thread(() -> {
+            Thread.currentThread().setPriority(priority);
+            try {
+                audioRecord.startRecording();
+            } catch (Exception e) {
+                hasAsyncError = true;
+                e.printStackTrace();
+                return;
+            }
+            try {
+                while (!audioStopped) {
+                    int index = audioEncoder.dequeueInputBuffer(
+                            RecorderConstant.MEDIA_QUEUE_BUFFERING_DEFAULT_TIMEOUT_MS);
+                    if (index < 0) {
+                        continue;
+                    }
+                    ByteBuffer inputBuffer = audioEncoder.getInputBuffer(index);
+                    if (inputBuffer == null) {
+                        if (!stopped) {
+                            hasAsyncError = true;
+                        }
+                        return;
+                    }
+                    inputBuffer.clear();
+                    int read = audioRecord.read(inputBuffer, inputBuffer.capacity());
+                    if (read <= 0) {
+                        if (!stopped) {
+                            hasAsyncError = true;
+                        }
+                        break;
+                    }
+                    audioEncoder.queueInputBuffer(index, 0, read,
+                            getPresentationTimeUs(), 0);
+                }
+            } catch (Exception e) {
+                if (!stopped) {
+                    Log.e(TAG, "Recording stopped, Audio Thread error", e);
                     hasAsyncError = true;
                     e.printStackTrace();
-                    return;
                 }
-                try {
-                    while (!audioStopped) {
-                        int index = audioEncoder.dequeueInputBuffer(
-                                RecorderConstant.MEDIA_QUEUE_BUFFERING_DEFAULT_TIMEOUT_MS);
-                        if (index < 0) {
-                            continue;
-                        }
-                        ByteBuffer inputBuffer = audioEncoder.getInputBuffer(index);
-                        if (inputBuffer == null) {
-                            if (!stopped) {
-                                hasAsyncError = true;
-                            }
-                            return;
-                        }
-                        inputBuffer.clear();
-                        int read = audioRecord.read(inputBuffer, inputBuffer.capacity());
-                        if (read <= 0) {
-                            if (!stopped) {
-                                hasAsyncError = true;
-                            }
-                            break;
-                        }
-                        audioEncoder.queueInputBuffer(index, 0, read,
-                                getPresentationTimeUs(), 0);
-                    }
-                } catch (Exception e) {
-                    if (!stopped) {
-                        Log.e(TAG, "Recording stopped, Audio Thread error", e);
-                        hasAsyncError = true;
-                        e.printStackTrace();
-                    }
-                } finally {
-                    audioRecord.stop();
-                    audioRecord.release();
-                }
+            } finally {
+                audioRecord.stop();
+                audioRecord.release();
             }
         });
     }
@@ -238,7 +230,7 @@ public class RecorderThread implements Runnable {
             isStartTimestampInitialized = true;
         }
         return (System.nanoTime() / RecorderConstant.NANOSECONDS_IN_MICROSECOND
-                        - startTimestampUs);
+                - startTimestampUs);
     }
 
     private int calculateBitRate(int width, int height, int frameRate) {
@@ -253,7 +245,6 @@ public class RecorderThread implements Runnable {
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private boolean writeAudioBufferToFile(MediaCodec audioEncoder, MediaMuxer muxer,
                                            MediaCodec.BufferInfo bufferInfo) {
         int encoderStatus;
@@ -294,7 +285,6 @@ public class RecorderThread implements Runnable {
         return true;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private boolean writeVideoBufferToFile(MediaCodec videoEncoder, MediaMuxer muxer,
                                            MediaCodec.BufferInfo bufferInfo) {
         int encoderStatus;

@@ -32,6 +32,7 @@ import android.view.Surface;
 import android.view.WindowManager;
 
 import java.io.IOException;
+import java.util.Objects;
 
 import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
@@ -93,7 +94,7 @@ public class RecorderUtil {
     }
 
     public static boolean isValidFileName(String filename) {
-        if (filename == null || filename.isEmpty() || !filename.endsWith(".mp4")) {
+        if (filename == null || !filename.endsWith(".mp4")) {
             return false;
         }
         if (filename.length() >= 255) {
@@ -186,8 +187,9 @@ public class RecorderUtil {
     public static int getRecordingMaxDuration(Intent intent) {
         if (intent.hasExtra(ACTION_RECORDING_MAX_DURATION)) {
             try {
-                int userRequestedMaxDurationInSecond =
-                        Integer.parseInt(intent.getStringExtra(ACTION_RECORDING_MAX_DURATION));
+                int userRequestedMaxDurationInSecond = Integer.parseInt(
+                        Objects.requireNonNull(intent.getStringExtra(ACTION_RECORDING_MAX_DURATION))
+                );
                 if (userRequestedMaxDurationInSecond <= 0) {
                     Log.e(TAG, "Maximum recording duration must be greater than 0 second");
                     return RECORDING_MAX_DURATION_DEFAULT_MS;
@@ -220,7 +222,6 @@ public class RecorderUtil {
         return NO_RESOLUTION_MODE_SET;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public static Size getRecordingResolution(String userRequestedResolutionMode) {
         if (userRequestedResolutionMode == null) {
             Log.e(TAG, "Unable to retrieve resolution mode, " +
@@ -274,7 +275,6 @@ public class RecorderUtil {
         return getSupportedMaxResolution();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public static Size getSupportedMaxResolution() {
         try {
             MediaCodec videoEncoder =
