@@ -18,7 +18,6 @@ package io.appium.settings.handlers;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.net.ConnectivityManager;
 import android.os.Build;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
@@ -94,31 +93,11 @@ public class DataConnectionSettingHandler extends AbstractSettingHandler {
         }
     }
 
-    private static void setMobileNetworkFromGingerbreadToLollipop(
-            Context mContext, boolean isEnabled) throws Exception {
-        final ConnectivityManager conman =
-                (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
-        final Class<?> conmanClass = Class.forName(conman.getClass().getName());
-        final Field iConnectivityManagerField = conmanClass.getDeclaredField("mService");
-        iConnectivityManagerField.setAccessible(true);
-        final Object iConnectivityManager = iConnectivityManagerField.get(conman);
-        final Class<?> iConnectivityManagerClass =
-                Class.forName(iConnectivityManager.getClass().getName());
-        final Method setMobileDataEnabledMethod =
-                iConnectivityManagerClass.getDeclaredMethod("setMobileDataEnabled", Boolean.TYPE);
-        setMobileDataEnabledMethod.setAccessible(true);
-        setMobileDataEnabledMethod.invoke(iConnectivityManager, isEnabled);
-    }
-
     @Override
     protected boolean setState(boolean on) {
         try {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-                setMobileNetworkFromGingerbreadToLollipop(mContext, on);
-            } else {
-                // http://stackoverflow.com/questions/26539445/the-setmobiledataenabled-method-is-no-longer-callable-as-of-android-l-and-later
-                setMobileNetworkFromLollipop(mContext, on);
-            }
+            // http://stackoverflow.com/questions/26539445/the-setmobiledataenabled-method-is-no-longer-callable-as-of-android-l-and-later
+            setMobileNetworkFromLollipop(mContext, on);
             return true;
         } catch (Exception e) {
             Log.e(TAG, String.format(

@@ -5,6 +5,7 @@ android {
 
     defaultConfig {
         minSdkVersion 21
+        //noinspection ExpiredTargetSdkVersion
         targetSdkVersion 30
         versionCode 51
         versionName "4.2.4"
