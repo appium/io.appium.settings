@@ -52,17 +52,6 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".Unlock"
-            android:label="Unlock"
-            android:exported="true"
-            android:launchMode="singleInstance"
-            android:finishOnTaskLaunch="true"
-            android:stateNotNeeded="true"
-            android:noHistory="true"
-            android:excludeFromRecents="true">
-        </activity>
-
         <service
             android:name=".LocationService"
             android:exported="true">

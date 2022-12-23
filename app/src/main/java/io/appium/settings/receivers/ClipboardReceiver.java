@@ -25,7 +25,7 @@ import android.content.Intent;
 import android.util.Base64;
 import android.util.Log;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 public class ClipboardReceiver extends BroadcastReceiver implements HasAction {
     private static final String TAG = ClipboardReceiver.class.getSimpleName();
@@ -69,19 +69,11 @@ public class ClipboardReceiver extends BroadcastReceiver implements HasAction {
             return;
         }
 
-        try {
-            // TODO: Use StandardCharsets.UTF_8 after the minimum supported API version
-            // TODO: is bumped above 18
-            //noinspection CharsetObjectCanBeUsed
-            String clipboardContentBase64 = Base64.encodeToString(
-                    clipboardContent.getBytes("UTF-8"), Base64.NO_WRAP);
-            setResultCode(Activity.RESULT_OK);
-            setResultData(clipboardContentBase64);
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-            setResultCode(Activity.RESULT_CANCELED);
-            setResultData("");
-        }
+        String clipboardContentBase64 = Base64.encodeToString(
+                clipboardContent.getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP
+        );
+        setResultCode(Activity.RESULT_OK);
+        setResultData(clipboardContentBase64);
     }
 
     @Override
