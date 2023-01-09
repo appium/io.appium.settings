@@ -1,3 +1,15 @@
+## [5.0.1](https://github.com/appium/io.appium.settings/compare/v5.0.0...v5.0.1) (2023-01-09)
+
+
+### Reverts
+
+* Revert "chore(deps-dev): bump semantic-release from 19.0.5 to 20.0.2 (#102)" (#103) ([5e73672](https://github.com/appium/io.appium.settings/commit/5e73672bf3964be5dc2a36813e073676925c94d4)), closes [#102](https://github.com/appium/io.appium.settings/issues/102) [#103](https://github.com/appium/io.appium.settings/issues/103)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump semantic-release from 19.0.5 to 20.0.2 ([#102](https://github.com/appium/io.appium.settings/issues/102)) ([36e598e](https://github.com/appium/io.appium.settings/commit/36e598e105ba05650acb367300eba721f1b41f94))
+
 ## [5.0.0](https://github.com/appium/io.appium.settings/compare/v4.2.4...v5.0.0) (2022-12-23)
 
 
