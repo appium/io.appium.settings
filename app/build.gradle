@@ -25,6 +25,8 @@ android {
             }
         }
     }
+
+    namespace "io.appium.settings"
 }
 
 dependencies {
