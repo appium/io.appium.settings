@@ -1,3 +1,10 @@
+## [5.0.2](https://github.com/appium/io.appium.settings/compare/v5.0.1...v5.0.2) (2023-01-12)
+
+
+### Miscellaneous Chores
+
+* Move the namespace definition from the manifest to build.gradle ([#105](https://github.com/appium/io.appium.settings/issues/105)) ([9a1699d](https://github.com/appium/io.appium.settings/commit/9a1699d09dafcbefd7130ca45fc451f19f092e5e))
+
 ## [5.0.1](https://github.com/appium/io.appium.settings/compare/v5.0.0...v5.0.1) (2023-01-09)
 
 
