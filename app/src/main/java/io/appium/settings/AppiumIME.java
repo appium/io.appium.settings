@@ -109,6 +109,12 @@ public class AppiumIME extends InputMethodService {
         Log.i(TAG, String.format("onKeyUp (keyCode='%s', event.keyCode='%s', metaState='%s')",
                 keyCode, event.getKeyCode(), event.getMetaState()));
         metaState = MetaKeyKeyListener.handleKeyUp(metaState, keyCode, event);
+
+        final int c = getUnicodeChar(keyCode, event);
+        if (isEnteringActionName || c == ACTION_FLAG_KEY) {
+            return true;
+        }
+
         return super.onKeyUp(keyCode, event);
     }
 
