@@ -1,3 +1,10 @@
+## [5.0.5](https://github.com/appium/io.appium.settings/compare/v5.0.4...v5.0.5) (2023-06-23)
+
+
+### Bug Fixes
+
+* Prevent Appium IME from sending extraneous onKeyUp events ([#115](https://github.com/appium/io.appium.settings/issues/115)) ([71b8428](https://github.com/appium/io.appium.settings/commit/71b8428903775cea3ca4f5e2c8dd9c4e987937d6))
+
 ## [5.0.4](https://github.com/appium/io.appium.settings/compare/v5.0.3...v5.0.4) (2023-06-07)
 
 
