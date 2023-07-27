@@ -37,6 +37,7 @@ public class LocaleSettingReceiver extends BroadcastReceiver implements HasActio
 
     private static final String LANG = "lang";
     private static final String COUNTRY = "country";
+    private static final String SKIP_LOCALE_CHECK = "skip_locale_check";
     private static final String SCRIPT = "script";
 
     private static final String ACTION = "io.appium.settings.locale";
@@ -46,6 +47,7 @@ public class LocaleSettingReceiver extends BroadcastReceiver implements HasActio
     public void onReceive(Context context, Intent intent) {
         String language = intent.getStringExtra(LANG);
         String country = intent.getStringExtra(COUNTRY);
+        String skipLocaleCheck = intent.getStringExtra(SKIP_LOCALE_CHECK);
         if (language == null || country == null) {
             Log.w(TAG, "It is required to provide both language and country, for example: " +
                     "am broadcast -a io.appium.settings.locale --es lang ja --es country JP");
@@ -55,11 +57,15 @@ public class LocaleSettingReceiver extends BroadcastReceiver implements HasActio
         }
         // Expect https://developer.android.com/reference/java/util/Locale.html#Locale(java.lang.String,%20java.lang.String) format.
         Locale locale = new Locale(language, country);
+        Log.i(TAG, String.format("Obtained locale: %s", locale));
         String script = intent.getStringExtra(SCRIPT);
         if (script != null) {
             locale = new Locale.Builder().setLocale(locale).setScript(script).build();
         }
-        if (!LocaleUtils.isAvailableLocale(locale)) {
+        if (skipLocaleCheck != null) {
+            Log.i(TAG, "'skip_locale_check' value is provided, will not check locale availability");
+        }
+        else if (!LocaleUtils.isAvailableLocale(locale)) {
             List<Locale> approximateMatchesLc = matchLocales(language, country);
             if (!approximateMatchesLc.isEmpty() && isBlank(script)) {
                 Log.i(TAG, String.format(

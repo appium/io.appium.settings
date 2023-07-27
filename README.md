@@ -107,10 +107,14 @@ $ adb shell am broadcast -a io.appium.settings.animation --es setstatus disable
 Set particular locale:
 
 ```shell
+# If not granted already, grant locale change permission https://developer.android.com/reference/android/Manifest.permission#CHANGE_CONFIGURATION
+$ adb shell pm grant io.appium.settings android.permission.CHANGE_CONFIGURATION
 $ adb shell am broadcast -a io.appium.settings.locale -n io.appium.settings/.receivers.LocaleSettingReceiver --es lang ja --es country JP
 $ adb shell getprop persist.sys.locale # ja-JP
 $ adb shell am broadcast -a io.appium.settings.locale -n io.appium.settings/.receivers.LocaleSettingReceiver --es lang zh --es country CN --es script Hans
 $ adb shell getprop persist.sys.locale # zh-Hans-CN for API level 21+
+# When 'skip_locale_check' parameter is set appium settings application doesn't check that locale you are trying to set is a valid locale string, by default it validates the locale and throws error when invalid 
+$ adb shell am broadcast -a io.appium.settings.locale -n io.appium.settings/.receivers.LocaleSettingReceiver --es lang xx --es country US --es skip_locale_check 1
 ```
 
 You can set the [Locale](https://developer.android.com/reference/java/util/Locale.html) format, especially this feature support [Locale(String language, String country)](https://developer.android.com/reference/java/util/Locale.html#Locale(java.lang.String,%20java.lang.String)) so far.
