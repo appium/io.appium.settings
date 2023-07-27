@@ -1,3 +1,10 @@
+## [5.1.0](https://github.com/appium/io.appium.settings/compare/v5.0.5...v5.1.0) (2023-07-27)
+
+
+### Features
+
+* add option to ignore locale verification ([#118](https://github.com/appium/io.appium.settings/issues/118)) ([7b751a6](https://github.com/appium/io.appium.settings/commit/7b751a60f76baacdb5d50cab0ecc5df7b758eca9))
+
 ## [5.0.5](https://github.com/appium/io.appium.settings/compare/v5.0.4...v5.0.5) (2023-06-23)
 
 
