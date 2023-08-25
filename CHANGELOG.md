@@ -1,3 +1,10 @@
+## [5.1.1](https://github.com/appium/io.appium.settings/compare/v5.1.0...v5.1.1) (2023-08-25)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump semantic-release from 20.1.3 to 21.1.0 ([#120](https://github.com/appium/io.appium.settings/issues/120)) ([07ae699](https://github.com/appium/io.appium.settings/commit/07ae699d89d2970ac9b33c70c000839a0b43e556))
+
 ## [5.1.0](https://github.com/appium/io.appium.settings/compare/v5.0.5...v5.1.0) (2023-07-27)
 
 
