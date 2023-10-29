@@ -1,3 +1,10 @@
+## [5.2.0](https://github.com/appium/io.appium.settings/compare/v5.1.3...v5.2.0) (2023-10-29)
+
+
+### Features
+
+* Add EmptyIME ([#126](https://github.com/appium/io.appium.settings/issues/126)) ([01d475d](https://github.com/appium/io.appium.settings/commit/01d475d5db16cf0a48412c24fae5edf0852f7be8))
+
 ## [5.1.3](https://github.com/appium/io.appium.settings/compare/v5.1.2...v5.1.3) (2023-10-28)
 
 
