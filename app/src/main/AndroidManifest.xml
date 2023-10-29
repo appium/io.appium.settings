@@ -78,6 +78,21 @@
         </service>
 
         <service
+            android:name=".EmptyIME"
+            android:label="Empty IME"
+            android:enabled="true"
+            android:permission="android.permission.BIND_INPUT_METHOD"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.view.InputMethod" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.view.im"
+                android:resource="@xml/method" />
+        </service>
+
+        <service
             android:name=".UnicodeIME"
             android:label="Unicode IME"
             android:enabled="true"
