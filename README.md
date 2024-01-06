@@ -146,6 +146,9 @@ option would have no effect.
 ## Setting Mock Locations
 
 Please set the Appium Settings from the Settings app's _Developer Options_ -> _Select mock location app_. 
+Or `adb shell appops set io.appium.settings android:mock_location allow` let you do the same via adb command.
+`adb shell appops set io.appium.settings android:mock_location deny` is to turn it off.
+
 
 Start sending scheduled updates (every 2s) for mock location with the specified values by executing:
 (API versions 26+):
