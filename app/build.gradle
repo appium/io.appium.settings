@@ -1,11 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 30
+    compileSdk 30
 
     defaultConfig {
         minSdkVersion 21
-        //noinspection ExpiredTargetSdkVersion
         targetSdkVersion 30
         versionCode 62
         versionName "5.2.0"

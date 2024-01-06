@@ -11,14 +11,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Use Node.js 18.x
-      uses: actions/setup-node@v1
+    - name: Use Node.js LTS
+      uses: actions/setup-node@v3
       with:
-        node-version: 18.x
-    - name: Set up JDK 11
+        node-version: lts/*
+    - name: Set up JDK
       uses: actions/setup-java@v2
       with:
-        java-version: '11'
+        java-version: '17'
         distribution: 'temurin'
         cache: gradle
     - run: npm install --no-package-lock
