@@ -54,10 +54,6 @@ public class FusedLocationProvider implements MockLocationProvider {
         if (!hasPermissions()) {
             return;
         }
-        if (!fusedLocationProviderClient.asGoogleApiClient().isConnected()) {
-            Log.d(TAG, "GoogleApiClient is not connected");
-            return;
-        }
         fusedLocationProviderClient.setMockLocation(location);
     }
 
@@ -67,7 +63,6 @@ public class FusedLocationProvider implements MockLocationProvider {
         if (!hasPermissions()) {
             return;
         }
-        fusedLocationProviderClient.asGoogleApiClient().connect();
         fusedLocationProviderClient.setMockMode(true);
     }
 
@@ -78,7 +73,6 @@ public class FusedLocationProvider implements MockLocationProvider {
             return;
         }
         fusedLocationProviderClient.setMockMode(false);
-        fusedLocationProviderClient.asGoogleApiClient().disconnect();
     }
 
     @Override

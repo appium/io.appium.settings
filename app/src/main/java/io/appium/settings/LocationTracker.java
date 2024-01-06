@@ -174,9 +174,6 @@ public class LocationTracker implements LocationListener {
 
         Log.d(TAG, "Stopping Google Play Services location provider");
         mFusedLocationProviderClient.removeLocationUpdates(locationCallback);
-        if (mFusedLocationProviderClient.asGoogleApiClient().isConnected()) {
-            mFusedLocationProviderClient.asGoogleApiClient().disconnect();
-        }
         mFusedLocationProviderClient = null;
     }
 
