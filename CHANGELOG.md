@@ -1,3 +1,10 @@
+## [5.3.0](https://github.com/appium/io.appium.settings/compare/v5.2.0...v5.3.0) (2024-01-06)
+
+
+### Features
+
+* use play services location 21 ([#128](https://github.com/appium/io.appium.settings/issues/128)) ([acc0d55](https://github.com/appium/io.appium.settings/commit/acc0d552882a6c4f2f22359dd24e90b8aac3700c))
+
 ## [5.2.0](https://github.com/appium/io.appium.settings/compare/v5.1.3...v5.2.0) (2023-10-29)
 
 
