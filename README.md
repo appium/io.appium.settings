@@ -145,6 +145,8 @@ option would have no effect.
 
 ## Setting Mock Locations
 
+Please set the Appium Settings from the Settings app's _Developer Options_ -> _Select mock location app_. 
+
 Start sending scheduled updates (every 2s) for mock location with the specified values by executing:
 (API versions 26+):
 ```shell
