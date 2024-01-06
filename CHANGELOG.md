@@ -1,3 +1,10 @@
+## [5.3.1](https://github.com/appium/io.appium.settings/compare/v5.3.0...v5.3.1) (2024-01-06)
+
+
+### Miscellaneous Chores
+
+* Bump Gradle version ([#129](https://github.com/appium/io.appium.settings/issues/129)) ([865c90f](https://github.com/appium/io.appium.settings/commit/865c90f65c0b5dfb2ff5dc89f0cc2c4b1bc9915d))
+
 ## [5.3.0](https://github.com/appium/io.appium.settings/compare/v5.2.0...v5.3.0) (2024-01-06)
 
 
