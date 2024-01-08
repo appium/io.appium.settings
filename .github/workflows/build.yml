@@ -20,8 +20,6 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Linter
-        run: |
-          npm run js:lint
-          npm run lint
+        run: npm run lint
       - name: Build
         run: npm run build
