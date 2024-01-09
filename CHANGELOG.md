@@ -1,3 +1,20 @@
+## [5.4.0](https://github.com/appium/io.appium.settings/compare/v5.3.1...v5.4.0) (2024-01-09)
+
+
+### Features
+
+* Add javascript wrappers over Settings App APIs ([#131](https://github.com/appium/io.appium.settings/issues/131)) ([bd56d5e](https://github.com/appium/io.appium.settings/commit/bd56d5ed958f243bb32c22197cf9526bfc6428f7))
+
+
+### Bug Fixes
+
+* Add missing packages ([#132](https://github.com/appium/io.appium.settings/issues/132)) ([7d3015a](https://github.com/appium/io.appium.settings/commit/7d3015a45c44e9cf7edd0ce2d918561571879ade))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump org.apache.commons:commons-lang3 from 3.13.0 to 3.14.0 ([#130](https://github.com/appium/io.appium.settings/issues/130)) ([ae96723](https://github.com/appium/io.appium.settings/commit/ae96723d82f5f2436294bb74db0d4184fafe5c85))
+
 ## [5.3.1](https://github.com/appium/io.appium.settings/compare/v5.3.0...v5.3.1) (2024-01-06)
 
 
