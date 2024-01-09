@@ -1,0 +1,41 @@
+name: Unit Tests
+
+on: [pull_request, push]
+
+
+jobs:
+  prepare_matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      versions: ${{ steps.generate-matrix.outputs.versions }}
+    steps:
+    - name: Select 3 most recent LTS versions of Node.js
+      id: generate-matrix
+      run: echo "versions=$(curl -s https://endoflife.date/api/nodejs.json | jq -c '[[.[] | select(.lts != false)][:3] | .[].cycle | tonumber]')" >> "$GITHUB_OUTPUT"
+
+
+  test:
+    needs:
+    - prepare_matrix
+    strategy:
+      matrix:
+        node-version: ${{ fromJSON(needs.prepare_matrix.outputs.versions) }}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: Use Java 17
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+    - run: npm install --no-package-lock
+      name: Install dev dependencies
+    - run: npm run build
+      name: Build
+    - run: npm run js:lint
+      name: Run linter
+    - run: npm run js:test
+      name: Run unit tests
