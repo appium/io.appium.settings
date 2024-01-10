@@ -1,3 +1,10 @@
+## [5.4.2](https://github.com/appium/io.appium.settings/compare/v5.4.1...v5.4.2) (2024-01-10)
+
+
+### Miscellaneous Chores
+
+* Add more constants to export ([#137](https://github.com/appium/io.appium.settings/issues/137)) ([1a27223](https://github.com/appium/io.appium.settings/commit/1a27223718db9f7c57fc8cf30def2f4d10321efd))
+
 ## [5.4.1](https://github.com/appium/io.appium.settings/compare/v5.4.0...v5.4.1) (2024-01-10)
 
 
