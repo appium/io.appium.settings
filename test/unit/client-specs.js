@@ -5,7 +5,6 @@ import ADB from 'appium-adb';
 import chaiAsPromised from 'chai-as-promised';
 
 chai.use(chaiAsPromised);
-const should = chai.should();
 const adb = new ADB({});
 
 describe('client', withMocks({adb}, function (mocks) {
