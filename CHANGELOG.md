@@ -1,3 +1,11 @@
+## [5.5.0](https://github.com/appium/io.appium.settings/compare/v5.4.2...v5.5.0) (2024-01-10)
+
+
+### Features
+
+* Add a helper to adjust notifications permissions ([#139](https://github.com/appium/io.appium.settings/issues/139)) ([e0b88e6](https://github.com/appium/io.appium.settings/commit/e0b88e6f4c3291c5932e9773aa2594280efe80ba))
+* Update method to set device locale ([#136](https://github.com/appium/io.appium.settings/issues/136)) ([329c29f](https://github.com/appium/io.appium.settings/commit/329c29f31fcb1774a569820b06bf26b9462df6cd))
+
 ## [5.4.2](https://github.com/appium/io.appium.settings/compare/v5.4.1...v5.4.2) (2024-01-10)
 
 
