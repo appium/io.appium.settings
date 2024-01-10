@@ -1,3 +1,10 @@
+## [5.4.1](https://github.com/appium/io.appium.settings/compare/v5.4.0...v5.4.1) (2024-01-10)
+
+
+### Bug Fixes
+
+* Update process existence check ([#133](https://github.com/appium/io.appium.settings/issues/133)) ([ea1f8e0](https://github.com/appium/io.appium.settings/commit/ea1f8e0f1dca11adbf4c54052945569a90625bf6))
+
 ## [5.4.0](https://github.com/appium/io.appium.settings/compare/v5.3.1...v5.4.0) (2024-01-09)
 
 
