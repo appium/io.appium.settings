@@ -1,3 +1,10 @@
+## [5.6.0](https://github.com/appium/io.appium.settings/compare/v5.5.0...v5.6.0) (2024-01-10)
+
+
+### Features
+
+* Add media-projection-based video recorder ([#138](https://github.com/appium/io.appium.settings/issues/138)) ([ba357e8](https://github.com/appium/io.appium.settings/commit/ba357e8541e2f86e9db902ace4850fd04fb3ec57))
+
 ## [5.5.0](https://github.com/appium/io.appium.settings/compare/v5.4.2...v5.5.0) (2024-01-10)
 
 
