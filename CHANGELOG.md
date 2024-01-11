@@ -1,3 +1,10 @@
+## [5.7.1](https://github.com/appium/io.appium.settings/compare/v5.7.0...v5.7.1) (2024-01-11)
+
+
+### Bug Fixes
+
+* Update index path ([a8ff340](https://github.com/appium/io.appium.settings/commit/a8ff340fce213de13341ee9132044be187c19374))
+
 ## [5.7.0](https://github.com/appium/io.appium.settings/compare/v5.6.0...v5.7.0) (2024-01-11)
 
 
