@@ -45,6 +45,36 @@ To uninstall:
 $ adb uninstall io.appium.settings
 ```
 
+## Using the JavaScript wrapper
+
+This module exports the [SettingsApp](./lib/client.js) class, which allowsyou to automate the below interactions with JavaScript.
+The wrapper expects you also have the [appium-adb](https://github.com/appium/appium-adb) module listed
+in your dependencies. Here is a usage example:
+
+```js
+import ADB from 'appium-adb'
+import { SettingsApp } from 'io.appium.settings';
+
+async function main() {
+  // It is expected 'io.appium.settings' is already installed on the device
+  // and the neccessary permissions are granted to it.
+  // Check https://github.com/appium/appium-android-driver/blob/master/lib/helpers/android.ts
+  // if you are looking on how to automate this process.
+  const app = new SettingsApp({
+    adb: await ADB.createADB()
+  });
+  const recorder = app.makeMediaProjectionRecorder();
+  const filename = 'video.mp4';
+  const didStart = await recorder.start({filename});
+  if (didStart) {
+    log.info(`A new media projection recording '${filename}' has been successfully started`);
+  } else {
+    log.info('A new media projection recording was unable to start. Is it already running?');
+  }
+}
+
+main();
+```
 
 ## Changing of system settings
 
@@ -113,7 +143,7 @@ $ adb shell am broadcast -a io.appium.settings.locale -n io.appium.settings/.rec
 $ adb shell getprop persist.sys.locale # ja-JP
 $ adb shell am broadcast -a io.appium.settings.locale -n io.appium.settings/.receivers.LocaleSettingReceiver --es lang zh --es country CN --es script Hans
 $ adb shell getprop persist.sys.locale # zh-Hans-CN for API level 21+
-# When 'skip_locale_check' parameter is set appium settings application doesn't check that locale you are trying to set is a valid locale string, by default it validates the locale and throws error when invalid 
+# When 'skip_locale_check' parameter is set appium settings application doesn't check that locale you are trying to set is a valid locale string, by default it validates the locale and throws error when invalid
 $ adb shell am broadcast -a io.appium.settings.locale -n io.appium.settings/.receivers.LocaleSettingReceiver --es lang xx --es country US --es skip_locale_check 1
 ```
 
@@ -145,7 +175,7 @@ option would have no effect.
 
 ## Setting Mock Locations
 
-Please set the Appium Settings from the Settings app's _Developer Options_ -> _Select mock location app_. 
+Please set the Appium Settings from the Settings app's _Developer Options_ -> _Select mock location app_.
 Or `adb shell appops set io.appium.settings android:mock_location allow` let you do the same via adb command.
 `adb shell appops set io.appium.settings android:mock_location deny` is to turn it off.
 
