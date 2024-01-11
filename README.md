@@ -48,7 +48,7 @@ $ adb uninstall io.appium.settings
 ## Using the JavaScript wrapper
 
 This module exports the [SettingsApp](./lib/client.js) class, which allows you to automate the below interactions with JavaScript.
-The wrapper expects you also have the [appium-adb](https://github.com/appium/appium-adb) module listed
+The wrapper expects you to also have the [appium-adb](https://github.com/appium/appium-adb) module listed
 in your dependencies. The actual version of the appium-adb module must satisfy the same semver requirement this module
 has in its [devDependencies](./package.json).
 Here is the usage example:
