@@ -2,8 +2,8 @@
   "name": "io.appium.settings",
   "version": "5.7.0",
   "description": "App for dealing with Android settings",
-  "main": "./build/index.js",
-  "types": "./build/index.d.ts",
+  "main": "./build/lib/index.js",
+  "types": "./build/lib/index.d.ts",
   "scripts": {
     "bump-gradle-version": "node scripts/gradle-version-update.js --package-version=${npm_package_version} && git add app/build.gradle",
     "lint": "./gradlew lint",
