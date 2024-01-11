@@ -1,3 +1,10 @@
+## [5.7.0](https://github.com/appium/io.appium.settings/compare/v5.6.0...v5.7.0) (2024-01-11)
+
+
+### Features
+
+* Make the index typed ([#140](https://github.com/appium/io.appium.settings/issues/140)) ([7020af0](https://github.com/appium/io.appium.settings/commit/7020af0c0ec542b2271b5e4685ff9c63a5faa4c2))
+
 ## [5.6.0](https://github.com/appium/io.appium.settings/compare/v5.5.0...v5.6.0) (2024-01-10)
 
 
