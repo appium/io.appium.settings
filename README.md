@@ -78,6 +78,9 @@ async function main() {
 main();
 ```
 
+The module also exports various constants containing its service and action names, that could be useful in your
+scripts. Check [constants.js](./lib/constants.js) for more details.
+
 ## Changing of system settings
 
 Once installed on a device, you can change the `wifi`, `data`, `animation` and `locale` settings through the following commands:
