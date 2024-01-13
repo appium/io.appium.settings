@@ -1,3 +1,10 @@
+## [5.7.2](https://github.com/appium/io.appium.settings/compare/v5.7.1...v5.7.2) (2024-01-13)
+
+
+### Miscellaneous Chores
+
+* Bump appium-adb ([#142](https://github.com/appium/io.appium.settings/issues/142)) ([adb209e](https://github.com/appium/io.appium.settings/commit/adb209e3d25a4f996fa52d92894f08d1dda35a9b))
+
 ## [5.7.1](https://github.com/appium/io.appium.settings/compare/v5.7.0...v5.7.1) (2024-01-11)
 
 
