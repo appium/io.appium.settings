@@ -1,3 +1,10 @@
+## [5.7.3](https://github.com/appium/io.appium.settings/compare/v5.7.2...v5.7.3) (2024-01-16)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump semantic-release from 22.0.12 to 23.0.0 ([#143](https://github.com/appium/io.appium.settings/issues/143)) ([a1d155d](https://github.com/appium/io.appium.settings/commit/a1d155db89e892febb0c02811668aa433bacde2c))
+
 ## [5.7.2](https://github.com/appium/io.appium.settings/compare/v5.7.1...v5.7.2) (2024-01-13)
 
 
