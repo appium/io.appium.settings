@@ -1,3 +1,10 @@
+## [5.7.4](https://github.com/appium/io.appium.settings/compare/v5.7.3...v5.7.4) (2024-01-24)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump com.google.android.gms:play-services-location ([#144](https://github.com/appium/io.appium.settings/issues/144)) ([ef7f5dc](https://github.com/appium/io.appium.settings/commit/ef7f5dc3f61729af47537253e56d4132c51873a4))
+
 ## [5.7.3](https://github.com/appium/io.appium.settings/compare/v5.7.2...v5.7.3) (2024-01-16)
 
 
