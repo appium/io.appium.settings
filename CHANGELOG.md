@@ -1,3 +1,10 @@
+## [5.7.6](https://github.com/appium/io.appium.settings/compare/v5.7.5...v5.7.6) (2024-03-02)
+
+
+### Miscellaneous Chores
+
+* update gradle env ([#153](https://github.com/appium/io.appium.settings/issues/153)) ([6835b93](https://github.com/appium/io.appium.settings/commit/6835b9304c77fd239593860796a75a6c0316771c))
+
 ## [5.7.5](https://github.com/appium/io.appium.settings/compare/v5.7.4...v5.7.5) (2024-01-25)
 
 
