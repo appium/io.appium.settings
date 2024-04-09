@@ -1,3 +1,11 @@
+## [5.7.8](https://github.com/appium/io.appium.settings/compare/v5.7.7...v5.7.8) (2024-04-09)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @typescript-eslint/parser from 6.21.0 to 7.6.0 ([#161](https://github.com/appium/io.appium.settings/issues/161)) ([05c9fe9](https://github.com/appium/io.appium.settings/commit/05c9fe91e6fe9c77337c6ffc4b4a749b4349873b))
+* **deps:** bump com.google.android.gms:play-services-location ([#155](https://github.com/appium/io.appium.settings/issues/155)) ([c549af4](https://github.com/appium/io.appium.settings/commit/c549af4224d250abca07a79710951930c3399626))
+
 ## [5.7.7](https://github.com/appium/io.appium.settings/compare/v5.7.6...v5.7.7) (2024-03-20)
 
 
