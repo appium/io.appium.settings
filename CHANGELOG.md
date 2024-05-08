@@ -1,3 +1,10 @@
+## [5.8.1](https://github.com/appium/io.appium.settings/compare/v5.8.0...v5.8.1) (2024-05-08)
+
+
+### Miscellaneous Chores
+
+* Update Gradle version ([#166](https://github.com/appium/io.appium.settings/issues/166)) ([4a5ab38](https://github.com/appium/io.appium.settings/commit/4a5ab381fc6b757b5419fb8ded353cc893a157c5))
+
 ## [5.8.0](https://github.com/appium/io.appium.settings/compare/v5.7.9...v5.8.0) (2024-05-08)
 
 
