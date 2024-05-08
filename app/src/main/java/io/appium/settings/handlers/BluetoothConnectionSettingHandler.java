@@ -23,7 +23,7 @@ import android.content.Context;
 @SuppressLint("MissingPermission")
 public class BluetoothConnectionSettingHandler extends AbstractSettingHandler {
 
-    private BluetoothAdapter bluetoothAdapter;
+    private final BluetoothAdapter bluetoothAdapter;
 
     public BluetoothConnectionSettingHandler(Context context, BluetoothAdapter bluetoothAdapter) {
         super(context);
