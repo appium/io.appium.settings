@@ -16,6 +16,7 @@
 
 package io.appium.settings.receivers;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.util.Log;
@@ -36,6 +37,7 @@ public class BluetoothConnectionSettingReceiver extends AbstractSettingReceiver
         if (bluetoothAdapter == null) {
             String errorMessage = "No default bluetooth adapter found";
             Log.e(TAG, errorMessage);
+            setResultCode(Activity.RESULT_CANCELED);
             setResultData(errorMessage);
             return null;
         }

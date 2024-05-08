@@ -23,7 +23,7 @@ import android.util.Log;
 public abstract class AbstractSettingHandler {
     private static final String TAG = AbstractSettingHandler.class.getSimpleName();
     protected Context mContext;
-    private String[] permissions;
+    private final String[] permissions;
 
     AbstractSettingHandler(Context context, String... permissions) {
         this.mContext = context;
