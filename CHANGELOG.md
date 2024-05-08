@@ -1,3 +1,20 @@
+## [5.8.0](https://github.com/appium/io.appium.settings/compare/v5.7.9...v5.8.0) (2024-05-08)
+
+
+### Features
+
+* Add helpers for dealing with bluetooth ([#165](https://github.com/appium/io.appium.settings/issues/165)) ([d54ec63](https://github.com/appium/io.appium.settings/commit/d54ec634831859c418e9a4c7d0c6dd641936321d))
+
+
+### Bug Fixes
+
+* Revert "chore(deps-dev): bump conventional-changelog-conventionalcommits ([#164](https://github.com/appium/io.appium.settings/issues/164))" ([#167](https://github.com/appium/io.appium.settings/issues/167)) ([ddebbc4](https://github.com/appium/io.appium.settings/commit/ddebbc4ea7f4bb7a46e74e33f96fac5889ba4d46))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump conventional-changelog-conventionalcommits ([#164](https://github.com/appium/io.appium.settings/issues/164)) ([b9db694](https://github.com/appium/io.appium.settings/commit/b9db6942d4a90c44c63efb4b74a0f5ffdae86208))
+
 ## [5.7.9](https://github.com/appium/io.appium.settings/compare/v5.7.8...v5.7.9) (2024-04-09)
 
 
