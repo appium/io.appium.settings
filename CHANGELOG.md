@@ -1,3 +1,10 @@
+## [5.8.2](https://github.com/appium/io.appium.settings/compare/v5.8.1...v5.8.2) (2024-05-16)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump sinon from 17.0.2 to 18.0.0 ([#170](https://github.com/appium/io.appium.settings/issues/170)) ([bccbe16](https://github.com/appium/io.appium.settings/commit/bccbe161df1654d4fc9ba9a3d6ce1d03d46d0b51))
+
 ## [5.8.1](https://github.com/appium/io.appium.settings/compare/v5.8.0...v5.8.1) (2024-05-08)
 
 
