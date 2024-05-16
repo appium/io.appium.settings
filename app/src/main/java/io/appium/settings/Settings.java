@@ -38,6 +38,7 @@ import io.appium.settings.receivers.ClipboardReceiver;
 import io.appium.settings.receivers.DataConnectionSettingReceiver;
 import io.appium.settings.receivers.HasAction;
 import io.appium.settings.receivers.LocaleSettingReceiver;
+import io.appium.settings.receivers.LocalesReader;
 import io.appium.settings.receivers.LocationInfoReceiver;
 import io.appium.settings.receivers.MediaScannerReceiver;
 import io.appium.settings.receivers.NotificationsReceiver;
@@ -83,6 +84,7 @@ public class Settings extends Activity {
                 AnimationSettingReceiver.class,
                 DataConnectionSettingReceiver.class,
                 LocaleSettingReceiver.class,
+                LocalesReader.class,
                 LocationInfoReceiver.class,
                 ClipboardReceiver.class,
                 BluetoothConnectionSettingReceiver.class,

@@ -156,6 +156,12 @@ You can set the [Locale](https://developer.android.com/reference/java/util/Local
 
 `-n io.appium.settings/.receivers.LocaleSettingReceiver` is not necessary in some devices.
 
+List all supported locales as base64-encoded JSON:
+
+```shell
+$ adb shell am broadcast -a io.appium.settings.list_locales
+```
+
 ## Retrieval of system settings
 
 You can retrieve the current geo location by executing:

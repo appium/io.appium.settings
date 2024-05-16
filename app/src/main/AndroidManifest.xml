@@ -135,6 +135,9 @@
         <receiver android:name=".receivers.LocaleSettingReceiver"
             android:exported="true"
             tools:ignore="ExportedReceiver" />
+        <receiver android:name=".receivers.LocalesReader"
+            android:exported="true"
+            tools:ignore="ExportedReceiver" />
         <receiver android:name=".receivers.ClipboardReceiver"
                   android:exported="true"
                   tools:ignore="ExportedReceiver" />
