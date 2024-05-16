@@ -1,3 +1,10 @@
+## [5.9.0](https://github.com/appium/io.appium.settings/compare/v5.8.2...v5.9.0) (2024-05-16)
+
+
+### Features
+
+* Add an API to list locales supported by the device ([#171](https://github.com/appium/io.appium.settings/issues/171)) ([6d00491](https://github.com/appium/io.appium.settings/commit/6d0049129ed21e017f4df25448c5f10df7d8774b))
+
 ## [5.8.2](https://github.com/appium/io.appium.settings/compare/v5.8.1...v5.8.2) (2024-05-16)
 
 
