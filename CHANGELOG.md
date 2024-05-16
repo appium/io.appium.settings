@@ -1,3 +1,10 @@
+## [5.9.1](https://github.com/appium/io.appium.settings/compare/v5.9.0...v5.9.1) (2024-05-16)
+
+
+### Miscellaneous Chores
+
+* Update dev dependencies ([89d759d](https://github.com/appium/io.appium.settings/commit/89d759daed18e33abde90a2e56006139074f369d))
+
 ## [5.9.0](https://github.com/appium/io.appium.settings/compare/v5.8.2...v5.9.0) (2024-05-16)
 
 
