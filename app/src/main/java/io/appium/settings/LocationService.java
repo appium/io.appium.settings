@@ -23,6 +23,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.location.LocationProvider;
+import android.location.provider.ProviderProperties;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
@@ -184,23 +185,49 @@ public class LocationService extends Service {
 
     @Nullable
     private MockLocationProvider createLocationManagerMockProvider(LocationManager locationManager, String providerName) {
-        LocationProvider provider = locationManager.getProvider(providerName);
-        return provider == null ? null : createLocationManagerMockProvider(locationManager, provider);
+        if (providerName == null) {
+            return null;
+        }
+        // API level check for existence of provider properties
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { // API level 31 and above
+            ProviderProperties providerProperties = locationManager.getProviderProperties(providerName);
+            if (providerProperties == null) {
+                return null;
+            }
+            return new LocationManagerProvider(
+                    locationManager,
+                    providerName,
+                    providerProperties.hasNetworkRequirement(),
+                    providerProperties.hasSatelliteRequirement(),
+                    providerProperties.hasCellRequirement(),
+                    providerProperties.hasMonetaryCost(),
+                    providerProperties.hasAltitudeSupport(),
+                    providerProperties.hasSpeedSupport(),
+                    providerProperties.hasBearingSupport(),
+                    providerProperties.getPowerUsage(),
+                    providerProperties.getAccuracy()
+            );
+        } else {
+            LocationProvider provider = locationManager.getProvider(providerName);
+            if (provider == null) {
+                return null;
+            }
+            return new LocationManagerProvider(
+                    locationManager,
+                    provider.getName(),
+                    provider.requiresNetwork(),
+                    provider.requiresSatellite(),
+                    provider.requiresCell(),
+                    provider.hasMonetaryCost(),
+                    provider.supportsAltitude(),
+                    provider.supportsSpeed(),
+                    provider.supportsBearing(),
+                    provider.getPowerRequirement(),
+                    provider.getAccuracy()
+            );
+        }
     }
 
-    private MockLocationProvider createLocationManagerMockProvider(LocationManager locationManager, LocationProvider locationProvider) {
-        return new LocationManagerProvider(locationManager,
-                locationProvider.getName(),
-                locationProvider.requiresNetwork(),
-                locationProvider.requiresSatellite(),
-                locationProvider.requiresCell(),
-                locationProvider.hasMonetaryCost(),
-                locationProvider.supportsAltitude(),
-                locationProvider.supportsSpeed(),
-                locationProvider.supportsBearing(),
-                locationProvider.getPowerRequirement(),
-                locationProvider.getAccuracy());
-    }
 
     private FusedLocationProvider createFusedLocationProvider() {
         FusedLocationProviderClient locationProviderClient = LocationServices.getFusedLocationProviderClient(this);
