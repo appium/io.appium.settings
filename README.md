@@ -15,7 +15,7 @@ A small and simple Android application that deals with the system settings. Then
 * [Java JDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
 * [Gradle](https://gradle.org/)
 
-You may also consider using [Android Studio Jellyfish](https://developer.android.com/studio/index.html), which supports AGP 8.4, to debug the code easily.
+You may also consider using [Android Studio Jellyfish](https://developer.android.com/studio/index.html), which supports AGP 8.4.0, to debug the code easily.
 
 ## Building
 
