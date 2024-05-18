@@ -27,6 +27,9 @@ android {
     }
 
     namespace "io.appium.settings"
+    buildFeatures {
+        buildConfig true
+    }
 }
 
 dependencies {
