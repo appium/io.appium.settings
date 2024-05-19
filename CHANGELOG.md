@@ -1,3 +1,10 @@
+## [5.9.2](https://github.com/appium/io.appium.settings/compare/v5.9.1...v5.9.2) (2024-05-18)
+
+
+### Miscellaneous Chores
+
+* Enable BuildConfig generation ([#173](https://github.com/appium/io.appium.settings/issues/173)) ([af4c160](https://github.com/appium/io.appium.settings/commit/af4c16038463ad97a4cbe80bf89a926b9139b718))
+
 ## [5.9.1](https://github.com/appium/io.appium.settings/compare/v5.9.0...v5.9.1) (2024-05-16)
 
 
