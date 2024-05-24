@@ -16,6 +16,7 @@
 
 package io.appium.settings;
 
+import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -183,7 +184,15 @@ public class LocationService extends Service {
         return mockProviders;
     }
 
+    /**
+     * Creates a mock location provider based on the given provider name.
+     *
+     * @param locationManager the location manager
+     * @param providerName    the name of the provider
+     * @return a MockLocationProvider if the provider exists, otherwise null
+     */
     @Nullable
+    @SuppressLint("MissingPermission")
     private MockLocationProvider createLocationManagerMockProvider(LocationManager locationManager, String providerName) {
         if (providerName == null) {
             return null;
@@ -207,25 +216,24 @@ public class LocationService extends Service {
                     providerProperties.getPowerUsage(),
                     providerProperties.getAccuracy()
             );
-        } else {
-            LocationProvider provider = locationManager.getProvider(providerName);
-            if (provider == null) {
-                return null;
-            }
-            return new LocationManagerProvider(
-                    locationManager,
-                    provider.getName(),
-                    provider.requiresNetwork(),
-                    provider.requiresSatellite(),
-                    provider.requiresCell(),
-                    provider.hasMonetaryCost(),
-                    provider.supportsAltitude(),
-                    provider.supportsSpeed(),
-                    provider.supportsBearing(),
-                    provider.getPowerRequirement(),
-                    provider.getAccuracy()
-            );
         }
+        LocationProvider provider = locationManager.getProvider(providerName);
+        if (provider == null) {
+            return null;
+        }
+        return new LocationManagerProvider(
+                locationManager,
+                provider.getName(),
+                provider.requiresNetwork(),
+                provider.requiresSatellite(),
+                provider.requiresCell(),
+                provider.hasMonetaryCost(),
+                provider.supportsAltitude(),
+                provider.supportsSpeed(),
+                provider.supportsBearing(),
+                provider.getPowerRequirement(),
+                provider.getAccuracy()
+        );
     }
 
 
