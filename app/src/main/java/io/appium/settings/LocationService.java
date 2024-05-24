@@ -192,7 +192,6 @@ public class LocationService extends Service {
      * @return a MockLocationProvider if the provider exists, otherwise null
      */
     @Nullable
-    @SuppressLint("MissingPermission")
     private MockLocationProvider createLocationManagerMockProvider(LocationManager locationManager, String providerName) {
         if (providerName == null) {
             return null;
