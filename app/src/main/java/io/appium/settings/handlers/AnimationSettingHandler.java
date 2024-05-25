@@ -32,7 +32,7 @@ public class AnimationSettingHandler extends AbstractSettingHandler {
         super(context, ANIMATION_PERMISSION);
     }
 
-    @SuppressLint("LongLogTag")
+    @SuppressLint({"LongLogTag", "SoonBlockedPrivateApi"})
     @Override
     protected boolean setState(boolean state) {
         try {
