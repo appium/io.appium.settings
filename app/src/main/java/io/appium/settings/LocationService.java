@@ -16,7 +16,6 @@
 
 package io.appium.settings;
 
-import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -29,8 +28,6 @@ import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 
-import androidx.annotation.Nullable;
-
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 
@@ -39,6 +36,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import androidx.annotation.Nullable;
 import io.appium.settings.helpers.NotificationHelpers;
 import io.appium.settings.helpers.PlayServicesHelpers;
 import io.appium.settings.location.FusedLocationProvider;
