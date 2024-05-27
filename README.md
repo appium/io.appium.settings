@@ -133,11 +133,15 @@ To turn on `animation`:
 $ adb shell am broadcast -a io.appium.settings.animation --es setstatus enable
 ```
 
+(Note that [Restrictions on non-SDK interfaces](https://developer.android.com/guide/app-compatibility/restrictions-non-sdk-interfaces) affects this animation command.)
+
 To turn off `animation`:
 
 ```shell
 $ adb shell am broadcast -a io.appium.settings.animation --es setstatus disable
 ```
+
+(Note that [Restrictions on non-SDK interfaces](https://developer.android.com/guide/app-compatibility/restrictions-non-sdk-interfaces) affects this animation command.)
 
 Set particular locale:
 
