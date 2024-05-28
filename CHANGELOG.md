@@ -1,3 +1,10 @@
+## [5.10.0](https://github.com/appium/io.appium.settings/compare/v5.9.2...v5.10.0) (2024-05-27)
+
+
+### Features
+
+* use adb settings method to set animation for newer than api level 26 ([#176](https://github.com/appium/io.appium.settings/issues/176)) ([d0e5d4f](https://github.com/appium/io.appium.settings/commit/d0e5d4f3b7441d98402828a65717b2fddc6fa3e9))
+
 ## [5.9.2](https://github.com/appium/io.appium.settings/compare/v5.9.1...v5.9.2) (2024-05-18)
 
 

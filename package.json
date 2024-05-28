@@ -1,6 +1,6 @@
 {
   "name": "io.appium.settings",
-  "version": "5.9.2",
+  "version": "5.10.0",
   "description": "App for dealing with Android settings",
   "main": "./build/lib/index.js",
   "types": "./build/lib/index.d.ts",
@@ -66,7 +66,7 @@
     "@types/lodash": "^4.14.196",
     "@types/node": "^20.4.7",
     "@types/teen_process": "^2.0.2",
-    "appium-adb": "^12.0.0",
+    "appium-adb": "^12.4.0",
     "chai": "^4.1.2",
     "chai-as-promised": "^7.1.1",
     "conventional-changelog-conventionalcommits": "^7.0.1",
