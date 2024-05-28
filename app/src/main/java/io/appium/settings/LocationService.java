@@ -23,11 +23,10 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.location.LocationProvider;
+import android.location.provider.ProviderProperties;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
-
-import androidx.annotation.Nullable;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -37,6 +36,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import androidx.annotation.Nullable;
 import io.appium.settings.helpers.NotificationHelpers;
 import io.appium.settings.helpers.PlayServicesHelpers;
 import io.appium.settings.location.FusedLocationProvider;
@@ -182,25 +182,57 @@ public class LocationService extends Service {
         return mockProviders;
     }
 
+    /**
+     * Creates a mock location provider based on the given provider name.
+     *
+     * @param locationManager the location manager
+     * @param providerName    the name of the provider
+     * @return a MockLocationProvider if the provider exists, otherwise null
+     */
     @Nullable
     private MockLocationProvider createLocationManagerMockProvider(LocationManager locationManager, String providerName) {
+        if (providerName == null) {
+            return null;
+        }
+        // API level check for existence of provider properties
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { // API level 31 and above
+            ProviderProperties providerProperties = locationManager.getProviderProperties(providerName);
+            if (providerProperties == null) {
+                return null;
+            }
+            return new LocationManagerProvider(
+                    locationManager,
+                    providerName,
+                    providerProperties.hasNetworkRequirement(),
+                    providerProperties.hasSatelliteRequirement(),
+                    providerProperties.hasCellRequirement(),
+                    providerProperties.hasMonetaryCost(),
+                    providerProperties.hasAltitudeSupport(),
+                    providerProperties.hasSpeedSupport(),
+                    providerProperties.hasBearingSupport(),
+                    providerProperties.getPowerUsage(),
+                    providerProperties.getAccuracy()
+            );
+        }
         LocationProvider provider = locationManager.getProvider(providerName);
-        return provider == null ? null : createLocationManagerMockProvider(locationManager, provider);
+        if (provider == null) {
+            return null;
+        }
+        return new LocationManagerProvider(
+                locationManager,
+                provider.getName(),
+                provider.requiresNetwork(),
+                provider.requiresSatellite(),
+                provider.requiresCell(),
+                provider.hasMonetaryCost(),
+                provider.supportsAltitude(),
+                provider.supportsSpeed(),
+                provider.supportsBearing(),
+                provider.getPowerRequirement(),
+                provider.getAccuracy()
+        );
     }
 
-    private MockLocationProvider createLocationManagerMockProvider(LocationManager locationManager, LocationProvider locationProvider) {
-        return new LocationManagerProvider(locationManager,
-                locationProvider.getName(),
-                locationProvider.requiresNetwork(),
-                locationProvider.requiresSatellite(),
-                locationProvider.requiresCell(),
-                locationProvider.hasMonetaryCost(),
-                locationProvider.supportsAltitude(),
-                locationProvider.supportsSpeed(),
-                locationProvider.supportsBearing(),
-                locationProvider.getPowerRequirement(),
-                locationProvider.getAccuracy());
-    }
 
     private FusedLocationProvider createFusedLocationProvider() {
         FusedLocationProviderClient locationProviderClient = LocationServices.getFusedLocationProviderClient(this);

@@ -16,6 +16,7 @@
 
 package io.appium.settings.recorder;
 
+import android.annotation.SuppressLint;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
 import android.media.AudioAttributes;
@@ -152,6 +153,7 @@ public class RecorderThread implements Runnable {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
+    @SuppressLint("MissingPermission")
     private AudioRecord initAudioRecord(MediaProjection mediaProjection, int sampleRate) {
         int channelConfig = AudioFormat.CHANNEL_IN_MONO;
         int minBufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig,
