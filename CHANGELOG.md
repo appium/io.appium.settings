@@ -1,3 +1,15 @@
+## [5.10.1](https://github.com/appium/io.appium.settings/compare/v5.10.0...v5.10.1) (2024-05-31)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump com.google.android.gms:play-services-location ([#177](https://github.com/appium/io.appium.settings/issues/177)) ([f751709](https://github.com/appium/io.appium.settings/commit/f751709baf1663df7302a66a59d2b999254fb858))
+
+
+### Code Refactoring
+
+* LocationManager provider ([#174](https://github.com/appium/io.appium.settings/issues/174)) ([da7e36a](https://github.com/appium/io.appium.settings/commit/da7e36a1a6f3ad51d606c67203cd17e6f73098a2))
+
 ## [5.10.0](https://github.com/appium/io.appium.settings/compare/v5.9.2...v5.10.0) (2024-05-27)
 
 
