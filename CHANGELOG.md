@@ -1,3 +1,9 @@
+## [5.10.2](https://github.com/appium/io.appium.settings/compare/v5.10.1...v5.10.2) (2024-06-04)
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump semantic-release from 23.1.1 to 24.0.0 and conventional-changelog-conventionalcommits to 8.0.0 ([#178](https://github.com/appium/io.appium.settings/issues/178)) ([0b354d0](https://github.com/appium/io.appium.settings/commit/0b354d014c32ac7b86853c835161ade3b49d9a23))
+
 ## [5.10.1](https://github.com/appium/io.appium.settings/compare/v5.10.0...v5.10.1) (2024-05-31)
 
 
