@@ -1,9 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 const semver = require('semver');
-const npmlog = require('npmlog');
+const appiumLogger = require('@appium/logger');
 
-const logger = global._global_npmlog || npmlog;
+const logger = global._global_npmlog || appiumLogger;
 const LOG_PREFIX = 'VersionUpdate';
 
 const VERSION_NAME_PATTERN = /^\s*versionName\s+['"](.+)['"]$/gm;
