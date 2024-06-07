@@ -1,3 +1,13 @@
+## [5.11.0](https://github.com/appium/io.appium.settings/compare/v5.10.2...v5.11.0) (2024-06-07)
+
+### Features
+
+* Replace the deprecated npm log with @appium/logger ([#179](https://github.com/appium/io.appium.settings/issues/179)) ([715a83d](https://github.com/appium/io.appium.settings/commit/715a83d9d42cd87ef6c1db3e97bce0e110c522b2))
+
+### Bug Fixes
+
+* Logger import ([edc42d9](https://github.com/appium/io.appium.settings/commit/edc42d9a1a2dc82be7e74b2fbf30ac04f174aa47))
+
 ## [5.10.2](https://github.com/appium/io.appium.settings/compare/v5.10.1...v5.10.2) (2024-06-04)
 
 ### Miscellaneous Chores
