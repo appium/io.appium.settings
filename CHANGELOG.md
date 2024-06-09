@@ -1,3 +1,9 @@
+## [5.12.0](https://github.com/appium/io.appium.settings/compare/v5.11.0...v5.12.0) (2024-06-09)
+
+### Features
+
+* bump compileSdk and targetSdkVersion to 32 ([#181](https://github.com/appium/io.appium.settings/issues/181)) ([a69c004](https://github.com/appium/io.appium.settings/commit/a69c0041a5edabcea44ed149eec4ff5ca06f2319))
+
 ## [5.11.0](https://github.com/appium/io.appium.settings/compare/v5.10.2...v5.11.0) (2024-06-07)
 
 ### Features
