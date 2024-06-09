@@ -17,6 +17,11 @@ A small and simple Android application that deals with the system settings. Then
 
 You may also consider using the latest [Android Studio](https://developer.android.com/studio/index.html) to debug the code easily.
 
+### Enable access to non-SDK interfaces
+
+[Restrictions on non-SDK interfaces](https://developer.android.com/guide/app-compatibility/restrictions-non-sdk-interfaces#test-for-non-sdk) could affect some functionalities.
+Changing of the system locale in API Level 34 or later demonstrates the above restriction. Please [enable access to non-SDK interfaces](https://developer.android.com/guide/app-compatibility/restrictions-non-sdk-interfaces#how_can_i_enable_access_to_non-sdk_interfaces) via `adb`. [This issue comment](https://github.com/appium/io.appium.settings/issues/180#issuecomment-2156279885) is adb logcat output when the non-SDK interfaces are enabled, or disabled (system default). Please try out a device reboot if the same logcat continues even after setting the hidden api policy.
+
 ## Building
 
 ```shell
