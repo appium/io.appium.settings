@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdk 31
+    compileSdk 32
 
     defaultConfig {
         minSdkVersion 21
         //noinspection ExpiredTargetSdkVersion
-        targetSdkVersion 31
+        targetSdkVersion 32
         versionCode 89
         versionName "5.11.0"
         applicationId "io.appium.settings"
