@@ -1,3 +1,9 @@
+## [5.12.2](https://github.com/appium/io.appium.settings/compare/v5.12.1...v5.12.2) (2024-06-14)
+
+### Bug Fixes
+
+* log argument ([#186](https://github.com/appium/io.appium.settings/issues/186)) ([d634033](https://github.com/appium/io.appium.settings/commit/d6340336ad2dcfdc223229661976a038f062a401))
+
 ## [5.12.1](https://github.com/appium/io.appium.settings/compare/v5.12.0...v5.12.1) (2024-06-11)
 
 ### Miscellaneous Chores
