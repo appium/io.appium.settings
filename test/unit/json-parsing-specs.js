@@ -3,10 +3,11 @@ import { SettingsApp } from '../../lib/client';
 describe('parseJsonData', function () {
   const client = new SettingsApp({});
   let chai;
+  let should;
 
   before(async function () {
     chai = await import('chai');
-    chai.should();
+    should = chai.should();
   });
 
   it('should parse JSON received from broadcast output', function () {
