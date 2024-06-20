@@ -1,3 +1,9 @@
+## [5.12.4](https://github.com/appium/io.appium.settings/compare/v5.12.3...v5.12.4) (2024-06-20)
+
+### Miscellaneous Chores
+
+* Bump chai and chai-as-promised ([#187](https://github.com/appium/io.appium.settings/issues/187)) ([627d88b](https://github.com/appium/io.appium.settings/commit/627d88b58d55294078a200e97fe1df7beab76c0c))
+
 ## [5.12.3](https://github.com/appium/io.appium.settings/compare/v5.12.2...v5.12.3) (2024-06-14)
 
 ### Miscellaneous Chores
