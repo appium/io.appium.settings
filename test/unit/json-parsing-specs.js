@@ -1,11 +1,14 @@
-import chai from 'chai';
 import { SettingsApp } from '../../lib/client';
-
-const should = chai.should();
-
 
 describe('parseJsonData', function () {
   const client = new SettingsApp({});
+  let chai;
+  let should;
+
+  before(async function () {
+    chai = await import('chai');
+    should = chai.should();
+  });
 
   it('should parse JSON received from broadcast output', function () {
     const broadcastOutput = `

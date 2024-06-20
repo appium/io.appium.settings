@@ -1,14 +1,20 @@
-import chai from 'chai';
 import { SettingsApp } from '../../lib/client';
 import { withMocks } from '@appium/test-support';
 import ADB from 'appium-adb';
-import chaiAsPromised from 'chai-as-promised';
 
-chai.use(chaiAsPromised);
 const adb = new ADB({});
 
 describe('client', withMocks({adb}, function (mocks) {
   const client = new SettingsApp({adb});
+  let chai;
+
+  before(async function () {
+    chai = await import('chai');
+    const chaiAsPromised = await import('chai-as-promised');
+
+    chai.should();
+    chai.use(chaiAsPromised.default);
+  });
 
   afterEach(function () {
     mocks.verify();
