@@ -1,3 +1,9 @@
+## [5.12.5](https://github.com/appium/io.appium.settings/compare/v5.12.4...v5.12.5) (2024-07-09)
+
+### Miscellaneous Chores
+
+* Remove extra import ([11d4ae3](https://github.com/appium/io.appium.settings/commit/11d4ae3b5f74bf9d74e6ec8a08e157fed85ad86b))
+
 ## [5.12.4](https://github.com/appium/io.appium.settings/compare/v5.12.3...v5.12.4) (2024-06-20)
 
 ### Miscellaneous Chores
