@@ -1,3 +1,9 @@
+## [5.12.9](https://github.com/appium/io.appium.settings/compare/v5.12.8...v5.12.9) (2024-08-08)
+
+### Miscellaneous Chores
+
+* **deps:** bump org.apache.commons:commons-lang3 from 3.15.0 to 3.16.0 ([#191](https://github.com/appium/io.appium.settings/issues/191)) ([5564add](https://github.com/appium/io.appium.settings/commit/5564adde7d07bf834fd736360d498e50577c5c34))
+
 ## [5.12.8](https://github.com/appium/io.appium.settings/compare/v5.12.7...v5.12.8) (2024-07-29)
 
 ### Miscellaneous Chores
