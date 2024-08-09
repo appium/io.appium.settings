@@ -1,3 +1,9 @@
+## [5.12.10](https://github.com/appium/io.appium.settings/compare/v5.12.9...v5.12.10) (2024-08-09)
+
+### Miscellaneous Chores
+
+* **deps:** bump com.android.tools.build:gradle from 8.5.1 to 8.5.2 ([#192](https://github.com/appium/io.appium.settings/issues/192)) ([58738d1](https://github.com/appium/io.appium.settings/commit/58738d1b61b712525adb34239cf25bf97e4f240a))
+
 ## [5.12.9](https://github.com/appium/io.appium.settings/compare/v5.12.8...v5.12.9) (2024-08-08)
 
 ### Miscellaneous Chores
