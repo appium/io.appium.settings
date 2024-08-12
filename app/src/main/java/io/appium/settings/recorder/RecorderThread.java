@@ -446,6 +446,7 @@ public class RecorderThread implements Runnable {
                 audioEncoder.release();
                 audioEncoder = null;
             }
+            mediaProjection.stop();
         }
     }
 }
