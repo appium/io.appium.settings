@@ -1,3 +1,9 @@
+## [5.12.11](https://github.com/appium/io.appium.settings/compare/v5.12.10...v5.12.11) (2024-08-14)
+
+### Bug Fixes
+
+* Stop media projection when stopping recording ([#193](https://github.com/appium/io.appium.settings/issues/193)) ([aeeb032](https://github.com/appium/io.appium.settings/commit/aeeb0324cc3dd641a75f6bdf84056aec7bf7d76f))
+
 ## [5.12.10](https://github.com/appium/io.appium.settings/compare/v5.12.9...v5.12.10) (2024-08-09)
 
 ### Miscellaneous Chores
