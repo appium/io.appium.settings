@@ -14,7 +14,15 @@
   limitations under the License.
  */
 
-package io.appium.settings.recorder;
+package io.appium.settings.streaming;
+
+import static io.appium.settings.helpers.RecorderConstant.ACTION_RECORDING_MAX_DURATION;
+import static io.appium.settings.helpers.RecorderConstant.ACTION_STREAMING_PORT;
+import static io.appium.settings.helpers.RecorderConstant.ACTION_RECORDING_RESOLUTION;
+import static io.appium.settings.helpers.RecorderConstant.ACTION_RECORDING_RESULT_CODE;
+import static io.appium.settings.helpers.RecorderConstant.ACTION_RECORDING_START;
+import static io.appium.settings.helpers.RecorderConstant.ACTION_RECORDING_STOP;
+import static io.appium.settings.helpers.RecorderConstant.RECORDING_MAX_DURATION_DEFAULT_MS;
 
 import android.app.Service;
 import android.content.Context;
@@ -29,35 +37,38 @@ import android.util.Size;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+
+import org.java_websocket.WebSocket;
+
+import java.io.IOException;
+
 import io.appium.settings.helpers.NotificationHelpers;
 import io.appium.settings.helpers.RecorderUtil;
 
-import static io.appium.settings.helpers.RecorderConstant.ACTION_RECORDING_FILENAME;
-import static io.appium.settings.helpers.RecorderConstant.ACTION_RECORDING_MAX_DURATION;
-import static io.appium.settings.helpers.RecorderConstant.ACTION_RECORDING_PRIORITY;
-import static io.appium.settings.helpers.RecorderConstant.ACTION_RECORDING_RESOLUTION;
-import static io.appium.settings.helpers.RecorderConstant.ACTION_RECORDING_RESULT_CODE;
-import static io.appium.settings.helpers.RecorderConstant.ACTION_RECORDING_ROTATION;
-import static io.appium.settings.helpers.RecorderConstant.ACTION_RECORDING_START;
-import static io.appium.settings.helpers.RecorderConstant.ACTION_RECORDING_STOP;
-import static io.appium.settings.helpers.RecorderConstant.RECORDING_MAX_DURATION_DEFAULT_MS;
-import static io.appium.settings.helpers.RecorderConstant.RECORDING_PRIORITY_DEFAULT;
-import static io.appium.settings.helpers.RecorderConstant.RECORDING_ROTATION_DEFAULT_DEGREE;
+public class StreamingService extends Service {
+    private static final String TAG = "StreamingService";
 
-public class RecorderService extends Service {
-    private static final String TAG = "RecorderService";
+    private static StreamingThread streamingThread;
+    private static StreamingServer streamingServer;
 
-    private static RecorderThread recorderThread;
-
-    public RecorderService() {
+    public StreamingService() {
         super();
     }
 
     @Override
     public void onDestroy() {
         Log.v(TAG, "onDestroy called: Stopping recorder");
-        if (recorderThread != null && recorderThread.isRecordingRunning()) {
-            recorderThread.stopRecording();
+        if (streamingThread != null && streamingThread.isStreaming()) {
+            streamingThread.stop();
+            streamingThread = null;
+        }
+        if (streamingServer != null) {
+            try {
+                streamingServer.stop();
+            } catch (InterruptedException e) {
+                // ignore
+            }
+            streamingServer = null;
         }
         super.onDestroy();
     }
@@ -89,7 +100,7 @@ public class RecorderService extends Service {
                     (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
 
             if (mMediaProjectionManager != null) {
-                startRecord(mMediaProjectionManager, intent);
+                startStreaming(mMediaProjectionManager, intent);
             } else {
                 Log.e(TAG, "onStartCommand: " +
                         "Unable to retrieve MediaProjectionManager instance");
@@ -112,16 +123,16 @@ public class RecorderService extends Service {
      * start recording
      */
     @RequiresApi(api = Build.VERSION_CODES.Q)
-    private void startRecord(MediaProjectionManager mediaProjectionManager,
-                             final Intent intent) {
-        if (recorderThread != null) {
-            if (recorderThread.isRecordingRunning()) {
+    private void startStreaming(MediaProjectionManager mediaProjectionManager,
+                                final Intent intent) {
+        if (streamingThread != null) {
+            if (streamingThread.isStreaming()) {
                 Log.v(TAG, "Recording is already continuing, exiting");
                 return;
             } else {
                 Log.w(TAG, "Recording is stopped, " +
                         "but recording instance is still alive, starting recording");
-                recorderThread = null;
+                streamingThread = null;
             }
         }
 
@@ -134,17 +145,20 @@ public class RecorderService extends Service {
             return;
         }
 
-        String outputFilePath = intent.getStringExtra(ACTION_RECORDING_FILENAME);
-        if (outputFilePath == null) {
-            Log.e(TAG, "Recording is stopped, Unable to retrieve outputFilePath instance");
+        int port = intent.getIntExtra(ACTION_STREAMING_PORT, 0);
+        if (port == 0) {
+            Log.e(TAG, "Recording is stopped, Unable to retrieve the port number");
             return;
         }
 
-        /* TODO we need to rotate frames that comes from virtual screen before writing to file via muxer,
-         *  for handling landscape mode properly, we need to find a way to rotate images somehow fast and reliable
-         */
-        int recordingRotationDegree = intent.getIntExtra(ACTION_RECORDING_ROTATION,
-                RECORDING_ROTATION_DEFAULT_DEGREE);
+        final EventEmitter<WebSocket> connectionHandler = new EventEmitter<>();
+        try {
+            streamingServer = new StreamingServer(port, connectionHandler);
+            streamingServer.start();
+        } catch (IOException e) {
+            Log.e(TAG, "Cannot start the streaming server on port " + port, e);
+            return;
+        }
 
         DisplayMetrics metrics = getResources().getDisplayMetrics();
         int rawWidth = metrics.widthPixels;
@@ -172,25 +186,22 @@ public class RecorderService extends Service {
         Log.v(TAG, String.format("Starting recording with resolution(widthxheight): (%dx%d)",
                 resolutionWidth, resolutionHeight));
 
-        int recordingPriority = intent.getIntExtra(ACTION_RECORDING_PRIORITY,
-                RECORDING_PRIORITY_DEFAULT);
-
         int recordingMaxDuration = intent.getIntExtra(ACTION_RECORDING_MAX_DURATION,
                 RECORDING_MAX_DURATION_DEFAULT_MS);
 
-        recorderThread = new RecorderThread(projection, outputFilePath,
-                resolutionWidth, resolutionHeight, rawDpi,
-                recordingRotationDegree, recordingPriority, recordingMaxDuration);
-        recorderThread.startRecording();
+        streamingThread = new StreamingThread(
+                projection, connectionHandler, resolutionWidth, resolutionHeight, rawDpi, recordingMaxDuration
+        );
+        streamingThread.start();
     }
 
     /**
      * stop recording
      */
     private void stopRecord() {
-        if (recorderThread != null) {
-            recorderThread.stopRecording();
-            recorderThread = null;
+        if (streamingThread != null) {
+            streamingThread.stop();
+            streamingThread = null;
         }
         stopSelf();
     }

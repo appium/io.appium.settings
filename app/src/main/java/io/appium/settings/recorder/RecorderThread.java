@@ -39,12 +39,14 @@ import java.nio.ByteBuffer;
 
 import androidx.annotation.RequiresApi;
 
-import static io.appium.settings.recorder.RecorderConstant.BPS_IN_MBPS;
-import static io.appium.settings.recorder.RecorderConstant.NANOSECONDS_IN_MICROSECOND;
-import static io.appium.settings.recorder.RecorderConstant.NO_TIMESTAMP_SET;
-import static io.appium.settings.recorder.RecorderConstant.NO_TRACK_INDEX_SET;
-import static io.appium.settings.recorder.RecorderConstant.RECORDING_DEFAULT_VIDEO_MIME_TYPE;
-import static io.appium.settings.recorder.RecorderConstant.VIDEO_CODEC_DEFAULT_FRAME_RATE;
+import static io.appium.settings.helpers.RecorderConstant.BPS_IN_MBPS;
+import static io.appium.settings.helpers.RecorderConstant.NANOSECONDS_IN_MICROSECOND;
+import static io.appium.settings.helpers.RecorderConstant.NO_TIMESTAMP_SET;
+import static io.appium.settings.helpers.RecorderConstant.NO_TRACK_INDEX_SET;
+import static io.appium.settings.helpers.RecorderConstant.RECORDING_DEFAULT_VIDEO_MIME_TYPE;
+import static io.appium.settings.helpers.RecorderConstant.VIDEO_CODEC_DEFAULT_FRAME_RATE;
+
+import io.appium.settings.helpers.RecorderConstant;
 
 public class RecorderThread implements Runnable {
 

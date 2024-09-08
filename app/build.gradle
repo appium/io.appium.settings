@@ -35,6 +35,7 @@ android {
 dependencies {
     implementation 'com.google.android.gms:play-services-location:21.3.0'
     implementation 'org.apache.commons:commons-lang3:3.17.0'
+    implementation 'org.java-websocket:Java-WebSocket:1.5.7'
 }
 
 static def renameAPK(variant) {

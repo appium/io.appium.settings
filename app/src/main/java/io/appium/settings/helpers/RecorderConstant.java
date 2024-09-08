@@ -14,7 +14,7 @@
   limitations under the License.
  */
 
-package io.appium.settings.recorder;
+package io.appium.settings.helpers;
 
 import android.media.MediaFormat;
 import android.util.Size;
@@ -26,12 +26,17 @@ import io.appium.settings.BuildConfig;
 
 public class RecorderConstant {
     public static final int REQUEST_CODE_SCREEN_CAPTURE = 123;
+    public static final int REQUEST_CODE_SCREEN_STREAM = 124;
     public static final String ACTION_RECORDING_BASE = BuildConfig.APPLICATION_ID + ".recording";
+    public static final String ACTION_STREAMING_BASE = BuildConfig.APPLICATION_ID + ".streaming";
     public static final String ACTION_RECORDING_START = ACTION_RECORDING_BASE + ".ACTION_START";
     public static final String ACTION_RECORDING_STOP = ACTION_RECORDING_BASE + ".ACTION_STOP";
+    public static final String ACTION_STREAMING_START = ACTION_STREAMING_BASE + ".ACTION_START";
+    public static final String ACTION_STREAMING_STOP = ACTION_STREAMING_BASE + ".ACTION_STOP";
     public static final String ACTION_RECORDING_RESULT_CODE = "result_code";
     public static final String ACTION_RECORDING_ROTATION = "recording_rotation";
     public static final String ACTION_RECORDING_FILENAME = "filename";
+    public static final String ACTION_STREAMING_PORT = "port";
     public static final String ACTION_RECORDING_PRIORITY = "priority";
     public static final String ACTION_RECORDING_MAX_DURATION = "max_duration_sec";
     public static final String ACTION_RECORDING_RESOLUTION = "resolution";

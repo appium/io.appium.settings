@@ -14,7 +14,7 @@
   limitations under the License.
  */
 
-package io.appium.settings.recorder;
+package io.appium.settings.helpers;
 
 import android.Manifest;
 import android.app.AppOpsManager;
@@ -38,24 +38,24 @@ import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 
 import static android.content.Context.WINDOW_SERVICE;
-import static io.appium.settings.recorder.RecorderConstant.ACTION_RECORDING_MAX_DURATION;
-import static io.appium.settings.recorder.RecorderConstant.ACTION_RECORDING_PRIORITY;
-import static io.appium.settings.recorder.RecorderConstant.ACTION_RECORDING_RESOLUTION;
-import static io.appium.settings.recorder.RecorderConstant.NO_RESOLUTION_MODE_SET;
-import static io.appium.settings.recorder.RecorderConstant.RECORDING_DEFAULT_VIDEO_MIME_TYPE;
-import static io.appium.settings.recorder.RecorderConstant.RECORDING_MAX_DURATION_DEFAULT_MS;
-import static io.appium.settings.recorder.RecorderConstant.RECORDING_PRIORITY_DEFAULT;
-import static io.appium.settings.recorder.RecorderConstant.RECORDING_PRIORITY_MAX;
-import static io.appium.settings.recorder.RecorderConstant.RECORDING_PRIORITY_MIN;
-import static io.appium.settings.recorder.RecorderConstant.RECORDING_PRIORITY_NORM;
-import static io.appium.settings.recorder.RecorderConstant.RECORDING_RESOLUTION_480P;
-import static io.appium.settings.recorder.RecorderConstant.RECORDING_RESOLUTION_DEFAULT;
-import static io.appium.settings.recorder.RecorderConstant.RECORDING_RESOLUTION_FULL_HD;
-import static io.appium.settings.recorder.RecorderConstant.RECORDING_RESOLUTION_HD;
-import static io.appium.settings.recorder.RecorderConstant.RECORDING_RESOLUTION_LIST;
-import static io.appium.settings.recorder.RecorderConstant.RECORDING_RESOLUTION_QCIF;
-import static io.appium.settings.recorder.RecorderConstant.RECORDING_RESOLUTION_QVGA;
-import static io.appium.settings.recorder.RecorderConstant.RECORDING_ROTATION_DEFAULT_DEGREE;
+import static io.appium.settings.helpers.RecorderConstant.ACTION_RECORDING_MAX_DURATION;
+import static io.appium.settings.helpers.RecorderConstant.ACTION_RECORDING_PRIORITY;
+import static io.appium.settings.helpers.RecorderConstant.ACTION_RECORDING_RESOLUTION;
+import static io.appium.settings.helpers.RecorderConstant.NO_RESOLUTION_MODE_SET;
+import static io.appium.settings.helpers.RecorderConstant.RECORDING_DEFAULT_VIDEO_MIME_TYPE;
+import static io.appium.settings.helpers.RecorderConstant.RECORDING_MAX_DURATION_DEFAULT_MS;
+import static io.appium.settings.helpers.RecorderConstant.RECORDING_PRIORITY_DEFAULT;
+import static io.appium.settings.helpers.RecorderConstant.RECORDING_PRIORITY_MAX;
+import static io.appium.settings.helpers.RecorderConstant.RECORDING_PRIORITY_MIN;
+import static io.appium.settings.helpers.RecorderConstant.RECORDING_PRIORITY_NORM;
+import static io.appium.settings.helpers.RecorderConstant.RECORDING_RESOLUTION_480P;
+import static io.appium.settings.helpers.RecorderConstant.RECORDING_RESOLUTION_DEFAULT;
+import static io.appium.settings.helpers.RecorderConstant.RECORDING_RESOLUTION_FULL_HD;
+import static io.appium.settings.helpers.RecorderConstant.RECORDING_RESOLUTION_HD;
+import static io.appium.settings.helpers.RecorderConstant.RECORDING_RESOLUTION_LIST;
+import static io.appium.settings.helpers.RecorderConstant.RECORDING_RESOLUTION_QCIF;
+import static io.appium.settings.helpers.RecorderConstant.RECORDING_RESOLUTION_QVGA;
+import static io.appium.settings.helpers.RecorderConstant.RECORDING_ROTATION_DEFAULT_DEGREE;
 
 public class RecorderUtil {
     private static final String TAG = "RecorderUtil";

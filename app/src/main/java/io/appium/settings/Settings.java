@@ -46,23 +46,32 @@ import io.appium.settings.receivers.SmsReader;
 import io.appium.settings.receivers.UnpairBluetoothDevicesReceiver;
 import io.appium.settings.receivers.WiFiConnectionSettingReceiver;
 import io.appium.settings.recorder.RecorderService;
-import io.appium.settings.recorder.RecorderUtil;
+import io.appium.settings.helpers.RecorderUtil;
+import io.appium.settings.streaming.StreamingService;
 
-import static io.appium.settings.recorder.RecorderConstant.ACTION_RECORDING_BASE;
-import static io.appium.settings.recorder.RecorderConstant.ACTION_RECORDING_FILENAME;
-import static io.appium.settings.recorder.RecorderConstant.ACTION_RECORDING_MAX_DURATION;
-import static io.appium.settings.recorder.RecorderConstant.ACTION_RECORDING_PRIORITY;
-import static io.appium.settings.recorder.RecorderConstant.ACTION_RECORDING_RESOLUTION;
-import static io.appium.settings.recorder.RecorderConstant.ACTION_RECORDING_RESULT_CODE;
-import static io.appium.settings.recorder.RecorderConstant.ACTION_RECORDING_ROTATION;
-import static io.appium.settings.recorder.RecorderConstant.ACTION_RECORDING_START;
-import static io.appium.settings.recorder.RecorderConstant.ACTION_RECORDING_STOP;
-import static io.appium.settings.recorder.RecorderConstant.NO_PATH_SET;
-import static io.appium.settings.recorder.RecorderConstant.NO_RESOLUTION_MODE_SET;
-import static io.appium.settings.recorder.RecorderConstant.RECORDING_MAX_DURATION_DEFAULT_MS;
-import static io.appium.settings.recorder.RecorderConstant.RECORDING_PRIORITY_DEFAULT;
-import static io.appium.settings.recorder.RecorderConstant.RECORDING_ROTATION_DEFAULT_DEGREE;
-import static io.appium.settings.recorder.RecorderConstant.REQUEST_CODE_SCREEN_CAPTURE;
+import static io.appium.settings.helpers.RecorderConstant.ACTION_RECORDING_BASE;
+import static io.appium.settings.helpers.RecorderConstant.ACTION_RECORDING_FILENAME;
+import static io.appium.settings.helpers.RecorderConstant.ACTION_RECORDING_MAX_DURATION;
+import static io.appium.settings.helpers.RecorderConstant.ACTION_STREAMING_PORT;
+import static io.appium.settings.helpers.RecorderConstant.ACTION_RECORDING_PRIORITY;
+import static io.appium.settings.helpers.RecorderConstant.ACTION_RECORDING_RESOLUTION;
+import static io.appium.settings.helpers.RecorderConstant.ACTION_RECORDING_RESULT_CODE;
+import static io.appium.settings.helpers.RecorderConstant.ACTION_RECORDING_ROTATION;
+import static io.appium.settings.helpers.RecorderConstant.ACTION_RECORDING_START;
+import static io.appium.settings.helpers.RecorderConstant.ACTION_RECORDING_STOP;
+import static io.appium.settings.helpers.RecorderConstant.ACTION_STREAMING_BASE;
+import static io.appium.settings.helpers.RecorderConstant.ACTION_STREAMING_START;
+import static io.appium.settings.helpers.RecorderConstant.ACTION_STREAMING_STOP;
+import static io.appium.settings.helpers.RecorderConstant.NO_PATH_SET;
+import static io.appium.settings.helpers.RecorderConstant.NO_RESOLUTION_MODE_SET;
+import static io.appium.settings.helpers.RecorderConstant.RECORDING_MAX_DURATION_DEFAULT_MS;
+import static io.appium.settings.helpers.RecorderConstant.RECORDING_PRIORITY_DEFAULT;
+import static io.appium.settings.helpers.RecorderConstant.RECORDING_ROTATION_DEFAULT_DEGREE;
+import static io.appium.settings.helpers.RecorderConstant.REQUEST_CODE_SCREEN_CAPTURE;
+import static io.appium.settings.helpers.RecorderConstant.REQUEST_CODE_SCREEN_STREAM;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 public class Settings extends Activity {
     private static final String TAG = "APPIUM SETTINGS";
@@ -71,6 +80,7 @@ public class Settings extends Activity {
     private int recordingRotation = RECORDING_ROTATION_DEFAULT_DEGREE;
     private int recordingPriority = RECORDING_PRIORITY_DEFAULT;
     private int recordingMaxDuration = RECORDING_MAX_DURATION_DEFAULT_MS;
+    private int streamingPort = 0;
     private String recordingResolutionMode = NO_RESOLUTION_MODE_SET;
 
     @Override
@@ -101,49 +111,23 @@ public class Settings extends Activity {
             LocationTracker.getInstance().start(this);
         }
 
-        handleRecording(getIntent());
+        if (!handleScreenRecordingIfRequested(getIntent())
+                && !handleScreenStreamingIfRequested(getIntent())) {
+            finishActivity();
+        }
     }
 
-    private void handleRecording(Intent intent) {
-        if (intent == null) {
-            Log.e(TAG, "handleRecording: Unable to retrieve intent instance");
-            finishActivity();
-            return;
-        }
-
-        String recordingAction = intent.getAction();
+    private boolean handleScreenRecordingIfRequested(Intent intent) {
+        String recordingAction = checkIntent(intent, ACTION_RECORDING_BASE);
         if (recordingAction == null) {
-            Log.e(TAG, "handleRecording: Unable to retrieve intent.action instance");
-            finishActivity();
-            return;
+            return false;
         }
-
-        if (!recordingAction.startsWith(ACTION_RECORDING_BASE)) {
-            Log.i(TAG, "handleRecording: Received different intent with action: "
-                    + recordingAction);
-            finishActivity();
-            return;
-        }
-
-        if (RecorderUtil.isLowerThanQ()) {
-            Log.e(TAG, "handleRecording: Current Android OS Version is lower than Q");
-            finishActivity();
-            return;
-        }
-
-        if (!RecorderUtil.areRecordingPermissionsGranted(getApplicationContext())) {
-            Log.e(TAG, "handleRecording: Required permissions are not granted");
-            finishActivity();
-            return;
-        }
-
         if (recordingAction.equals(ACTION_RECORDING_START)) {
             String recordingFilename = intent.getStringExtra(ACTION_RECORDING_FILENAME);
             if (!RecorderUtil.isValidFileName(recordingFilename)) {
                 Log.e(TAG, "handleRecording: Invalid filename passed by user: "
                         + recordingFilename);
-                finishActivity();
-                return;
+                return false;
             }
 
             /*
@@ -159,50 +143,79 @@ public class Settings extends Activity {
             // if path is still null despite calling method twice, early exit
             if (externalStorageFile == null) {
                 Log.e(TAG, "handleRecording: Unable to retrieve external storage file path");
-                finishActivity();
-                return;
+                return false;
             }
-
-            recordingOutputPath = Paths
-                    .get(externalStorageFile.getAbsolutePath(), recordingFilename)
-                    .toAbsolutePath()
-                    .toString();
-
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                recordingOutputPath = Paths
+                        .get(externalStorageFile.getAbsolutePath(), recordingFilename)
+                        .toAbsolutePath()
+                        .toString();
+            }
             recordingRotation = RecorderUtil.getDeviceRotationInDegree(getApplicationContext());
-
             recordingPriority = RecorderUtil.getRecordingPriority(intent);
-
             recordingMaxDuration = RecorderUtil.getRecordingMaxDuration(intent);
-
             recordingResolutionMode = RecorderUtil.getRecordingResolutionMode(intent);
 
             // start record
-            final MediaProjectionManager manager
-                    = (MediaProjectionManager) getSystemService(
-                    Context.MEDIA_PROJECTION_SERVICE);
-
+            final MediaProjectionManager manager = (MediaProjectionManager) getSystemService(
+                    Context.MEDIA_PROJECTION_SERVICE
+            );
             if (manager == null) {
                 Log.e(TAG, "handleRecording: " +
                         "Unable to retrieve MediaProjectionManager instance");
-                finishActivity();
-                return;
+                return false;
             }
-
             final Intent permissionIntent = manager.createScreenCaptureIntent();
-
             startActivityForResult(permissionIntent, REQUEST_CODE_SCREEN_CAPTURE);
+            return true;
         } else if (recordingAction.equals(ACTION_RECORDING_STOP)) {
             // stop record
             final Intent recorderIntent = new Intent(this, RecorderService.class);
             recorderIntent.setAction(ACTION_RECORDING_STOP);
             startService(recorderIntent);
-
-            finishActivity();
         } else {
             Log.e(TAG, "handleRecording: Unknown recording intent with action:"
                     + recordingAction);
-            finishActivity();
         }
+        return false;
+    }
+
+    private boolean handleScreenStreamingIfRequested(Intent intent) {
+        String streamingAction = checkIntent(intent, ACTION_STREAMING_BASE);
+        if (streamingAction == null) {
+            return false;
+        }
+        if (streamingAction.equals(ACTION_STREAMING_START)) {
+            streamingPort = intent.getIntExtra(ACTION_STREAMING_PORT, 0);
+            if (streamingPort <= 0) {
+                Log.e(TAG, "handleStreaming: Invalid port provided by user: " + streamingPort);
+                return false;
+            }
+            recordingMaxDuration = RecorderUtil.getRecordingMaxDuration(intent);
+            recordingResolutionMode = RecorderUtil.getRecordingResolutionMode(intent);
+
+            // start record
+            final MediaProjectionManager manager = (MediaProjectionManager) getSystemService(
+                    Context.MEDIA_PROJECTION_SERVICE
+            );
+            if (manager == null) {
+                Log.e(TAG, "handleStreaming: " +
+                        "Unable to retrieve MediaProjectionManager instance");
+                return false;
+            }
+            final Intent permissionIntent = manager.createScreenCaptureIntent();
+            startActivityForResult(permissionIntent, REQUEST_CODE_SCREEN_STREAM);
+            return true;
+        } else if (streamingAction.equals(ACTION_STREAMING_STOP)) {
+            // stop record
+            final Intent streamingIntent = new Intent(this, StreamingService.class);
+            streamingIntent.setAction(ACTION_STREAMING_STOP);
+            startService(streamingIntent);
+        } else {
+            Log.e(TAG, "handleStreaming: Unknown recording intent with action:"
+                    + streamingAction);
+        }
+        return false;
     }
 
     private void finishActivity() {
@@ -211,25 +224,61 @@ public class Settings extends Activity {
         handler.postDelayed(Settings.this::finish, 0);
     }
 
+    private @Nullable String checkIntent(Intent intent, String action) {
+        if (intent == null) {
+            Log.e(TAG, "Unable to retrieve intent instance");
+            return null;
+        }
+        String result = intent.getAction();
+        if (result == null) {
+            Log.e(TAG, "Unable to retrieve intent.action instance");
+            return null;
+        }
+        if (!result.startsWith(action)) {
+            Log.i(TAG, "Received different intent with action: "
+                    + result);
+            return null;
+        }
+        if (RecorderUtil.isLowerThanQ()) {
+            Log.e(TAG, "Current Android OS Version is lower than Q");
+            return null;
+        }
+        if (!RecorderUtil.areRecordingPermissionsGranted(getApplicationContext())) {
+            Log.e(TAG, "Required permissions are not granted");
+            return null;
+        }
+        return result;
+    }
+
     @Override
     protected void onActivityResult(final int requestCode, final int resultCode, final Intent data)
     {
         super.onActivityResult(requestCode, resultCode, data);
-        if (REQUEST_CODE_SCREEN_CAPTURE != requestCode) {
-            Log.e(TAG, "handleRecording: onActivityResult: " +
-                    "Received unknown request with code: " + requestCode);
+
+        if (REQUEST_CODE_SCREEN_CAPTURE != requestCode && REQUEST_CODE_SCREEN_STREAM != requestCode) {
+            Log.e(TAG, "onActivityResult: Received unknown request with code: " + requestCode);
             finishActivity();
             return;
         }
 
         if (resultCode != Activity.RESULT_OK) {
-            Log.e(TAG, "handleRecording: onActivityResult: " +
+            Log.e(TAG, "onActivityResult: " +
                     "MediaProjection permission is not granted, " +
                     "Did you apply appops adb command?");
             finishActivity();
             return;
         }
 
+        Intent intent = REQUEST_CODE_SCREEN_CAPTURE == requestCode
+                ? createScreenRecordingIntent(resultCode)
+                : createScreenStreamingIntent(resultCode);
+        intent.putExtras(data);
+        startService(intent);
+
+        finishActivity();
+    }
+
+    private @NonNull Intent createScreenRecordingIntent(int resultCode) {
         final Intent intent = new Intent(this, RecorderService.class);
         intent.setAction(ACTION_RECORDING_START);
         intent.putExtra(ACTION_RECORDING_RESULT_CODE, resultCode);
@@ -238,11 +287,17 @@ public class Settings extends Activity {
         intent.putExtra(ACTION_RECORDING_PRIORITY, recordingPriority);
         intent.putExtra(ACTION_RECORDING_MAX_DURATION, recordingMaxDuration);
         intent.putExtra(ACTION_RECORDING_RESOLUTION, recordingResolutionMode);
-        intent.putExtras(data);
+        return intent;
+    }
 
-        startService(intent);
-
-        finishActivity();
+    private @NonNull Intent createScreenStreamingIntent(int resultCode) {
+        final Intent intent = new Intent(this, StreamingService.class);
+        intent.setAction(ACTION_STREAMING_START);
+        intent.putExtra(ACTION_RECORDING_RESULT_CODE, resultCode);
+        intent.putExtra(ACTION_STREAMING_PORT, streamingPort);
+        intent.putExtra(ACTION_RECORDING_MAX_DURATION, recordingMaxDuration);
+        intent.putExtra(ACTION_RECORDING_RESOLUTION, recordingResolutionMode);
+        return intent;
     }
 
     private void registerSettingsReceivers(List<Class<? extends BroadcastReceiver>> receiverClasses)
@@ -252,9 +307,7 @@ public class Settings extends Activity {
                 final BroadcastReceiver receiver = receiverClass.newInstance();
                 IntentFilter filter = new IntentFilter(((HasAction) receiver).getAction());
                 getApplicationContext().registerReceiver(receiver, filter);
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (InstantiationException e) {
+            } catch (IllegalAccessException | InstantiationException e) {
                 e.printStackTrace();
             }
         }

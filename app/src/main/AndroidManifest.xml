@@ -64,6 +64,13 @@
         </service>
 
         <service
+            android:foregroundServiceType="mediaProjection"
+            android:name=".streaming.StreamingService"
+            android:exported="true"
+            android:permission="android.permission.RECORD_AUDIO">
+        </service>
+
+        <service
             android:name=".AppiumIME"
             android:label="Appium IME"
             android:enabled="true"
