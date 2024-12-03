@@ -1,3 +1,9 @@
+## [5.12.19](https://github.com/appium/io.appium.settings/compare/v5.12.18...v5.12.19) (2024-12-03)
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump mocha from 10.8.2 to 11.0.1 ([#200](https://github.com/appium/io.appium.settings/issues/200)) ([05959d8](https://github.com/appium/io.appium.settings/commit/05959d8c17d36e8003ba45b7d3eb6f6b40c571be))
+
 ## [5.12.18](https://github.com/appium/io.appium.settings/compare/v5.12.17...v5.12.18) (2024-12-03)
 
 ### Miscellaneous Chores
