@@ -1,6 +1,6 @@
 import { SettingsApp } from '../../lib/client';
 import { withMocks } from '@appium/test-support';
-import ADB from 'appium-adb';
+import { ADB } from 'appium-adb';
 
 const adb = new ADB({});
 
