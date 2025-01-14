@@ -55,14 +55,16 @@ public class ForegroundService extends Service {
         return super.onStartCommand(intent, flags, startId);
     }
 
-    @Override public void onCreate() {
+    @Override
+    public void onCreate() {
         super.onCreate();
         settingsReceivers.addAll(
                 SettingsReceivers.Register(getApplicationContext())
         );
     }
 
-    @Override public void onDestroy() {
+    @Override
+    public void onDestroy() {
         super.onDestroy();
         stopBroadCastReceiver();
     }
