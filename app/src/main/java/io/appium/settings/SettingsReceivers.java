@@ -3,7 +3,10 @@ package io.appium.settings;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.util.Log;
+
+import androidx.annotation.RequiresApi;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,6 +29,7 @@ import io.appium.settings.receivers.WiFiConnectionSettingReceiver;
 public class SettingsReceivers {
     private static final String TAG = "APPIUM SERVICE";
 
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     static List<BroadcastReceiver> register(Context applicationContext) {
         List<Class<? extends BroadcastReceiver>> receiverClasses = Arrays.asList(
                 WiFiConnectionSettingReceiver.class,
@@ -50,9 +54,7 @@ public class SettingsReceivers {
                 applicationContext.registerReceiver(receiver, filter);
                 Log.d(TAG, "Register " + receiver);
                 settingsReceivers.add(receiver);
-            } catch (IllegalAccessException e) {
-                Log.e(TAG, "Failed to register the receiver: " + receiverClass, e);
-            } catch (InstantiationException e) {
+            } catch (IllegalAccessException | InstantiationException e) {
                 Log.e(TAG, "Failed to register the receiver: " + receiverClass, e);
             }
         }
