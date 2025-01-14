@@ -56,14 +56,15 @@ public class ForegroundService extends Service {
     }
 
     @Override public void onCreate() {
+        super.onCreate();
         settingsReceivers.addAll(
                 SettingsReceivers.Register(getApplicationContext())
         );
     }
 
     @Override public void onDestroy() {
-        stopBroadCastReceiver();
         super.onDestroy();
+        stopBroadCastReceiver();
     }
 
     private void startForegroundService() {
