@@ -120,7 +120,7 @@ public class Settings extends Activity {
                 unregisterReceiver(receiver);
             } catch (IllegalArgumentException e) {
                 // Can be ignored, so just for debugging purpose
-                Log.d(TAG, "Got an error in unregisterReceiver: " + receiver.getClass(), e);
+                Log.d(TAG, "Got an error in unregisterReceiver(" + receiver + "): " + e.getMessage());
             }
         }
         ;
