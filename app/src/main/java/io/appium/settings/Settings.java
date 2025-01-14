@@ -29,6 +29,7 @@ import android.util.Log;
 
 import java.io.File;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -73,35 +74,56 @@ public class Settings extends Activity {
     private int recordingMaxDuration = RECORDING_MAX_DURATION_DEFAULT_MS;
     private String recordingResolutionMode = NO_RESOLUTION_MODE_SET;
 
+    private final List<BroadcastReceiver> settingsReceivers = new ArrayList<>();
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         Log.d(TAG, "Entering the app");
 
-        registerSettingsReceivers(Arrays.asList(
-                WiFiConnectionSettingReceiver.class,
-                AnimationSettingReceiver.class,
-                DataConnectionSettingReceiver.class,
-                LocaleSettingReceiver.class,
-                LocalesReader.class,
-                LocationInfoReceiver.class,
-                ClipboardReceiver.class,
-                BluetoothConnectionSettingReceiver.class,
-                UnpairBluetoothDevicesReceiver.class,
-                NotificationsReceiver.class,
-                SmsReader.class,
-                MediaScannerReceiver.class
-        ));
-
-        // https://developer.android.com/about/versions/oreo/background-location-limits
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(ForegroundService.getForegroundServiceIntent(Settings.this));
+        String recordingAction = getIntent().getAction();
+        if (recordingAction != null && recordingAction.startsWith(ACTION_RECORDING_BASE)) {
+            Log.d(TAG, "Skip unnecessary broadcast receiver registration for recording usage");
         } else {
-            LocationTracker.getInstance().start(this);
+            registerSettingsReceivers(Arrays.asList(
+                    WiFiConnectionSettingReceiver.class,
+                    AnimationSettingReceiver.class,
+                    DataConnectionSettingReceiver.class,
+                    LocaleSettingReceiver.class,
+                    LocalesReader.class,
+                    LocationInfoReceiver.class,
+                    ClipboardReceiver.class,
+                    BluetoothConnectionSettingReceiver.class,
+                    UnpairBluetoothDevicesReceiver.class,
+                    NotificationsReceiver.class,
+                    SmsReader.class,
+                    MediaScannerReceiver.class
+            ));
+
+            // https://developer.android.com/about/versions/oreo/background-location-limits
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(ForegroundService.getForegroundServiceIntent(Settings.this));
+            } else {
+                LocationTracker.getInstance().start(this);
+            }
         }
 
         handleRecording(getIntent());
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        for (BroadcastReceiver receiver: settingsReceivers) {
+            try {
+                unregisterReceiver(receiver);
+            } catch (IllegalArgumentException e) {
+                // Can be ignored, so just for debugging purpose
+                Log.d(TAG, "Got an error in unregisterReceiver: " + receiver.getClass(), e);
+            }
+        }
+        ;
     }
 
     private void handleRecording(Intent intent) {
@@ -252,10 +274,11 @@ public class Settings extends Activity {
                 final BroadcastReceiver receiver = receiverClass.newInstance();
                 IntentFilter filter = new IntentFilter(((HasAction) receiver).getAction());
                 getApplicationContext().registerReceiver(receiver, filter);
+                settingsReceivers.add(receiver);
             } catch (IllegalAccessException e) {
-                e.printStackTrace();
+                Log.e(TAG, "Failed to register the receiver: " + receiverClass, e);
             } catch (InstantiationException e) {
-                e.printStackTrace();
+                Log.e(TAG, "Failed to register the receiver: " + receiverClass, e);
             }
         }
     }
