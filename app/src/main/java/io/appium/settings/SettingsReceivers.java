@@ -26,7 +26,7 @@ import io.appium.settings.receivers.WiFiConnectionSettingReceiver;
 public class SettingsReceivers {
     private static final String TAG = "APPIUM SERVICE";
 
-    static List<BroadcastReceiver> Register(Context context) {
+    static List<BroadcastReceiver> Register(Context applicationContext) {
         List<Class<? extends BroadcastReceiver>> receiverClasses = Arrays.asList(
                 WiFiConnectionSettingReceiver.class,
                 AnimationSettingReceiver.class,
@@ -47,7 +47,7 @@ public class SettingsReceivers {
             try {
                 final BroadcastReceiver receiver = receiverClass.newInstance();
                 IntentFilter filter = new IntentFilter(((HasAction) receiver).getAction());
-                context.registerReceiver(receiver, filter);
+                applicationContext.registerReceiver(receiver, filter);
                 Log.d(TAG, "Register " + receiver);
                 settingsReceivers.add(receiver);
             } catch (IllegalAccessException e) {
@@ -59,13 +59,12 @@ public class SettingsReceivers {
         return settingsReceivers;
     }
 
-    static void Unregister(Context context, List<BroadcastReceiver> settingsReceivers) {
+    static void Unregister(Context applicationContext, List<BroadcastReceiver> settingsReceivers) {
         for (BroadcastReceiver receiver: settingsReceivers) {
             Log.d(TAG, "Unregister " + receiver);
             try {
-                context.unregisterReceiver(receiver);
+                applicationContext.unregisterReceiver(receiver);
             } catch (IllegalArgumentException e) {
-                // Can be ignored, so just for debugging purpose
                 Log.w(TAG, "Got an error in unregisterReceiver: " + receiver, e);
             }
         }
