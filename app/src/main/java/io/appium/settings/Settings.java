@@ -70,7 +70,7 @@ public class Settings extends Activity {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 startForegroundService(ForegroundService.getForegroundServiceIntent(Settings.this));
             } else {
-                SettingsReceivers.Register(getApplicationContext());
+                SettingsReceivers.register(getApplicationContext());
                 LocationTracker.getInstance().start(this);
             }
         }

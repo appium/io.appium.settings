@@ -26,7 +26,7 @@ import io.appium.settings.receivers.WiFiConnectionSettingReceiver;
 public class SettingsReceivers {
     private static final String TAG = "APPIUM SERVICE";
 
-    static List<BroadcastReceiver> Register(Context applicationContext) {
+    static List<BroadcastReceiver> register(Context applicationContext) {
         List<Class<? extends BroadcastReceiver>> receiverClasses = Arrays.asList(
                 WiFiConnectionSettingReceiver.class,
                 AnimationSettingReceiver.class,
@@ -59,7 +59,7 @@ public class SettingsReceivers {
         return settingsReceivers;
     }
 
-    static void Unregister(Context applicationContext, List<BroadcastReceiver> settingsReceivers) {
+    static void unregister(Context applicationContext, List<BroadcastReceiver> settingsReceivers) {
         for (BroadcastReceiver receiver: settingsReceivers) {
             Log.d(TAG, "Unregister " + receiver);
             try {

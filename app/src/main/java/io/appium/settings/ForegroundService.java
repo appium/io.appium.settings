@@ -59,7 +59,7 @@ public class ForegroundService extends Service {
     public void onCreate() {
         super.onCreate();
         settingsReceivers.addAll(
-                SettingsReceivers.Register(getApplicationContext())
+                SettingsReceivers.register(getApplicationContext())
         );
     }
 
@@ -89,6 +89,6 @@ public class ForegroundService extends Service {
     }
 
     private void stopBroadCastReceiver() {
-        SettingsReceivers.Unregister(getApplicationContext(), settingsReceivers);
+        SettingsReceivers.unregister(getApplicationContext(), settingsReceivers);
     }
 }
