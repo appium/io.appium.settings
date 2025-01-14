@@ -17,7 +17,6 @@
 package io.appium.settings;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.media.projection.MediaProjectionManager;
@@ -28,8 +27,6 @@ import android.util.Log;
 
 import java.io.File;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 
 import io.appium.settings.recorder.RecorderService;
 import io.appium.settings.recorder.RecorderUtil;
@@ -59,8 +56,6 @@ public class Settings extends Activity {
     private int recordingMaxDuration = RECORDING_MAX_DURATION_DEFAULT_MS;
     private String recordingResolutionMode = NO_RESOLUTION_MODE_SET;
 
-    private final List<BroadcastReceiver> settingsReceivers = new ArrayList<>();
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,9 +70,7 @@ public class Settings extends Activity {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 startForegroundService(ForegroundService.getForegroundServiceIntent(Settings.this));
             } else {
-                settingsReceivers.addAll(
-                        SettingsReceivers.Register(getApplicationContext())
-                );
+                SettingsReceivers.Register(getApplicationContext());
                 LocationTracker.getInstance().start(this);
             }
         }
