@@ -68,6 +68,7 @@ public class Settings extends Activity {
         } else {
             // https://developer.android.com/about/versions/oreo/background-location-limits
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                // The ForegroundService handles SettingsReceivers registration.
                 startForegroundService(ForegroundService.getForegroundServiceIntent(Settings.this));
             } else {
                 SettingsReceivers.register(getApplicationContext());

@@ -66,7 +66,7 @@ public class ForegroundService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        stopBroadCastReceiver();
+        SettingsReceivers.unregister(getApplicationContext(), settingsReceivers);
     }
 
     private void startForegroundService() {
@@ -86,9 +86,5 @@ public class ForegroundService extends Service {
         Intent intent = new Intent(context, ForegroundService.class);
         intent.setAction(ForegroundService.ACTION_START);
         return intent;
-    }
-
-    private void stopBroadCastReceiver() {
-        SettingsReceivers.unregister(getApplicationContext(), settingsReceivers);
     }
 }

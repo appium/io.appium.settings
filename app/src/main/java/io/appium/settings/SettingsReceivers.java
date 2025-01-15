@@ -62,6 +62,11 @@ public class SettingsReceivers {
     }
 
     static void unregister(Context applicationContext, List<BroadcastReceiver> settingsReceivers) {
+        if (settingsReceivers.isEmpty()) {
+            Log.d(TAG, "Nothing has registered");
+            return;
+        }
+
         for (BroadcastReceiver receiver: settingsReceivers) {
             Log.d(TAG, "Unregister " + receiver);
             try {
