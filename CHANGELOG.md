@@ -1,3 +1,9 @@
+## [5.12.22](https://github.com/appium/io.appium.settings/compare/v5.12.21...v5.12.22) (2025-01-16)
+
+### Bug Fixes
+
+* Do not register the broad cast receivers for record action ([#206](https://github.com/appium/io.appium.settings/issues/206)) ([1ab3716](https://github.com/appium/io.appium.settings/commit/1ab37169629fe5807c86e5b965b36f8f5b568c0b))
+
 ## [5.12.21](https://github.com/appium/io.appium.settings/compare/v5.12.20...v5.12.21) (2025-01-10)
 
 ### Miscellaneous Chores
