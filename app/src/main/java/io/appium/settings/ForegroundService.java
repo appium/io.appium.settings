@@ -17,10 +17,14 @@
 package io.appium.settings;
 
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import io.appium.settings.helpers.NotificationHelpers;
 
@@ -28,6 +32,8 @@ public class ForegroundService extends Service {
     private static final String TAG = "APPIUM SERVICE";
     public static final String ACTION_START = "start";
     public static final String ACTION_STOP = "stop";
+
+    private final List<BroadcastReceiver> settingsReceivers = new ArrayList<>();
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -47,6 +53,20 @@ public class ForegroundService extends Service {
             }
         }
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        settingsReceivers.addAll(
+                SettingsReceivers.register(getApplicationContext())
+        );
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        SettingsReceivers.unregister(getApplicationContext(), settingsReceivers);
     }
 
     private void startForegroundService() {
