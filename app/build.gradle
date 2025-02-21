@@ -8,7 +8,7 @@ android {
         //noinspection ExpiredTargetSdkVersion
         targetSdkVersion 32
         versionCode 113
-        versionName "5.12.23"
+        versionName "5.12.24"
         applicationId "io.appium.settings"
     }
 
