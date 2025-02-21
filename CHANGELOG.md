@@ -1,3 +1,9 @@
+## [5.12.24](https://github.com/appium/io.appium.settings/compare/v5.12.23...v5.12.24) (2025-02-21)
+
+### Bug Fixes
+
+* set location issue on Android 10 ([#211](https://github.com/appium/io.appium.settings/issues/211)) ([73c09d9](https://github.com/appium/io.appium.settings/commit/73c09d90f4fd8fab0f4cb35160daa18ce959174b))
+
 ## [5.12.23](https://github.com/appium/io.appium.settings/compare/v5.12.22...v5.12.23) (2025-02-14)
 
 ### Miscellaneous Chores
