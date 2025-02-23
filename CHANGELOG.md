@@ -1,3 +1,9 @@
+## [5.13.0](https://github.com/appium/io.appium.settings/compare/v5.12.24...v5.13.0) (2025-02-23)
+
+### Features
+
+* Add accuracy to the location builder ([#212](https://github.com/appium/io.appium.settings/issues/212)) ([360fd3b](https://github.com/appium/io.appium.settings/commit/360fd3b315a4aee16af8cc872cdc23e6b67d55f4))
+
 ## [5.12.24](https://github.com/appium/io.appium.settings/compare/v5.12.23...v5.12.24) (2025-02-21)
 
 ### Bug Fixes
