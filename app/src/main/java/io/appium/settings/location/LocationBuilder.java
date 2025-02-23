@@ -59,12 +59,7 @@ public class LocationBuilder {
         Double accuracy = extractParam(intent, ACCURACY_PARAMETER_KEY);
         Location location = new Location(providerName);
 
-        if (accuracy != null) {
-            location.setAccuracy(accuracy.floatValue());
-        }
-        else {
-            location.setAccuracy(Criteria.ACCURACY_FINE);
-        }
+        location.setAccuracy(accuracy == null ? accuracy.floatValue() : Criteria.ACCURACY_FINE);
 
         if (longitude != null) {
             location.setLongitude(longitude);
