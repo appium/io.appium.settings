@@ -203,7 +203,7 @@ Or `adb shell appops set io.appium.settings android:mock_location allow` let you
 Start sending scheduled updates (every 2s) for mock location with the specified values by executing:
 (API versions 26+):
 ```shell
-$ adb shell am start-foreground-service --user 0 -n io.appium.settings/.LocationService --es longitude {longitude-value} --es latitude {latitude-value} [--es altitude {altitude-value}]
+$ adb shell am start-foreground-service --user 0 -n io.appium.settings/.LocationService --es longitude {longitude-value} --es latitude {latitude-value} [--es altitude {altitude-value} --es speed {speed-value} --es bearing {bearing-value} --es accuracy {accuracy-value}]
 ```
 (Older versions):
 ```shell

@@ -32,6 +32,7 @@ public class LocationBuilder {
     private static final String ALTITUDE_PARAMETER_KEY = "altitude";
     private static final String SPEED_PARAMETER_KEY = "speed";
     private static final String BEARING_PARAMETER_KEY = "bearing";
+    private static final String ACCURACY_PARAMETER_KEY = "accuracy";
 
     @Nullable
     private static Double extractParam(Intent intent, String paramKey) {
@@ -55,8 +56,11 @@ public class LocationBuilder {
         Double altitude = extractParam(intent, ALTITUDE_PARAMETER_KEY);
         Double speed = extractParam(intent, SPEED_PARAMETER_KEY);
         Double bearing = extractParam(intent, BEARING_PARAMETER_KEY);
+        Double accuracy = extractParam(intent, ACCURACY_PARAMETER_KEY);
         Location location = new Location(providerName);
-        location.setAccuracy(Criteria.ACCURACY_FINE);
+
+        location.setAccuracy(accuracy == null ? accuracy.floatValue() : Criteria.ACCURACY_FINE);
+
         if (longitude != null) {
             location.setLongitude(longitude);
         }
