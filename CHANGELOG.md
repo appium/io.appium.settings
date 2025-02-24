@@ -1,3 +1,9 @@
+## [5.14.0](https://github.com/appium/io.appium.settings/compare/v5.13.0...v5.14.0) (2025-02-24)
+
+### Features
+
+* add bearing and accuracy params into setGeoLocation ([#213](https://github.com/appium/io.appium.settings/issues/213)) ([a684a98](https://github.com/appium/io.appium.settings/commit/a684a98b3d919d7af4e9f5d2aeabdd09561ba0e8))
+
 ## [5.13.0](https://github.com/appium/io.appium.settings/compare/v5.12.24...v5.13.0) (2025-02-23)
 
 ### Features
