@@ -1,3 +1,9 @@
+## [5.14.1](https://github.com/appium/io.appium.settings/compare/v5.14.0...v5.14.1) (2025-02-26)
+
+### Bug Fixes
+
+* crash while enabling/disabling bluetooth on API level >= 31 ([8fb4a11](https://github.com/appium/io.appium.settings/commit/8fb4a117fab9be81fafdf198087a8d5dca9a3d9a))
+
 ## [5.14.0](https://github.com/appium/io.appium.settings/compare/v5.13.0...v5.14.0) (2025-02-24)
 
 ### Features
