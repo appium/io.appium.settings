@@ -1,3 +1,9 @@
+## [5.14.3](https://github.com/appium/io.appium.settings/compare/v5.14.2...v5.14.3) (2025-03-10)
+
+### Bug Fixes
+
+* accuracy handling ([#218](https://github.com/appium/io.appium.settings/issues/218)) ([d768b5d](https://github.com/appium/io.appium.settings/commit/d768b5d7e7286f2c3e844ac392c91c567fd4c6d2))
+
 ## [5.14.2](https://github.com/appium/io.appium.settings/compare/v5.14.1...v5.14.2) (2025-03-01)
 
 ### Miscellaneous Chores
