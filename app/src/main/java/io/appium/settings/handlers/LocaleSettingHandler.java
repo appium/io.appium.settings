@@ -19,33 +19,28 @@ package io.appium.settings.handlers;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.os.Build;
-import android.util.Log;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Locale;
 
 public class LocaleSettingHandler extends AbstractSettingHandler {
-    private static final String TAG = "APPIUM SETTINGS(LOCALE)";
     private static final String CHANGE_CONFIGURATION = "android.permission.CHANGE_CONFIGURATION";
 
     public LocaleSettingHandler(Context context) {
         super(context, CHANGE_CONFIGURATION);
     }
 
-    public void setLocale(Locale locale) {
-        try {
-            if(hasPermissions()) {
-                setLocaleWith(locale);
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to set locale", e);
+    public void setLocale(Locale locale) throws ReflectiveOperationException {
+        if (!hasPermissions()) {
+            throw new IllegalStateException(
+                    "The settings app does not have enough permissions to change the device configuration"
+            );
         }
+        setLocaleWith(locale);
     }
 
-    private void setLocaleWith(Locale locale) throws
-            ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
+    private void setLocaleWith(Locale locale) throws ReflectiveOperationException {
         Class<?> activityManagerNativeClass = Class.forName("android.app.ActivityManagerNative");
 
         Method methodGetDefault = activityManagerNativeClass.getMethod("getDefault");
@@ -69,7 +64,8 @@ public class LocaleSettingHandler extends AbstractSettingHandler {
         config.locale = locale;
         config.setLayoutDirection(locale);
 
-        Method methodUpdateConfiguration = activityManagerNativeClass.getMethod("updateConfiguration", Configuration.class);
+        Method methodUpdateConfiguration = activityManagerNativeClass.getMethod(
+                "updateConfiguration", Configuration.class);
         methodUpdateConfiguration.setAccessible(true);
         methodUpdateConfiguration.invoke(amn, config);
     }

@@ -94,10 +94,16 @@ public class LocaleSettingReceiver extends BroadcastReceiver implements HasActio
             }
         }
 
-        new LocaleSettingHandler(context).setLocale(locale);
-        Log.i(TAG, String.format("Set locale: %s", locale));
-        setResultCode(Activity.RESULT_OK);
-        setResultData(locale.toString());
+        try {
+            new LocaleSettingHandler(context).setLocale(locale);
+            Log.i(TAG, String.format("Set locale: %s", locale));
+            setResultCode(Activity.RESULT_OK);
+            setResultData(locale.toString());
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            Log.e(TAG, String.format("Cannot set the system locale to %s", locale));
+            setResultCode(Activity.RESULT_CANCELED);
+            setResultData(String.format("%s: %s", e.getClass().getName(), e.getMessage()));
+        }
     }
 
     @Override
