@@ -34,7 +34,7 @@ public class LocaleSettingHandler extends AbstractSettingHandler {
     public void setLocale(Locale locale) throws ReflectiveOperationException {
         if (!hasPermissions()) {
             throw new IllegalStateException(
-                    "The settings app does not have enough permissions to change  a locale"
+                    "The settings app does not have enough permissions to change the device configuration"
             );
         }
         setLocaleWith(locale);
@@ -64,7 +64,8 @@ public class LocaleSettingHandler extends AbstractSettingHandler {
         config.locale = locale;
         config.setLayoutDirection(locale);
 
-        Method methodUpdateConfiguration = activityManagerNativeClass.getMethod("updateConfiguration", Configuration.class);
+        Method methodUpdateConfiguration = activityManagerNativeClass.getMethod(
+                "updateConfiguration", Configuration.class);
         methodUpdateConfiguration.setAccessible(true);
         methodUpdateConfiguration.invoke(amn, config);
     }
