@@ -1,3 +1,9 @@
+## [5.14.7](https://github.com/appium/io.appium.settings/compare/v5.14.6...v5.14.7) (2025-04-22)
+
+### Miscellaneous Chores
+
+* Retry setting locale once to make sure hidden API policies were picked up ([#223](https://github.com/appium/io.appium.settings/issues/223)) ([2dd61fa](https://github.com/appium/io.appium.settings/commit/2dd61fa6ff080a143487a8f32569dc2d687d6327))
+
 ## [5.14.6](https://github.com/appium/io.appium.settings/compare/v5.14.5...v5.14.6) (2025-04-22)
 
 ### Miscellaneous Chores
