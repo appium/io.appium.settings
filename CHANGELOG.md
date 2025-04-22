@@ -1,3 +1,9 @@
+## [5.14.8](https://github.com/appium/io.appium.settings/compare/v5.14.7...v5.14.8) (2025-04-22)
+
+### Miscellaneous Chores
+
+* Log exception stacktrace ([e670106](https://github.com/appium/io.appium.settings/commit/e67010632cbd20f79ca2810a71c804cec47b00fc))
+
 ## [5.14.7](https://github.com/appium/io.appium.settings/compare/v5.14.6...v5.14.7) (2025-04-22)
 
 ### Miscellaneous Chores
