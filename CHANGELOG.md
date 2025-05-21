@@ -1,3 +1,9 @@
+## [5.14.10](https://github.com/appium/io.appium.settings/compare/v5.14.9...v5.14.10) (2025-05-21)
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump conventional-changelog-conventionalcommits ([#226](https://github.com/appium/io.appium.settings/issues/226)) ([870cce3](https://github.com/appium/io.appium.settings/commit/870cce396f7596d2bd878c58a42eec4242111992))
+
 ## [5.14.9](https://github.com/appium/io.appium.settings/compare/v5.14.8...v5.14.9) (2025-05-07)
 
 ### Miscellaneous Chores
