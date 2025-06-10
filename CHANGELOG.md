@@ -1,3 +1,9 @@
+## [5.14.12](https://github.com/appium/io.appium.settings/compare/v5.14.11...v5.14.12) (2025-06-10)
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 22.15.31 to 24.0.0 ([#228](https://github.com/appium/io.appium.settings/issues/228)) ([2a4f3bd](https://github.com/appium/io.appium.settings/commit/2a4f3bd445a605ddc1ff266004d7fb6ea6218e11))
+
 ## [5.14.11](https://github.com/appium/io.appium.settings/compare/v5.14.10...v5.14.11) (2025-05-29)
 
 ### Miscellaneous Chores
