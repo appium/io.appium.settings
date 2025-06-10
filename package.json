@@ -61,7 +61,7 @@
     "@semantic-release/git": "^10.0.1",
     "@types/bluebird": "^3.5.38",
     "@types/lodash": "^4.14.196",
-    "@types/node": "^22.0.0",
+    "@types/node": "^24.0.0",
     "@types/teen_process": "^2.0.2",
     "appium-adb": "^12.4.0",
     "chai": "^5.1.1",
