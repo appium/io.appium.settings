@@ -1,3 +1,14 @@
+## [6.0.0](https://github.com/appium/io.appium.settings/compare/v5.14.15...v6.0.0) (2025-08-16)
+
+### ⚠ BREAKING CHANGES
+
+* Required Node.js version has been bumped to ^20.19.0 || ^22.12.0 || >=24.0.0
+* Required npm version has been bumped to >=10
+
+### Features
+
+* Bump Node.js version ([#232](https://github.com/appium/io.appium.settings/issues/232)) ([e818433](https://github.com/appium/io.appium.settings/commit/e818433ea7ecd8c902f64d71a468fd5f127fa9c0))
+
 ## [5.14.15](https://github.com/appium/io.appium.settings/compare/v5.14.14...v5.14.15) (2025-08-01)
 
 ### Miscellaneous Chores
