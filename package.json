@@ -50,7 +50,7 @@
     "lodash": "^4.2.1",
     "semver": "^7.5.4",
     "source-map-support": "^0.x",
-    "teen_process": "^2.0.0"
+    "teen_process": "^3.0.0"
   },
   "devDependencies": {
     "@appium/eslint-config-appium-ts": "^2.0.0-rc.1",
