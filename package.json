@@ -64,7 +64,7 @@
     "@types/node": "^24.0.0",
     "@types/teen_process": "^2.0.2",
     "appium-adb": "^13.0.0",
-    "chai": "^5.1.1",
+    "chai": "^6.0.0",
     "chai-as-promised": "^8.0.0",
     "conventional-changelog-conventionalcommits": "^9.0.0",
     "mocha": "^11.0.1",
