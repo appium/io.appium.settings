@@ -1,3 +1,9 @@
+## [6.0.2](https://github.com/appium/io.appium.settings/compare/v6.0.1...v6.0.2) (2025-08-23)
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump chai from 5.3.2 to 6.0.0 ([#234](https://github.com/appium/io.appium.settings/issues/234)) ([92d5337](https://github.com/appium/io.appium.settings/commit/92d53372fecce753f6e63714d857e83ff78f1b72))
+
 ## [6.0.1](https://github.com/appium/io.appium.settings/compare/v6.0.0...v6.0.1) (2025-08-19)
 
 ### Miscellaneous Chores
