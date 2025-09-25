@@ -1,3 +1,9 @@
+## [6.0.5](https://github.com/appium/io.appium.settings/compare/v6.0.4...v6.0.5) (2025-09-25)
+
+### Miscellaneous Chores
+
+* **deps:** bump org.apache.commons:commons-lang3 from 3.18.0 to 3.19.0 ([#237](https://github.com/appium/io.appium.settings/issues/237)) ([289db1f](https://github.com/appium/io.appium.settings/commit/289db1f7a2cbabcc08ea6a37b8ee64c77778ebf5))
+
 ## [6.0.4](https://github.com/appium/io.appium.settings/compare/v6.0.3...v6.0.4) (2025-09-04)
 
 ### Miscellaneous Chores

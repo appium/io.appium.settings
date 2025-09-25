@@ -7,8 +7,8 @@ android {
         minSdkVersion 21
         //noinspection ExpiredTargetSdkVersion
         targetSdkVersion 32
-        versionCode 136
-        versionName "6.0.4"
+        versionCode 137
+        versionName "6.0.5"
         applicationId "io.appium.settings"
     }
 
