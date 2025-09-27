@@ -1,3 +1,9 @@
+## [6.0.6](https://github.com/appium/io.appium.settings/compare/v6.0.5...v6.0.6) (2025-09-27)
+
+### Miscellaneous Chores
+
+* fix typos ([#238](https://github.com/appium/io.appium.settings/issues/238)) ([87d64b3](https://github.com/appium/io.appium.settings/commit/87d64b3a164ca1d64b482e744e9985cbd49cbeed))
+
 ## [6.0.5](https://github.com/appium/io.appium.settings/compare/v6.0.4...v6.0.5) (2025-09-25)
 
 ### Miscellaneous Chores
