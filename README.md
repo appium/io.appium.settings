@@ -64,7 +64,7 @@ import { SettingsApp } from 'io.appium.settings';
 
 async function main() {
   // It is expected 'io.appium.settings' is already installed on the device
-  // and the neccessary permissions are granted to it.
+  // and the necessary permissions are granted to it.
   // Check https://github.com/appium/appium-android-driver/blob/master/lib/helpers/android.ts
   // if you are looking on how to automate this process.
   const app = new SettingsApp({
