@@ -1,3 +1,9 @@
+## [6.0.7](https://github.com/appium/io.appium.settings/compare/v6.0.6...v6.0.7) (2025-10-17)
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump semantic-release from 24.2.9 to 25.0.0 ([#239](https://github.com/appium/io.appium.settings/issues/239)) ([231c11d](https://github.com/appium/io.appium.settings/commit/231c11d59baec72df49ccce76c5aeeb292361c81))
+
 ## [6.0.6](https://github.com/appium/io.appium.settings/compare/v6.0.5...v6.0.6) (2025-09-27)
 
 ### Miscellaneous Chores
