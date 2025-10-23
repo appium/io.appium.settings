@@ -18,7 +18,6 @@ package io.appium.settings.handlers;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.os.Build;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -69,27 +68,17 @@ public class DataConnectionSettingHandler extends AbstractSettingHandler {
             throws Exception {
         final int state = isEnabled ? 1 : 0;
         final String transactionCode = getTransactionCode(context);
-        if (transactionCode.length() == 0) {
+        if (transactionCode.isEmpty()) {
             throw new IllegalStateException("The transaction code should not be empty");
         }
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
-            final SubscriptionManager mSubscriptionManager = (SubscriptionManager) context
-                    .getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
-            for (int i = 0; i < mSubscriptionManager.getActiveSubscriptionInfoCountMax(); i++) {
-                if (transactionCode.length() > 0) {
-                    @SuppressLint("MissingPermission") final int subscriptionId = mSubscriptionManager
-                            .getActiveSubscriptionInfoList().get(i).getSubscriptionId();
-                    final String command = String.format("service call phone %s i32 %s i32 %s",
-                            transactionCode, subscriptionId, state);
-                    executeCommandViaSu(command);
-                }
-            }
-        } else if (Build.VERSION.SDK_INT == Build.VERSION_CODES.LOLLIPOP) {
-            if (transactionCode.length() > 0) {
-                final String command = String.format("service call phone %s i32 %s",
-                        transactionCode, state);
-                executeCommandViaSu(command);
-            }
+        final SubscriptionManager mSubscriptionManager = (SubscriptionManager) context
+                .getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
+        for (int i = 0; i < mSubscriptionManager.getActiveSubscriptionInfoCountMax(); i++) {
+            @SuppressLint("MissingPermission") final int subscriptionId = mSubscriptionManager
+                    .getActiveSubscriptionInfoList().get(i).getSubscriptionId();
+            final String command = String.format("service call phone %s i32 %s i32 %s",
+                    transactionCode, subscriptionId, state);
+            executeCommandViaSu(command);
         }
     }
 
