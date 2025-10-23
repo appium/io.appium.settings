@@ -1,3 +1,9 @@
+## [6.0.8](https://github.com/appium/io.appium.settings/compare/v6.0.7...v6.0.8) (2025-10-23)
+
+### Miscellaneous Chores
+
+* Bump adb version ([#240](https://github.com/appium/io.appium.settings/issues/240)) ([b2a9321](https://github.com/appium/io.appium.settings/commit/b2a9321519740b5e497c8edd19930215a389f374))
+
 ## [6.0.7](https://github.com/appium/io.appium.settings/compare/v6.0.6...v6.0.7) (2025-10-17)
 
 ### Miscellaneous Chores
