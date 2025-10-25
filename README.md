@@ -102,18 +102,6 @@ To turn off `wifi`:
 $ adb shell am broadcast -a io.appium.settings.wifi --es setstatus disable
 ```
 
-To turn on `data`:
-
-```shell
-$ adb shell am broadcast -a io.appium.settings.data_connection --es setstatus enable
-```
-
-To turn off `data`:
-
-```shell
-$ adb shell am broadcast -a io.appium.settings.data_connection --es setstatus disable
-```
-
 To turn on `bluetooth`:
 
 ```shell

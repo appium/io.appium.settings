@@ -21,13 +21,11 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.graphics.BitmapFactory;
-import android.os.Build;
 
 import io.appium.settings.R;
 
 import static android.content.Context.NOTIFICATION_SERVICE;
 
-import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
 public class NotificationHelpers {
@@ -37,7 +35,6 @@ public class NotificationHelpers {
     private static final String CHANNEL_DESCRIPTION = "Keep this service running, " +
             "so Appium for Android can properly interact with several system APIs";
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private static void createChannel(Context context) {
         NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
         if (mNotificationManager == null) {
@@ -51,9 +48,7 @@ public class NotificationHelpers {
     }
 
     public static Notification getNotification(Context context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            createChannel(context);
-        }
+        createChannel(context);
         NotificationCompat.BigTextStyle bigTextStyle = new NotificationCompat.BigTextStyle();
         bigTextStyle.setBigContentTitle(CHANNEL_NAME);
         bigTextStyle.bigText(CHANNEL_DESCRIPTION);

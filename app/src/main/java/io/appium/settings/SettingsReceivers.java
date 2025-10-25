@@ -3,10 +3,7 @@ package io.appium.settings;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.IntentFilter;
-import android.os.Build;
 import android.util.Log;
-
-import androidx.annotation.RequiresApi;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,7 +12,6 @@ import java.util.List;
 import io.appium.settings.receivers.AnimationSettingReceiver;
 import io.appium.settings.receivers.BluetoothConnectionSettingReceiver;
 import io.appium.settings.receivers.ClipboardReceiver;
-import io.appium.settings.receivers.DataConnectionSettingReceiver;
 import io.appium.settings.receivers.HasAction;
 import io.appium.settings.receivers.LocaleSettingReceiver;
 import io.appium.settings.receivers.LocalesReader;
@@ -29,12 +25,10 @@ import io.appium.settings.receivers.WiFiConnectionSettingReceiver;
 public class SettingsReceivers {
     private static final String TAG = "APPIUM SERVICE";
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     static List<BroadcastReceiver> register(Context applicationContext) {
         List<Class<? extends BroadcastReceiver>> receiverClasses = Arrays.asList(
                 WiFiConnectionSettingReceiver.class,
                 AnimationSettingReceiver.class,
-                DataConnectionSettingReceiver.class,
                 LocaleSettingReceiver.class,
                 LocalesReader.class,
                 LocationInfoReceiver.class,

@@ -20,7 +20,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.media.projection.MediaProjectionManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -67,13 +66,8 @@ public class Settings extends Activity {
             Log.d(TAG, "Skip starting foreground service");
         } else {
             // https://developer.android.com/about/versions/oreo/background-location-limits
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                // The ForegroundService handles SettingsReceivers registration.
-                startForegroundService(ForegroundService.getForegroundServiceIntent(Settings.this));
-            } else {
-                SettingsReceivers.register(getApplicationContext());
-                LocationTracker.getInstance().start(this);
-            }
+            // The ForegroundService handles SettingsReceivers registration.
+            startForegroundService(ForegroundService.getForegroundServiceIntent(Settings.this));
         }
 
         handleRecording(getIntent());

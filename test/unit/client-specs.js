@@ -126,11 +126,5 @@ describe('client', withMocks({adb}, function (mocks) {
       mocks.adb.expects('shell').once().withArgs(['dumpsys', 'activity', 'services', 'io.appium.settings']).returns(getActivityServiceOutput);
       await client.isRunningInForeground().should.eventually.false;
     });
-    it('should rely on processExists for api level 25 and lower', async function () {
-      mocks.adb.expects('getApiLevel').once().returns(25);
-      mocks.adb.expects('processExists').once().returns(1000);
-      mocks.adb.expects('shell').never().withArgs(['dumpsys', 'activity', 'services', 'io.appium.settings']);
-      await client.isRunningInForeground().should.eventually.eql(1000);
-    });
   });
 }));
