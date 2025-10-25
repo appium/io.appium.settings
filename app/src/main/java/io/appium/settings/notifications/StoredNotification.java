@@ -16,7 +16,6 @@
 
 package io.appium.settings.notifications;
 
-import android.os.Build;
 import android.os.Bundle;
 import android.service.notification.StatusBarNotification;
 import org.json.JSONException;
@@ -63,18 +62,10 @@ public class StoredNotification {
         storeCharSequenceProperty(notification, "infoText", "android.infoText", extras);
         storeCharSequenceProperty(notification, "template", "android.template", extras);
         result.put("notification", notification);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            result.put("isGroup", sbn.isGroup());
-        } else {
-            result.put("isGroup", false);
-        }
+        result.put("isGroup", sbn.isGroup());
         result.put("userHandle", sbn.getUser().hashCode());
         result.put("groupKey", formatJsonNull(sbn.getGroupKey()));
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            result.put("overrideGroupKey", formatJsonNull(sbn.getOverrideGroupKey()));
-        } else {
-            result.put("overrideGroupKey", JSONObject.NULL);
-        }
+        result.put("overrideGroupKey", formatJsonNull(sbn.getOverrideGroupKey()));
         result.put("key", formatJsonNull(sbn.getKey()));
         return result;
     }
