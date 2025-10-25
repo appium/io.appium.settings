@@ -12,7 +12,6 @@ import java.util.List;
 import io.appium.settings.receivers.AnimationSettingReceiver;
 import io.appium.settings.receivers.BluetoothConnectionSettingReceiver;
 import io.appium.settings.receivers.ClipboardReceiver;
-import io.appium.settings.receivers.DataConnectionSettingReceiver;
 import io.appium.settings.receivers.HasAction;
 import io.appium.settings.receivers.LocaleSettingReceiver;
 import io.appium.settings.receivers.LocalesReader;
@@ -30,7 +29,6 @@ public class SettingsReceivers {
         List<Class<? extends BroadcastReceiver>> receiverClasses = Arrays.asList(
                 WiFiConnectionSettingReceiver.class,
                 AnimationSettingReceiver.class,
-                DataConnectionSettingReceiver.class,
                 LocaleSettingReceiver.class,
                 LocalesReader.class,
                 LocationInfoReceiver.class,

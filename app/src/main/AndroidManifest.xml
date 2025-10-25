@@ -133,9 +133,6 @@
         <receiver android:name=".receivers.WiFiConnectionSettingReceiver"
             android:exported="true"
             tools:ignore="ExportedReceiver" />
-        <receiver android:name=".receivers.DataConnectionSettingReceiver"
-            android:exported="true"
-            tools:ignore="ExportedReceiver" />
         <receiver android:name=".receivers.AnimationSettingReceiver"
             android:exported="true"
             tools:ignore="ExportedReceiver" />
