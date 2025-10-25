@@ -1,3 +1,14 @@
+## [7.0.0](https://github.com/appium/io.appium.settings/compare/v6.0.8...v7.0.0) (2025-10-25)
+
+### ⚠ BREAKING CHANGES
+
+* Assume the minimum device API level is 26
+* Remove io.appium.settings.data_connection related handling
+
+### Features
+
+* Assume the minimum device API level is 26 ([#243](https://github.com/appium/io.appium.settings/issues/243)) ([45448b9](https://github.com/appium/io.appium.settings/commit/45448b9f93a447699fe760502c9a77d7ce28f883))
+
 ## [6.0.8](https://github.com/appium/io.appium.settings/compare/v6.0.7...v6.0.8) (2025-10-23)
 
 ### Miscellaneous Chores

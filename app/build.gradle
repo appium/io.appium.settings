@@ -6,8 +6,8 @@ android {
     defaultConfig {
         minSdkVersion 26
         targetSdkVersion 35
-        versionCode 140
-        versionName "6.0.8"
+        versionCode 141
+        versionName "7.0.0"
         applicationId "io.appium.settings"
     }
 
