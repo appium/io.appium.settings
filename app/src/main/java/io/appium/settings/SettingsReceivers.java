@@ -3,6 +3,7 @@ package io.appium.settings;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -45,7 +46,11 @@ public class SettingsReceivers {
             try {
                 final BroadcastReceiver receiver = receiverClass.newInstance();
                 IntentFilter filter = new IntentFilter(((HasAction) receiver).getAction());
-                applicationContext.registerReceiver(receiver, filter);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    applicationContext.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED);
+                } else {
+                    applicationContext.registerReceiver(receiver, filter);
+                }
                 Log.d(TAG, "Register " + receiver);
                 settingsReceivers.add(receiver);
             } catch (IllegalAccessException | InstantiationException e) {
