@@ -1,3 +1,9 @@
+## [7.0.1](https://github.com/appium/io.appium.settings/compare/v7.0.0...v7.0.1) (2025-10-28)
+
+### Bug Fixes
+
+* broadcast receiver for api level 33+ ([#245](https://github.com/appium/io.appium.settings/issues/245)) ([7f2d9c8](https://github.com/appium/io.appium.settings/commit/7f2d9c81e7a1f05cc8fed4dd803f901661e9e231))
+
 ## [7.0.0](https://github.com/appium/io.appium.settings/compare/v6.0.8...v7.0.0) (2025-10-25)
 
 ### ⚠ BREAKING CHANGES
