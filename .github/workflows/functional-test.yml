@@ -46,10 +46,6 @@ jobs:
       with:
         distribution: 'temurin'
         java-version: '17'
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
-    - run: npm install --no-package-lock
-      name: Install dev dependencies
     - name: AVD cache
       uses: actions/cache@v3
       id: avd-cache
@@ -75,9 +71,9 @@ jobs:
     - run: nohup adb logcat > logcat.log &
       name: Capture Logcat
     - uses: reactivecircus/android-emulator-runner@v2
-      name: api${{ matrix.apiLevel }}_e2e
+      name: Run end-to-end tests for API ${matrix.apiLevel}
       with:
-        script: npm run e2e-test
+        script: npm install && npm run e2e-test
         avd-name: $ANDROID_AVD
         force-avd-creation: false
         api-level: ${{ matrix.apiLevel }}

@@ -2,8 +2,10 @@ import { SettingsApp } from '../../lib/client';
 import { ADB } from 'appium-adb';
 import { getSettingsApkPath } from '../../lib/utils';
 import fs from 'fs/promises';
-import { expect } from 'chai';
-import 'chai-as-promised';
+import { expect, use } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+
+use(chaiAsPromised);
 
 describe('Media Projection', function () {
   let adb: ADB;
@@ -149,7 +151,7 @@ describe('Media Projection', function () {
       await settingsApp.adjustMediaProjectionServicePermissions();
 
       // Cleanup should not throw
-      await expect(recorder.cleanup()).to.not.be.rejected;
+      await expect(recorder.cleanup()).to.be.fulfilled;
 
       // Start and stop a recording
       await recorder.start({
@@ -159,7 +161,7 @@ describe('Media Projection', function () {
       await recorder.stop();
 
       // Cleanup again should not throw
-      await expect(recorder.cleanup()).to.not.be.rejected;
+      await expect(recorder.cleanup()).to.be.fulfilled;
     });
   });
 });
