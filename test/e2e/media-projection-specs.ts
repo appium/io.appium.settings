@@ -28,7 +28,10 @@ describe('Media Projection', function () {
     if (!(await fs.access(apkPath).then(() => true).catch(() => false))) {
       throw new Error(`APK not found at ${apkPath}. Please run 'npm run build' first.`);
     }
-    await adb.install(apkPath, { replace: true });
+    await adb.install(apkPath, {
+      replace: true,
+      grantPermissions: true,
+    });
 
     // Ensure the app is running
     await settingsApp.requireRunning();
