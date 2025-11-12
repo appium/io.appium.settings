@@ -69,9 +69,9 @@ jobs:
         arch: ${{ matrix.arch }}
         disable-animations: true
     - run: nohup adb logcat > logcat.log &
-      name: Capture Logcat
+      name: Capture logcat
     - uses: reactivecircus/android-emulator-runner@v2
-      name: Run end-to-end tests for API ${matrix.apiLevel}
+      name: Run end-to-end tests
       with:
         script: npm install && npm run e2e-test
         avd-name: $ANDROID_AVD
