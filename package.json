@@ -14,7 +14,8 @@
     "prepare": "npm run build",
     "version": "npm run bump-gradle-version && npm run build",
     "clean": "npm run build -- --clean",
-    "js:test": "mocha --exit --timeout 1m \"./test/unit/**/*-specs.js\""
+    "js:test": "mocha --exit --timeout 1m \"./test/unit/**/*-specs.js\"",
+    "e2e-test": "mocha --exit --timeout 5m \"./test/e2e/**/*-specs.ts\""
   },
   "repository": {
     "type": "git",
@@ -60,7 +61,10 @@
     "@semantic-release/changelog": "^6.0.1",
     "@semantic-release/git": "^10.0.1",
     "@types/bluebird": "^3.5.38",
+    "@types/chai": "^5.2.3",
+    "@types/chai-as-promised": "^8.0.2",
     "@types/lodash": "^4.14.196",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^24.0.0",
     "@types/teen_process": "^2.0.2",
     "appium-adb": "^14.0.0",
