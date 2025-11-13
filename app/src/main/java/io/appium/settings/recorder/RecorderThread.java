@@ -71,6 +71,8 @@ public class RecorderThread implements Runnable {
     private volatile boolean audioStopped = false;
     private volatile boolean hasAsyncError = false;
 
+    private MediaProjection.Callback mediaProjectionCallback = null;
+
     private final VirtualDisplay.Callback displayCallback = new VirtualDisplay.Callback() {
         @Override
         public void onPaused() {
@@ -363,6 +365,20 @@ public class RecorderThread implements Runnable {
             videoEncoder.start();
 
             Handler handler = new Handler(Looper.getMainLooper());
+
+            // Register MediaProjection callback (required for Android 14+)
+            mediaProjectionCallback = new MediaProjection.Callback() {
+                @Override
+                public void onStop() {
+                    super.onStop();
+                    Log.v(TAG, "MediaProjection callback: MediaProjection stopped");
+                    if (!stopped) {
+                        hasAsyncError = true;
+                    }
+                }
+            };
+            this.mediaProjection.registerCallback(mediaProjectionCallback, handler);
+
             virtualDisplay = initVirtualDisplay(this.mediaProjection, surface, handler,
                     this.videoWidth, this.videoHeight, this.videoDpi);
 
@@ -446,6 +462,12 @@ public class RecorderThread implements Runnable {
                 audioEncoder.release();
                 audioEncoder = null;
             }
+
+            if (mediaProjectionCallback != null) {
+                this.mediaProjection.unregisterCallback(mediaProjectionCallback);
+                mediaProjectionCallback = null;
+            }
+
             mediaProjection.stop();
         }
     }
