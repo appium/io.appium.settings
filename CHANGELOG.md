@@ -1,3 +1,9 @@
+## [7.0.3](https://github.com/appium/io.appium.settings/compare/v7.0.2...v7.0.3) (2025-11-13)
+
+### Bug Fixes
+
+* Register media projection callback ([#249](https://github.com/appium/io.appium.settings/issues/249)) ([d88a874](https://github.com/appium/io.appium.settings/commit/d88a8742bd82d7b596f6e6c1b55a207ce9e11a9f))
+
 ## [7.0.2](https://github.com/appium/io.appium.settings/compare/v7.0.1...v7.0.2) (2025-11-12)
 
 ### Miscellaneous Chores
