@@ -1,3 +1,9 @@
+## [7.0.4](https://github.com/appium/io.appium.settings/compare/v7.0.3...v7.0.4) (2025-11-15)
+
+### Miscellaneous Chores
+
+* publish via trusted publisher ([#251](https://github.com/appium/io.appium.settings/issues/251)) ([62bff2b](https://github.com/appium/io.appium.settings/commit/62bff2b828b96a99d6f859ea91627210d88a4069))
+
 ## [7.0.3](https://github.com/appium/io.appium.settings/compare/v7.0.2...v7.0.3) (2025-11-13)
 
 ### Bug Fixes
