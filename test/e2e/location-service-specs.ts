@@ -27,8 +27,13 @@ describe('Location Service', function () {
       grantPermissions: true,
     });
 
+    // Set the mock location app permission (required for Android 6.0+)
+    await adb.shell(['appops', 'set', 'io.appium.settings', 'android:mock_location', 'allow']);
+
     // Ensure the app is running
-    await settingsApp.requireRunning();
+    await settingsApp.requireRunning({
+      timeout: 10000,
+    });
   });
 
   beforeEach(async function () {
@@ -89,7 +94,9 @@ describe('Location Service', function () {
         intervalMs: 300,
       });
 
-      // Wait for the location to be set and retrievable - will throw if condition is not met
+      // Wait for the location to be set and retrievable
+      // LocationService updates every 5 seconds, so we need to wait at least that long
+      // plus some buffer time for the location to propagate
       await waitForCondition(async () => {
         try {
           const retrievedLocation = await settingsApp.getGeoLocation();
@@ -105,8 +112,8 @@ describe('Location Service', function () {
           return false;
         }
       }, {
-        waitMs: SERVICE_STARTUP_TIMEOUT_MS,
-        intervalMs: 300,
+        waitMs: SERVICE_STARTUP_TIMEOUT_MS * 2, // Wait longer to account for 5s update interval
+        intervalMs: 500,
       });
     });
 
@@ -209,6 +216,3 @@ async function stopLocationService(adb: ADB): Promise<void> {
     // Ignore errors if service is not running
   }
 }
-
-
-

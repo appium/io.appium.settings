@@ -205,8 +205,6 @@ public class LocationService extends Service {
         }
     }
 
-
-
     private List<MockLocationProvider> createMockProviders(LocationManager locationManager) {
         List<String> providers = locationManager.getAllProviders();
         List<MockLocationProvider> mockProviders = new LinkedList<>();
@@ -275,7 +273,6 @@ public class LocationService extends Service {
                 provider.getAccuracy()
         );
     }
-
 
     private FusedLocationProvider createFusedLocationProvider() {
         FusedLocationProviderClient locationProviderClient = LocationServices.getFusedLocationProviderClient(this);
