@@ -62,6 +62,9 @@ public class LocationService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        // Start foreground immediately to avoid RemoteServiceException on older Android versions
+        // This must be called before any other operations
+        finishForegroundSetup();
         initializeLocationProviders();
         enableLocationProviders();
         initializeLocationUpdateThread();
@@ -83,9 +86,13 @@ public class LocationService extends Service {
             }
         }
 
-        // https://stackoverflow.com/a/45047542
-        // https://developer.android.com/about/versions/oreo/android-8.0-changes.html
-        finishForegroundSetup();
+        // Ensure foreground is set (in case onCreate wasn't called, though it should be)
+        // This is a safety measure for older Android versions
+        try {
+            finishForegroundSetup();
+        } catch (Exception e) {
+            // If already in foreground, this is fine
+        }
 
         handleIntent(intent);
 
