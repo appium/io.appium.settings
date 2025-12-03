@@ -73,7 +73,7 @@ jobs:
     - uses: reactivecircus/android-emulator-runner@v2
       name: Run end-to-end tests
       with:
-        script: npm install && npm run build && npm run e2e-test
+        script: npm install && npm run e2e-test
         avd-name: $ANDROID_AVD
         force-avd-creation: false
         api-level: ${{ matrix.apiLevel }}
