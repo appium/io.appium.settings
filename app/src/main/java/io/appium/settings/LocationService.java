@@ -25,7 +25,10 @@ import android.location.LocationManager;
 import android.location.LocationProvider;
 import android.location.provider.ProviderProperties;
 import android.os.Build;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
+import android.os.Process;
 import android.util.Log;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -33,8 +36,6 @@ import com.google.android.gms.location.LocationServices;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import androidx.annotation.Nullable;
 import io.appium.settings.helpers.NotificationHelpers;
@@ -46,12 +47,13 @@ import io.appium.settings.location.MockLocationProvider;
 
 public class LocationService extends Service {
     private static final String TAG = "MOCKED LOCATION SERVICE";
-
-    private static final long UPDATE_INTERVAL_MS = 2000L;
+    private static final long UPDATE_INTERVAL_MS = 5000L;
 
     private final List<MockLocationProvider> mockLocationProviders = new LinkedList<>();
-    private final Timer locationUpdatesTimer = new Timer();
-    private TimerTask locationUpdateTask;
+    private HandlerThread locationUpdateThread;
+    private Handler locationUpdateHandler;
+    private Runnable locationUpdateRunnable;
+    private Intent lastIntent;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -63,6 +65,13 @@ public class LocationService extends Service {
         super.onCreate();
         initializeLocationProviders();
         enableLocationProviders();
+        initializeLocationUpdateThread();
+    }
+
+    private void initializeLocationUpdateThread() {
+        locationUpdateThread = new HandlerThread("LocationUpdateThread", Process.THREAD_PRIORITY_BACKGROUND);
+        locationUpdateThread.start();
+        locationUpdateHandler = new Handler(locationUpdateThread.getLooper());
     }
 
     @Override
@@ -87,9 +96,32 @@ public class LocationService extends Service {
     @Override
     public void onDestroy() {
         Log.i(TAG, "Shutting down MockLocationService");
-        locationUpdatesTimer.cancel();
+        stopLocationUpdates();
         disableLocationProviders();
+        cleanupLocationUpdateThread();
         super.onDestroy();
+    }
+
+    private void stopLocationUpdates() {
+        if (locationUpdateHandler != null && locationUpdateRunnable != null) {
+            locationUpdateHandler.removeCallbacks(locationUpdateRunnable);
+            locationUpdateRunnable = null;
+        }
+        lastIntent = null;
+    }
+
+    private void cleanupLocationUpdateThread() {
+        if (locationUpdateThread != null) {
+            locationUpdateThread.quitSafely();
+            try {
+                locationUpdateThread.join(1000);
+            } catch (InterruptedException e) {
+                Log.w(TAG, "Interrupted while waiting for location update thread to finish", e);
+                Thread.currentThread().interrupt();
+            }
+            locationUpdateThread = null;
+            locationUpdateHandler = null;
+        }
     }
 
     private void handleIntent(Intent intent) {
@@ -138,17 +170,26 @@ public class LocationService extends Service {
     private void scheduleLocationUpdate(final Intent intent) {
         Log.i(TAG, "Scheduling mock location updates");
 
-        // If we run 'startservice' again we should schedule an update right away to avoid a delay
-        if (locationUpdateTask != null) {
-            locationUpdateTask.cancel();
-        }
+        // Check if intent has changed - if so, we need to update immediately
+        boolean intentChanged = hasIntentChanged(intent, lastIntent);
+        lastIntent = intent;
 
-        locationUpdateTask = new TimerTask() {
+        // Stop any existing updates
+        stopLocationUpdates();
+
+        // Create a new runnable that will update location periodically
+        locationUpdateRunnable = new Runnable() {
             @Override
             public void run() {
+                if (locationUpdateHandler == null) {
+                    return;
+                }
+
+                // Build location from intent for each provider and update
                 for (MockLocationProvider mockLocationProvider : mockLocationProviders) {
                     Location location = LocationBuilder.buildFromIntent(intent, mockLocationProvider.getProviderName());
-                    Log.d(TAG, String.format("Setting location of '%s' to '%s'", mockLocationProvider.getProviderName(), location));
+                    Log.d(TAG, String.format("Setting location of '%s' to '%s'",
+                            mockLocationProvider.getProviderName(), location));
                     try {
                         mockLocationProvider.setLocation(location);
                     } catch (Exception e) {
@@ -156,11 +197,47 @@ public class LocationService extends Service {
                                 mockLocationProvider.getProviderName()), e);
                     }
                 }
+
+                // Schedule next update
+                if (locationUpdateHandler != null) {
+                    locationUpdateHandler.postDelayed(this, UPDATE_INTERVAL_MS);
+                }
             }
         };
 
-        locationUpdatesTimer.schedule(locationUpdateTask, 0, UPDATE_INTERVAL_MS);
+        // Start updates immediately, then continue with interval
+        if (locationUpdateHandler != null) {
+            locationUpdateHandler.post(locationUpdateRunnable);
+        }
     }
+
+    /**
+     * Check if the intent has changed by comparing location parameters.
+     * This helps detect when a new location command is received.
+     */
+    private boolean hasIntentChanged(Intent newIntent, Intent oldIntent) {
+        if (oldIntent == null) {
+            return newIntent != null;
+        }
+        if (newIntent == null) {
+            return true;
+        }
+
+        // Compare location parameters
+        String[] params = {"longitude", "latitude", "altitude", "speed", "bearing", "accuracy"};
+        for (String param : params) {
+            String newValue = newIntent.getStringExtra(param);
+            String oldValue = oldIntent.getStringExtra(param);
+            if (newValue == null && oldValue == null) {
+                continue;
+            }
+            if (newValue == null || !newValue.equals(oldValue)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     private List<MockLocationProvider> createMockProviders(LocationManager locationManager) {
         List<String> providers = locationManager.getAllProviders();
