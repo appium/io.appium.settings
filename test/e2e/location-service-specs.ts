@@ -55,6 +55,24 @@ describe('Location Service', function () {
   });
 
   describe('LocationService Basic Operations', function () {
+    let isEmulator: boolean;
+
+    before(async function () {
+      // Detect if running on an emulator using the same method as android driver
+      // Check device properties that indicate an emulator
+      const productModel = await adb.shell(['getprop', 'ro.product.model']);
+      const hardware = await adb.shell(['getprop', 'ro.hardware']);
+      const kernelQemu = await adb.shell(['getprop', 'ro.kernel.qemu']);
+      const buildProduct = await adb.shell(['getprop', 'ro.build.product']);
+
+      isEmulator = productModel.toLowerCase().includes('sdk') ||
+                   productModel.toLowerCase().includes('emulator') ||
+                   hardware.toLowerCase().includes('goldfish') ||
+                   hardware.toLowerCase().includes('ranchu') ||
+                   kernelQemu === '1' ||
+                   buildProduct.toLowerCase().includes('sdk') ||
+                   buildProduct.toLowerCase().includes('emulator');
+    });
     it('should update location when new coordinates are provided', async function () {
       // Set initial location
       const location1 = {
@@ -62,10 +80,7 @@ describe('Location Service', function () {
         latitude: 37.7749,
       };
       await settingsApp.setGeoLocation(location1);
-      await waitForCondition(async () => await isLocationServiceRunning(adb), {
-        waitMs: SERVICE_STARTUP_TIMEOUT_MS,
-        intervalMs: 300,
-      });
+      await waitForServiceToStart(adb);
 
       // Update to a different location
       const location2 = {
@@ -74,10 +89,7 @@ describe('Location Service', function () {
       };
       await settingsApp.setGeoLocation(location2);
       // Wait for the service to still be running after update - will throw if condition is not met
-      await waitForCondition(async () => await isLocationServiceRunning(adb), {
-        waitMs: SERVICE_STARTUP_TIMEOUT_MS,
-        intervalMs: 300,
-      });
+      await waitForServiceToStart(adb);
     });
 
     it('should retrieve the current location', async function () {
@@ -89,32 +101,12 @@ describe('Location Service', function () {
       };
 
       await settingsApp.setGeoLocation(location);
-      await waitForCondition(async () => await isLocationServiceRunning(adb), {
-        waitMs: SERVICE_STARTUP_TIMEOUT_MS,
-        intervalMs: 300,
-      });
+      await waitForServiceToStart(adb);
 
       // Wait for the location to be set and retrievable
       // LocationService updates every 5 seconds, so we need to wait at least that long
       // plus some buffer time for the location to propagate
-      await waitForCondition(async () => {
-        try {
-          const retrievedLocation = await settingsApp.getGeoLocation();
-          const parsed = parseRetrievedLocation(retrievedLocation);
-
-          // Check if values are close to expected (allowing for precision differences)
-          const latMatch = Math.abs(parsed.latitude - location.latitude) < 0.0001;
-          const lonMatch = Math.abs(parsed.longitude - location.longitude) < 0.0001;
-          const altMatch = Math.abs(parsed.altitude - location.altitude) < 0.1;
-
-          return latMatch && lonMatch && altMatch;
-        } catch {
-          return false;
-        }
-      }, {
-        waitMs: SERVICE_STARTUP_TIMEOUT_MS * 2, // Wait longer to account for 5s update interval
-        intervalMs: 500,
-      });
+      await waitForLocationToMatch(location, settingsApp, SERVICE_STARTUP_TIMEOUT_MS * 2);
     });
 
     it('should handle location with all optional parameters', async function () {
@@ -129,11 +121,7 @@ describe('Location Service', function () {
       };
 
       await settingsApp.setGeoLocation(location);
-      // Wait for the service to start - will throw if condition is not met
-      await waitForCondition(async () => await isLocationServiceRunning(adb), {
-        waitMs: SERVICE_STARTUP_TIMEOUT_MS,
-        intervalMs: 300,
-      });
+      await waitForServiceToStart(adb);
     });
 
     it('should stop the location service when stopped via adb', async function () {
@@ -143,11 +131,7 @@ describe('Location Service', function () {
         latitude: 37.7749,
       };
       await settingsApp.setGeoLocation(location);
-      // Wait for the service to start - will throw if condition is not met
-      await waitForCondition(async () => await isLocationServiceRunning(adb), {
-        waitMs: SERVICE_STARTUP_TIMEOUT_MS,
-        intervalMs: 300,
-      });
+      await waitForServiceToStart(adb);
 
       // Stop the service
       await stopLocationService(adb);
@@ -157,9 +141,74 @@ describe('Location Service', function () {
         intervalMs: 300,
       });
     });
+
+    it('should set location on emulator using emu geo fix', async function () {
+      // Skip test if not running on an emulator
+      if (!isEmulator) {
+        this.skip();
+      }
+
+      // Set a location using emulator-specific method
+      // Note: emulators don't support altitude, so we only set longitude and latitude
+      const location = {
+        longitude: -122.4194,
+        latitude: 37.7749,
+      };
+
+      await settingsApp.setGeoLocation(location, true);
+
+      // Wait for the location to be set and retrievable
+      // Emulator location updates are immediate, but we still need to wait a bit
+      // Only check longitude and latitude since altitude is not supported on emulators
+      await waitForLocationToMatch(location, settingsApp, SERVICE_STARTUP_TIMEOUT_MS, false);
+    });
   });
 
 });
+
+/**
+ * Wait for the LocationService to start running
+ */
+async function waitForServiceToStart(adb: ADB): Promise<void> {
+  await waitForCondition(async () => await isLocationServiceRunning(adb), {
+    waitMs: SERVICE_STARTUP_TIMEOUT_MS,
+    intervalMs: 300,
+  });
+}
+
+/**
+ * Wait for the retrieved location to match the expected location
+ * @param checkAltitude - If false, only checks longitude and latitude (for emulators that don't support altitude)
+ */
+async function waitForLocationToMatch(
+  expectedLocation: {longitude: number; latitude: number; altitude?: number},
+  settingsApp: SettingsApp,
+  timeoutMs: number,
+  checkAltitude: boolean = true
+): Promise<void> {
+  await waitForCondition(async () => {
+    try {
+      const retrievedLocation = await settingsApp.getGeoLocation();
+      const parsed = parseRetrievedLocation(retrievedLocation);
+
+      // Check if values are close to expected (allowing for precision differences)
+      const latMatch = Math.abs(parsed.latitude - expectedLocation.latitude) < 0.0001;
+      const lonMatch = Math.abs(parsed.longitude - expectedLocation.longitude) < 0.0001;
+
+      if (!checkAltitude) {
+        return latMatch && lonMatch;
+      }
+
+      const altMatch = Math.abs(parsed.altitude - (expectedLocation.altitude || 0)) < 0.1;
+      return latMatch && lonMatch && altMatch;
+    } catch {
+      return false;
+    }
+  }, {
+    waitMs: timeoutMs,
+    intervalMs: 300,
+  });
+}
 
 /**
  * Parse retrieved location values from the getGeoLocation response

@@ -53,6 +53,7 @@ public class LocationService extends Service {
     private HandlerThread locationUpdateThread;
     private Handler locationUpdateHandler;
     private Runnable locationUpdateRunnable;
+    private Notification notification;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -62,9 +63,11 @@ public class LocationService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        // Pre-create notification to avoid any delay when calling startForeground
+        notification = NotificationHelpers.getNotification(this);
         // Start foreground immediately to avoid RemoteServiceException on older Android versions
-        // This must be called before any other operations
-        finishForegroundSetup();
+        // This must be called synchronously and before any other operations
+        startForeground(NotificationHelpers.APPIUM_NOTIFICATION_IDENTIFIER, notification);
         initializeLocationProviders();
         enableLocationProviders();
         initializeLocationUpdateThread();
@@ -78,20 +81,25 @@ public class LocationService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        // Start foreground immediately - must be called before any other operations
+        // This is critical on older Android versions (API 32 and below)
+        // Use pre-created notification if available, otherwise create it
+        if (notification == null) {
+            notification = NotificationHelpers.getNotification(this);
+        }
+        try {
+            startForeground(NotificationHelpers.APPIUM_NOTIFICATION_IDENTIFIER, notification);
+        } catch (IllegalStateException e) {
+            // Service might already be in foreground, which is fine
+            Log.d(TAG, "Service already in foreground");
+        }
+
         for (String p : new String[]{"android.permission.ACCESS_FINE_LOCATION"}) {
             if (getApplicationContext().checkCallingOrSelfPermission(p)
                     != PackageManager.PERMISSION_GRANTED) {
                 Log.e(TAG, String.format("Cannot mock location due to missing permission '%s'", p));
                 return START_NOT_STICKY;
             }
-        }
-
-        // Ensure foreground is set (in case onCreate wasn't called, though it should be)
-        // This is a safety measure for older Android versions
-        try {
-            finishForegroundSetup();
-        } catch (Exception e) {
-            // If already in foreground, this is fine
         }
 
         handleIntent(intent);
@@ -301,11 +309,5 @@ public class LocationService extends Service {
     private FusedLocationProvider createFusedLocationProvider() {
         FusedLocationProviderClient locationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         return new FusedLocationProvider(locationProviderClient, this);
-    }
-
-    private void finishForegroundSetup() {
-        startForeground(NotificationHelpers.APPIUM_NOTIFICATION_IDENTIFIER,
-                NotificationHelpers.getNotification(this));
-        Log.d(TAG, "After start foreground");
     }
 }
