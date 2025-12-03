@@ -51,6 +51,7 @@ public class LocationService extends Service {
     private static final long UPDATE_INTERVAL_MS = 5000L;
 
     private final List<MockLocationProvider> mockLocationProviders = new LinkedList<>();
+    private final List<MockLocationProvider> enabledProviders = new LinkedList<>();
     private HandlerThread locationUpdateThread;
     private Handler locationUpdateHandler;
     private Runnable locationUpdateRunnable;
@@ -156,11 +157,16 @@ public class LocationService extends Service {
     }
 
     private void enableLocationProviders() {
+        enabledProviders.clear();
         for (MockLocationProvider mockLocationProvider : mockLocationProviders) {
             try {
                 mockLocationProvider.enable();
+                enabledProviders.add(mockLocationProvider);
+                Log.d(TAG, String.format("Successfully enabled location provider: '%s'",
+                        mockLocationProvider.getProviderName()));
             } catch (Exception e) {
-                Log.e(TAG, String.format("Couldn't enable location provider: '%s'",
+                Log.w(TAG, String.format("Couldn't enable location provider: '%s'. " +
+                        "This provider may not support test mode on this Android version.",
                         mockLocationProvider.getProviderName()));
             }
         }
@@ -210,8 +216,8 @@ public class LocationService extends Service {
                     return;
                 }
 
-                // Build location from intent for each provider and update
-                for (MockLocationProvider mockLocationProvider : mockLocationProviders) {
+                // Build location from intent for each successfully enabled provider and update
+                for (MockLocationProvider mockLocationProvider : enabledProviders) {
                     Location location = LocationBuilder.buildFromIntent(intent, mockLocationProvider.getProviderName());
                     Log.d(TAG, String.format("Setting location of '%s' to '%s'",
                             mockLocationProvider.getProviderName(), location));
