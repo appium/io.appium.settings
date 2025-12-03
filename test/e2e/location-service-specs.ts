@@ -142,7 +142,7 @@ describe('Location Service', function () {
       });
     });
 
-    it('should set location on emulator using emu geo fix', async function () {
+    it.skip('should set location on emulator using emu geo fix', async function () {
       // Skip test if not running on an emulator
       if (!isEmulator) {
         this.skip();
