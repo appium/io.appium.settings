@@ -95,8 +95,10 @@ public class LocationService extends Service {
     @Override
     public void onDestroy() {
         Log.i(TAG, "Shutting down MockLocationService");
+        // Stop updates first to prevent new messages from being posted
         stopLocationUpdates();
         disableLocationProviders();
+        // Clean up the thread - this will wait for any currently executing runnable to finish
         cleanupLocationUpdateThread();
         super.onDestroy();
     }
@@ -104,14 +106,20 @@ public class LocationService extends Service {
     private void stopLocationUpdates() {
         if (locationUpdateHandler != null && locationUpdateRunnable != null) {
             locationUpdateHandler.removeCallbacks(locationUpdateRunnable);
-            locationUpdateRunnable = null;
         }
+        locationUpdateRunnable = null;
     }
 
     private void cleanupLocationUpdateThread() {
         if (locationUpdateThread != null) {
+            // Remove any pending callbacks before quitting
+            if (locationUpdateHandler != null && locationUpdateRunnable != null) {
+                locationUpdateHandler.removeCallbacks(locationUpdateRunnable);
+            }
+            // Quit the looper - this will stop processing new messages
             locationUpdateThread.quitSafely();
             try {
+                // Wait for the thread to finish processing current messages
                 locationUpdateThread.join(1000);
             } catch (InterruptedException e) {
                 Log.w(TAG, "Interrupted while waiting for location update thread to finish", e);
@@ -175,7 +183,14 @@ public class LocationService extends Service {
         locationUpdateRunnable = new Runnable() {
             @Override
             public void run() {
-                if (locationUpdateHandler == null) {
+                // Check if handler and runnable are still valid (service might have been destroyed)
+                if (locationUpdateHandler == null || locationUpdateRunnable == null ||
+                    locationUpdateRunnable != this) {
+                    return;
+                }
+
+                // Check if the handler thread is still alive
+                if (locationUpdateThread == null || !locationUpdateThread.isAlive()) {
                     return;
                 }
 
@@ -192,8 +207,10 @@ public class LocationService extends Service {
                     }
                 }
 
-                // Schedule next update
-                if (locationUpdateHandler != null) {
+                // Schedule next update only if handler is still valid
+                if (locationUpdateHandler != null && locationUpdateRunnable != null &&
+                    locationUpdateRunnable == this && locationUpdateThread != null &&
+                    locationUpdateThread.isAlive()) {
                     locationUpdateHandler.postDelayed(this, UPDATE_INTERVAL_MS);
                 }
             }
