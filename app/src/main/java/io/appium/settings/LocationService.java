@@ -16,6 +16,7 @@
 
 package io.appium.settings;
 
+import android.app.Notification;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
