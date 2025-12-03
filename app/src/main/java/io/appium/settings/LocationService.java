@@ -16,7 +16,6 @@
 
 package io.appium.settings;
 
-import android.app.Notification;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -26,10 +25,7 @@ import android.location.LocationManager;
 import android.location.LocationProvider;
 import android.location.provider.ProviderProperties;
 import android.os.Build;
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.os.IBinder;
-import android.os.Process;
 import android.util.Log;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -37,6 +33,8 @@ import com.google.android.gms.location.LocationServices;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import androidx.annotation.Nullable;
 import io.appium.settings.helpers.NotificationHelpers;
@@ -48,14 +46,12 @@ import io.appium.settings.location.MockLocationProvider;
 
 public class LocationService extends Service {
     private static final String TAG = "MOCKED LOCATION SERVICE";
-    private static final long UPDATE_INTERVAL_MS = 5000L;
+
+    private static final long UPDATE_INTERVAL_MS = 2000L;
 
     private final List<MockLocationProvider> mockLocationProviders = new LinkedList<>();
-    private final List<MockLocationProvider> enabledProviders = new LinkedList<>();
-    private HandlerThread locationUpdateThread;
-    private Handler locationUpdateHandler;
-    private Runnable locationUpdateRunnable;
-    private Notification notification;
+    private final Timer locationUpdatesTimer = new Timer();
+    private TimerTask locationUpdateTask;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -65,37 +61,12 @@ public class LocationService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        // Pre-create notification to avoid any delay when calling startForeground
-        notification = NotificationHelpers.getNotification(this);
-        // Start foreground immediately to avoid RemoteServiceException on older Android versions
-        // This must be called synchronously and before any other operations
-        startForeground(NotificationHelpers.APPIUM_NOTIFICATION_IDENTIFIER, notification);
         initializeLocationProviders();
         enableLocationProviders();
-        initializeLocationUpdateThread();
-    }
-
-    private void initializeLocationUpdateThread() {
-        locationUpdateThread = new HandlerThread("LocationUpdateThread", Process.THREAD_PRIORITY_BACKGROUND);
-        locationUpdateThread.start();
-        locationUpdateHandler = new Handler(locationUpdateThread.getLooper());
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        // Start foreground immediately - must be called before any other operations
-        // This is critical on older Android versions (API 32 and below)
-        // Use pre-created notification if available, otherwise create it
-        if (notification == null) {
-            notification = NotificationHelpers.getNotification(this);
-        }
-        try {
-            startForeground(NotificationHelpers.APPIUM_NOTIFICATION_IDENTIFIER, notification);
-        } catch (IllegalStateException e) {
-            // Service might already be in foreground, which is fine
-            Log.d(TAG, "Service already in foreground");
-        }
-
         for (String p : new String[]{"android.permission.ACCESS_FINE_LOCATION"}) {
             if (getApplicationContext().checkCallingOrSelfPermission(p)
                     != PackageManager.PERMISSION_GRANTED) {
@@ -103,6 +74,10 @@ public class LocationService extends Service {
                 return START_NOT_STICKY;
             }
         }
+
+        // https://stackoverflow.com/a/45047542
+        // https://developer.android.com/about/versions/oreo/android-8.0-changes.html
+        finishForegroundSetup();
 
         handleIntent(intent);
 
@@ -112,39 +87,9 @@ public class LocationService extends Service {
     @Override
     public void onDestroy() {
         Log.i(TAG, "Shutting down MockLocationService");
-        // Stop updates first to prevent new messages from being posted
-        stopLocationUpdates();
+        locationUpdatesTimer.cancel();
         disableLocationProviders();
-        // Clean up the thread - this will wait for any currently executing runnable to finish
-        cleanupLocationUpdateThread();
         super.onDestroy();
-    }
-
-    private void stopLocationUpdates() {
-        if (locationUpdateHandler != null && locationUpdateRunnable != null) {
-            locationUpdateHandler.removeCallbacks(locationUpdateRunnable);
-        }
-        locationUpdateRunnable = null;
-    }
-
-    private void cleanupLocationUpdateThread() {
-        if (locationUpdateThread != null) {
-            // Remove any pending callbacks before quitting
-            if (locationUpdateHandler != null && locationUpdateRunnable != null) {
-                locationUpdateHandler.removeCallbacks(locationUpdateRunnable);
-            }
-            // Quit the looper - this will stop processing new messages
-            locationUpdateThread.quitSafely();
-            try {
-                // Wait for the thread to finish processing current messages
-                locationUpdateThread.join(1000);
-            } catch (InterruptedException e) {
-                Log.w(TAG, "Interrupted while waiting for location update thread to finish", e);
-                Thread.currentThread().interrupt();
-            }
-            locationUpdateThread = null;
-            locationUpdateHandler = null;
-        }
     }
 
     private void handleIntent(Intent intent) {
@@ -157,16 +102,11 @@ public class LocationService extends Service {
     }
 
     private void enableLocationProviders() {
-        enabledProviders.clear();
         for (MockLocationProvider mockLocationProvider : mockLocationProviders) {
             try {
                 mockLocationProvider.enable();
-                enabledProviders.add(mockLocationProvider);
-                Log.d(TAG, String.format("Successfully enabled location provider: '%s'",
-                        mockLocationProvider.getProviderName()));
             } catch (Exception e) {
-                Log.w(TAG, String.format("Couldn't enable location provider: '%s'. " +
-                        "This provider may not support test mode on this Android version.",
+                Log.e(TAG, String.format("Couldn't enable location provider: '%s'",
                         mockLocationProvider.getProviderName()));
             }
         }
@@ -198,29 +138,17 @@ public class LocationService extends Service {
     private void scheduleLocationUpdate(final Intent intent) {
         Log.i(TAG, "Scheduling mock location updates");
 
-        // Stop any existing updates
-        stopLocationUpdates();
+        // If we run 'startservice' again we should schedule an update right away to avoid a delay
+        if (locationUpdateTask != null) {
+            locationUpdateTask.cancel();
+        }
 
-        // Create a new runnable that will update location periodically
-        locationUpdateRunnable = new Runnable() {
+        locationUpdateTask = new TimerTask() {
             @Override
             public void run() {
-                // Check if handler and runnable are still valid (service might have been destroyed)
-                if (locationUpdateHandler == null || locationUpdateRunnable == null ||
-                    locationUpdateRunnable != this) {
-                    return;
-                }
-
-                // Check if the handler thread is still alive
-                if (locationUpdateThread == null || !locationUpdateThread.isAlive()) {
-                    return;
-                }
-
-                // Build location from intent for each successfully enabled provider and update
-                for (MockLocationProvider mockLocationProvider : enabledProviders) {
+                for (MockLocationProvider mockLocationProvider : mockLocationProviders) {
                     Location location = LocationBuilder.buildFromIntent(intent, mockLocationProvider.getProviderName());
-                    Log.d(TAG, String.format("Setting location of '%s' to '%s'",
-                            mockLocationProvider.getProviderName(), location));
+                    Log.d(TAG, String.format("Setting location of '%s' to '%s'", mockLocationProvider.getProviderName(), location));
                     try {
                         mockLocationProvider.setLocation(location);
                     } catch (Exception e) {
@@ -228,20 +156,10 @@ public class LocationService extends Service {
                                 mockLocationProvider.getProviderName()), e);
                     }
                 }
-
-                // Schedule next update only if handler is still valid
-                if (locationUpdateHandler != null && locationUpdateRunnable != null &&
-                    locationUpdateRunnable == this && locationUpdateThread != null &&
-                    locationUpdateThread.isAlive()) {
-                    locationUpdateHandler.postDelayed(this, UPDATE_INTERVAL_MS);
-                }
             }
         };
 
-        // Start updates immediately, then continue with interval
-        if (locationUpdateHandler != null) {
-            locationUpdateHandler.post(locationUpdateRunnable);
-        }
+        locationUpdatesTimer.schedule(locationUpdateTask, 0, UPDATE_INTERVAL_MS);
     }
 
     private List<MockLocationProvider> createMockProviders(LocationManager locationManager) {
@@ -316,5 +234,11 @@ public class LocationService extends Service {
     private FusedLocationProvider createFusedLocationProvider() {
         FusedLocationProviderClient locationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         return new FusedLocationProvider(locationProviderClient, this);
+    }
+
+    private void finishForegroundSetup() {
+        startForeground(NotificationHelpers.APPIUM_NOTIFICATION_IDENTIFIER,
+                NotificationHelpers.getNotification(this));
+        Log.d(TAG, "After start foreground");
     }
 }
