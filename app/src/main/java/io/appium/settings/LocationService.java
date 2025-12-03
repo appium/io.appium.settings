@@ -53,7 +53,6 @@ public class LocationService extends Service {
     private HandlerThread locationUpdateThread;
     private Handler locationUpdateHandler;
     private Runnable locationUpdateRunnable;
-    private Intent lastIntent;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -107,7 +106,6 @@ public class LocationService extends Service {
             locationUpdateHandler.removeCallbacks(locationUpdateRunnable);
             locationUpdateRunnable = null;
         }
-        lastIntent = null;
     }
 
     private void cleanupLocationUpdateThread() {
@@ -170,10 +168,6 @@ public class LocationService extends Service {
     private void scheduleLocationUpdate(final Intent intent) {
         Log.i(TAG, "Scheduling mock location updates");
 
-        // Check if intent has changed - if so, we need to update immediately
-        boolean intentChanged = hasIntentChanged(intent, lastIntent);
-        lastIntent = intent;
-
         // Stop any existing updates
         stopLocationUpdates();
 
@@ -211,32 +205,6 @@ public class LocationService extends Service {
         }
     }
 
-    /**
-     * Check if the intent has changed by comparing location parameters.
-     * This helps detect when a new location command is received.
-     */
-    private boolean hasIntentChanged(Intent newIntent, Intent oldIntent) {
-        if (oldIntent == null) {
-            return newIntent != null;
-        }
-        if (newIntent == null) {
-            return true;
-        }
-
-        // Compare location parameters
-        String[] params = {"longitude", "latitude", "altitude", "speed", "bearing", "accuracy"};
-        for (String param : params) {
-            String newValue = newIntent.getStringExtra(param);
-            String oldValue = oldIntent.getStringExtra(param);
-            if (newValue == null && oldValue == null) {
-                continue;
-            }
-            if (newValue == null || !newValue.equals(oldValue)) {
-                return true;
-            }
-        }
-        return false;
-    }
 
 
     private List<MockLocationProvider> createMockProviders(LocationManager locationManager) {
