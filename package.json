@@ -14,7 +14,7 @@
     "prepare": "npm run build",
     "version": "npm run bump-gradle-version && npm run build",
     "clean": "npm run build -- --clean",
-    "js:test": "mocha --exit --timeout 1m \"./test/unit/**/*-specs.js\"",
+    "js:test": "mocha --exit --timeout 1m \"./test/unit/**/*-specs.ts\"",
     "e2e-test": "mocha --exit --timeout 5m \"./test/e2e/**/*-specs.ts\""
   },
   "repository": {
@@ -55,7 +55,6 @@
   },
   "devDependencies": {
     "@appium/eslint-config-appium-ts": "^2.0.0-rc.1",
-    "@appium/test-support": "^4.0.0-rc.1",
     "@appium/tsconfig": "^1.0.0-rc.1",
     "@appium/types": "^1.0.0-rc.1",
     "@semantic-release/changelog": "^6.0.1",
@@ -66,6 +65,7 @@
     "@types/lodash": "^4.14.196",
     "@types/mocha": "^10.0.10",
     "@types/node": "^24.0.0",
+    "@types/sinon": "^21.0.0",
     "@types/teen_process": "^2.0.2",
     "appium-adb": "^14.0.0",
     "chai": "^6.0.0",
@@ -74,6 +74,7 @@
     "mocha": "^11.0.1",
     "prettier": "^3.0.0",
     "semantic-release": "^25.0.2",
+    "sinon": "^21.0.0",
     "ts-node": "^10.9.1",
     "typescript": "^5.1.6"
   }
