@@ -1,3 +1,14 @@
+## [7.0.5](https://github.com/appium/io.appium.settings/compare/v7.0.4...v7.0.5) (2025-12-11)
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 24.10.3 to 25.0.0 ([#257](https://github.com/appium/io.appium.settings/issues/257)) ([aec2ef9](https://github.com/appium/io.appium.settings/commit/aec2ef97fbb43f9f9349418a6b7876be2689474b))
+* **deps:** bump com.android.tools.build:gradle from 8.13.1 to 8.13.2 ([#258](https://github.com/appium/io.appium.settings/issues/258)) ([db73948](https://github.com/appium/io.appium.settings/commit/db739487096f990db15dd1a22e895c61586e3111))
+
+### Code Refactoring
+
+* use native trim instead of lodash.trim ([#253](https://github.com/appium/io.appium.settings/issues/253)) ([2d109d3](https://github.com/appium/io.appium.settings/commit/2d109d3bf462ff99726d7398d5c77df8d72e2516))
+
 ## [7.0.4](https://github.com/appium/io.appium.settings/compare/v7.0.3...v7.0.4) (2025-11-15)
 
 ### Miscellaneous Chores
