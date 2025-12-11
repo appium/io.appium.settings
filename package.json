@@ -64,7 +64,7 @@
     "@types/chai-as-promised": "^8.0.2",
     "@types/lodash": "^4.14.196",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^24.0.0",
+    "@types/node": "^25.0.0",
     "@types/sinon": "^21.0.0",
     "@types/teen_process": "^2.0.2",
     "appium-adb": "^14.0.0",
