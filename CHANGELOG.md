@@ -1,3 +1,9 @@
+## [7.0.6](https://github.com/appium/io.appium.settings/compare/v7.0.5...v7.0.6) (2025-12-12)
+
+### Miscellaneous Chores
+
+* **deps:** remove `source-map-support` ([#259](https://github.com/appium/io.appium.settings/issues/259)) ([557fe88](https://github.com/appium/io.appium.settings/commit/557fe8851f1b71701cff7dd20346b2383190f954))
+
 ## [7.0.5](https://github.com/appium/io.appium.settings/compare/v7.0.4...v7.0.5) (2025-12-11)
 
 ### Miscellaneous Chores
