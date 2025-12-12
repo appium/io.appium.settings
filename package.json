@@ -50,7 +50,6 @@
     "bluebird": "^3.5.1",
     "lodash": "^4.2.1",
     "semver": "^7.5.4",
-    "source-map-support": "^0.x",
     "teen_process": "^3.0.0"
   },
   "devDependencies": {
