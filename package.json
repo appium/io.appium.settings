@@ -50,7 +50,7 @@
     "bluebird": "^3.5.1",
     "lodash": "^4.2.1",
     "semver": "^7.5.4",
-    "teen_process": "^3.0.0"
+    "teen_process": "^4.0.4"
   },
   "devDependencies": {
     "@appium/eslint-config-appium-ts": "^2.0.0-rc.1",
@@ -65,7 +65,6 @@
     "@types/mocha": "^10.0.10",
     "@types/node": "^25.0.0",
     "@types/sinon": "^21.0.0",
-    "@types/teen_process": "^2.0.2",
     "appium-adb": "^14.0.0",
     "chai": "^6.0.0",
     "chai-as-promised": "^8.0.0",
