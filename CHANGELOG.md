@@ -1,3 +1,9 @@
+## [7.0.8](https://github.com/appium/io.appium.settings/compare/v7.0.7...v7.0.8) (2025-12-21)
+
+### Miscellaneous Chores
+
+* bump teen_process ([#261](https://github.com/appium/io.appium.settings/issues/261)) ([0b8c64e](https://github.com/appium/io.appium.settings/commit/0b8c64e99e54d5ed708f93f7ecf02e3402ce7843))
+
 ## [7.0.7](https://github.com/appium/io.appium.settings/compare/v7.0.6...v7.0.7) (2025-12-18)
 
 ### Miscellaneous Chores
