@@ -9,25 +9,60 @@ import {
   RECORDING_ACTION_STOP,
   RECORDING_ACTIVITY_NAME,
   RECORDING_SERVICE_NAME,
-} from '../constants';
+} from '../constants.js';
+import type { ADB } from 'appium-adb';
+import type { SettingsApp } from '../client.js';
+import type { StartMediaProjectionRecordingOpts } from './types.js';
+
+/**
+ * Creates a new instance of the MediaProjection-based recorder.
+ * The recorder only works since Android API 29+
+ *
+ * @returns The recorder instance
+ */
+export function makeMediaProjectionRecorder(this: SettingsApp): MediaProjectionRecorder {
+  return new MediaProjectionRecorder(this.adb);
+}
+
+/**
+ * Adjusts the necessary permissions for the Media Projection-based recording service.
+ * This method only applies to devices running Android API 29 or higher.
+ *
+ * @returns True if permissions were adjusted, false if device API level is below 29
+ */
+export async function adjustMediaProjectionServicePermissions(this: SettingsApp): Promise<boolean> {
+  if (await this.adb.getApiLevel() >= 29) {
+    await this.adb.shell(['appops', 'set', SETTINGS_HELPER_ID, 'PROJECT_MEDIA', 'allow']);
+    return true;
+  }
+  return false;
+}
 
 const RECORDING_STARTUP_TIMEOUT_MS = 3 * 1000;
 const RECORDING_STOP_TIMEOUT_MS = 3 * 1000;
 const RECORDINGS_ROOT = `/storage/emulated/0/Android/data/${SETTINGS_HELPER_ID}/files`;
 
+/**
+ * Media projection recorder for capturing device screen recordings.
+ * This class provides methods to start, stop, and manage screen recordings
+ * using Android's MediaProjection API (API 29+).
+ */
 class MediaProjectionRecorder {
+  private readonly adb: ADB;
+
   /**
-   * @param {ADB} adb
+   * Creates a new MediaProjectionRecorder instance.
+   *
+   * @param adb - ADB instance for device communication
    */
-  constructor(adb) {
+  constructor(adb: ADB) {
     this.adb = adb;
   }
 
   /**
-   *
-   * @returns {Promise<boolean>}
+   * Checks if the recording is currently running.
    */
-  async isRunning() {
+  async isRunning(): Promise<boolean> {
     const stdout = await this.adb.shell([
       'dumpsys',
       'activity',
@@ -38,18 +73,21 @@ class MediaProjectionRecorder {
   }
 
   /**
+   * Starts the media projection recording.
+   * If a recording is already running, this method will return false without starting a new one.
    *
-   * @param {StartMediaProjectionRecordingOpts} opts
-   * @returns {Promise<boolean>}
+   * @param opts Recording options including filename, resolution, duration, and priority
+   * @returns True if recording was started successfully, false if already running
+   * @throws {Error} If recording fails to start within the timeout period
    */
-  async start(opts = {}) {
+  async start(opts: StartMediaProjectionRecordingOpts = {}): Promise<boolean> {
     if (await this.isRunning()) {
       return false;
     }
 
     await this.cleanup();
     const {filename, maxDurationSec, priority, resolution} = opts;
-    const args = ['am', 'start', '-n', RECORDING_ACTIVITY_NAME, '-a', RECORDING_ACTION_START];
+    const args: string[] = ['am', 'start', '-n', RECORDING_ACTIVITY_NAME, '-a', RECORDING_ACTION_START];
     if (filename) {
       args.push('--es', 'filename', filename);
     }
@@ -63,7 +101,7 @@ class MediaProjectionRecorder {
       args.push('--es', 'resolution', resolution);
     }
     await this.adb.shell(args);
-    await new B((resolve, reject) => {
+    await new B<void>((resolve, reject) => {
       setTimeout(async () => {
         if (!(await this.isRunning())) {
           return reject(
@@ -80,17 +118,18 @@ class MediaProjectionRecorder {
   }
 
   /**
-   * @returns {Promise<void>}
+   * Cleans up old recording files.
    */
-  async cleanup() {
+  async cleanup(): Promise<void> {
     await this.adb.shell([`rm -f ${RECORDINGS_ROOT}/*`]);
   }
 
   /**
+   * Pulls the most recent recording file from the device.
    *
-   * @returns {Promise<string?>}
+   * @returns Path to the pulled file, or null if no recordings exist
    */
-  async pullRecent() {
+  async pullRecent(): Promise<string | null> {
     const recordings = await this.adb.ls(RECORDINGS_ROOT, ['-tr']);
     if (_.isEmpty(recordings)) {
       return null;
@@ -104,9 +143,12 @@ class MediaProjectionRecorder {
   }
 
   /**
-   * @returns {Promise<boolean>}
+   * Stops the current recording.
+   *
+   * @returns True if recording was stopped successfully, false if no recording was running
+   * @throws {Error} If the recording fails to stop within the timeout period
    */
-  async stop() {
+  async stop(): Promise<boolean> {
     if (!(await this.isRunning())) {
       return false;
     }
@@ -133,49 +175,3 @@ class MediaProjectionRecorder {
     return true;
   }
 }
-
-/**
- * Creates a new instance of the MediaProjection-based recorder
- * The recorder only works since Android API 29+
- *
- * @this {import('../client').SettingsApp}
- * @returns {MediaProjectionRecorder} The recorder instance
- */
-export function makeMediaProjectionRecorder() {
-  return new MediaProjectionRecorder(this.adb);
-}
-
-/**
- * Adjusts the necessary permissions for the
- * Media Projection-based recording service
- *
- * @this {import('../client').SettingsApp}
- * @returns {Promise<boolean>} If the permissions adjustment has actually been made
- */
-export async function adjustMediaProjectionServicePermissions() {
-  if (await this.adb.getApiLevel() >= 29) {
-    await this.adb.shell(['appops', 'set', SETTINGS_HELPER_ID, 'PROJECT_MEDIA', 'allow']);
-    return true;
-  }
-  return false;
-}
-
-/**
- * @typedef {import('appium-adb').ADB} ADB
- */
-
-/**
- * @typedef {Object} StartMediaProjectionRecordingOpts
- * @property {string} [resolution] Maximum supported resolution on-device (Detected automatically by the app
- * itself), which usually equals to Full HD 1920x1080 on most phones however
- * you can change it to following supported resolutions as well: "1920x1080",
- * "1280x720", "720x480", "320x240", "176x144".
- * @property {number} [maxDurationSec=900] Maximum allowed duration is 15 minutes; you can increase it if your test
- * takes longer than that.
- * @property {'high' | 'normal' | 'low'} [priority='high'] Recording thread priority.
- * If you face performance drops during testing with recording enabled, you
- * can reduce recording priority
- * @property {string} [filename] You can type recording video file name as you want, but recording currently
- * supports only "mp4" format so your filename must end with ".mp4". An
- * invalid file name will fail to start the recording.
- */
