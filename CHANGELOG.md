@@ -1,3 +1,10 @@
+## [7.0.10](https://github.com/appium/io.appium.settings/compare/v7.0.9...v7.0.10) (2026-01-10)
+
+### Miscellaneous Chores
+
+* **deps:** bump org.apache.commons:commons-lang3 from 3.19.0 to 3.20.0 ([#252](https://github.com/appium/io.appium.settings/issues/252)) ([da5701e](https://github.com/appium/io.appium.settings/commit/da5701e822f25498f197fdb8b0c3506d3495f884))
+* Migrate various commands to typescript (part 2) ([#263](https://github.com/appium/io.appium.settings/issues/263)) ([c91e24d](https://github.com/appium/io.appium.settings/commit/c91e24dbc7cd49effae48e315beec386b18ce3f8))
+
 ## [7.0.9](https://github.com/appium/io.appium.settings/compare/v7.0.8...v7.0.9) (2026-01-10)
 
 ### Miscellaneous Chores
