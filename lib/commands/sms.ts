@@ -1,41 +1,14 @@
-import { LOG_PREFIX } from '../logger.js';
-import { SMS_LIST_RECEIVER, SMS_LIST_RETRIEVAL_ACTION } from '../constants.js';
-
-/**
- * @typedef {Object} SmsListOptions
- * @property {number} [max=100] - The maximum count of recent messages
- * to retrieve
- */
-
-/**
- * @typedef SmsListResult
- * @property {SmsListResultItem[]} items
- * @property {number} total
- */
-
-/**
- * @privateRemarks XXX: WAG
- * @typedef SmsListResultItem
- * @property {string} id
- * @property {string} address
- * @property {string|null} person
- * @property {string} date
- * @property {string} read
- * @property {string} status
- * @property {string} type
- * @property {string|null} subject
- * @property {string} body
- * @property {string|null} serviceCenter
- */
+import { LOG_PREFIX } from '../logger';
+import { SMS_LIST_RECEIVER, SMS_LIST_RETRIEVAL_ACTION } from '../constants';
+import type { SettingsApp } from '../client';
+import type { SmsListOptions, SmsListResult } from './types';
 
 /**
  * Retrieves the list of the most recent SMS
  * properties list via Appium Settings helper.
  * Messages are sorted by date in descending order.
  *
- * @this {import('../client').SettingsApp}
- * @param {SmsListOptions} opts
- * @returns {Promise<SmsListResult>} The example output is:
+ * The example output is:
  * ```json
  * {
  *   "items":[
@@ -67,11 +40,14 @@ import { SMS_LIST_RECEIVER, SMS_LIST_RETRIEVAL_ACTION } from '../constants.js';
  *   "total":2
  * }
  * ```
+ *
+ * @param opts Options for retrieving SMS list
+ * @returns The SMS list result
  * @throws {Error} If there was an error while getting the SMS list
  */
-export async function getSmsList (opts = {}) {
+export async function getSmsList(this: SettingsApp, opts: SmsListOptions = {}): Promise<SmsListResult> {
   this.log.debug(LOG_PREFIX, 'Retrieving the recent SMS messages');
-  const args = [
+  const args: string[] = [
     '-n', SMS_LIST_RECEIVER,
     '-a', SMS_LIST_RETRIEVAL_ACTION,
   ];
