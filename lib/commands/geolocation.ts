@@ -7,6 +7,8 @@ import {
 import { SubProcess } from 'teen_process';
 import B from 'bluebird';
 import { LOG_PREFIX } from '../logger.js';
+import type { SettingsApp } from '../client.js';
+import type { Location } from './types.js';
 
 const DEFAULT_SATELLITES_COUNT = 12;
 const DEFAULT_ALTITUDE = 0.0;
@@ -19,41 +21,22 @@ const GPS_CACHE_REFRESHED_LOGS = [
 const GPS_COORDINATES_PATTERN = /data="(-?[\d.]+)\s+(-?[\d.]+)\s+(-?[\d.]+)"/;
 
 /**
- * @typedef {Object} Location
- * @property {number|string} longitude - Valid longitude value.
- * @property {number|string} latitude - Valid latitude value.
- * @property {number|string|null} [altitude] - Valid altitude value.
- * @property {number|string|null} [satellites=12] - Number of satellites being tracked (1-12).
- * This value is ignored on real devices.
- * @property {number|string|null} [speed] - Valid speed value.
- * https://developer.android.com/reference/android/location/Location#setSpeed(float)
- * @property {number|string|null} [bearing] - Valid bearing value.
- * https://developer.android.com/reference/android/location/Location#setBearing(float)
- * @property {number|string|null} [accuracy] - Valid accuracy value.
- * https://developer.android.com/reference/android/location/Location#setAccuracy(float),
- * https://developer.android.com/reference/android/location/Criteria
- * Should be greater than 0.0 meters/second for real devices or 0.0 knots
- * for emulators.
- */
-
-/**
  * Emulate geolocation coordinates on the device under test.
+ * The `altitude` value is ignored while mocking the position.
  *
- * @this {import('../client').SettingsApp}
- * @param {Location} location - Location object. The `altitude` value is ignored
- * while mocking the position.
- * @param {boolean} [isEmulator=false] - Set it to true if the device under test
- *                                       is an emulator rather than a real device.
+ * @param location - Location object containing coordinates and optional metadata
+ * @param isEmulator - Set it to true if the device under test is an emulator rather than a real device
+ * @throws {Error} If required location values are missing or invalid
  */
-export async function setGeoLocation (location, isEmulator = false) {
-  const formatLocationValue = (valueName, isRequired = true) => {
+export async function setGeoLocation(this: SettingsApp, location: Location, isEmulator = false): Promise<void> {
+  const formatLocationValue = (valueName: keyof Location, isRequired = true): string | null => {
     if (_.isNil(location[valueName])) {
       if (isRequired) {
         throw new Error(`${valueName} must be provided`);
       }
       return null;
     }
-    const floatValue = parseFloat(location[valueName]);
+    const floatValue = parseFloat(String(location[valueName]));
     if (!isNaN(floatValue)) {
       return `${_.ceil(floatValue, 5)}`;
     }
@@ -63,15 +46,14 @@ export async function setGeoLocation (location, isEmulator = false) {
     }
     return null;
   };
-  const longitude = /** @type {string} */ (formatLocationValue('longitude'));
-  const latitude = /** @type {string} */ (formatLocationValue('latitude'));
+  const longitude = formatLocationValue('longitude') as string;
+  const latitude = formatLocationValue('latitude') as string;
   const altitude = formatLocationValue('altitude', false);
   const speed = formatLocationValue('speed', false);
   const bearing = formatLocationValue('bearing', false);
   const accuracy = formatLocationValue('accuracy', false);
   if (isEmulator) {
-    /** @type {string[]} */
-    const args = [longitude, latitude];
+    const args: string[] = [longitude, latitude];
     if (!_.isNil(altitude)) {
       args.push(altitude);
     }
@@ -96,7 +78,7 @@ export async function setGeoLocation (location, isEmulator = false) {
     // A workaround for https://code.google.com/p/android/issues/detail?id=206180
     await this.adb.adbExec(['emu', 'geo', 'fix', ...(args.map((arg) => arg.replace('.', ',')))]);
   } else {
-    const args = [
+    const args: string[] = [
       'am', 'start-foreground-service',
       '-e', 'longitude', longitude,
       '-e', 'latitude', latitude,
@@ -130,11 +112,10 @@ export async function setGeoLocation (location, isEmulator = false) {
 /**
  * Get the current cached GPS location from the device under test.
  *
- * @this {import('../client').SettingsApp}
- * @returns {Promise<Location>} The current location
+ * @returns The current location
  * @throws {Error} If the current location cannot be retrieved
  */
-export async function getGeoLocation () {
+export async function getGeoLocation(this: SettingsApp): Promise<Location> {
   const output = await this.checkBroadcast([
     '-n', LOCATION_RECEIVER,
     '-a', LOCATION_RETRIEVAL_ACTION,
@@ -144,7 +125,7 @@ export async function getGeoLocation () {
   if (!match) {
     throw new Error(`Cannot parse the actual location values from the command output: ${output}`);
   }
-  const location = {
+  const location: Location = {
     latitude: match[1],
     longitude: match[2],
     altitude: match[3],
@@ -160,18 +141,15 @@ export async function getGeoLocation () {
  * LocationManager is used the device API level must be at
  * version 30 (Android R) or higher.
  *
- * @this {import('../client').SettingsApp}
- * @param {number} timeoutMs The maximum number of milliseconds
- * to block until GPS cache is refreshed. Providing zero or a negative
- * value to it skips waiting completely.
- *
+ * @param timeoutMs The maximum number of milliseconds to block until GPS cache is refreshed.
+ *                  Providing zero or a negative value to it skips waiting completely.
  * @throws {Error} If the GPS cache cannot be refreshed.
  */
-export async function refreshGeoLocationCache (timeoutMs = 20000) {
+export async function refreshGeoLocationCache(this: SettingsApp, timeoutMs = 20000): Promise<void> {
   await this.requireRunning({shouldRestoreCurrentApp: true});
 
-  let logcatMonitor;
-  let monitoringPromise;
+  let logcatMonitor: SubProcess | undefined;
+  let monitoringPromise: Promise<void> | undefined;
 
   if (timeoutMs > 0) {
     const cmd = [
@@ -183,11 +161,12 @@ export async function refreshGeoLocationCache (timeoutMs = 20000) {
       `Please make sure the device under test has Appium Settings app installed and running. ` +
       `Also, it is required that the device has Google Play Services installed or is running ` +
       `Android 10+ otherwise.`;
-    monitoringPromise = new B((resolve, reject) => {
+    const monitor = logcatMonitor;
+    monitoringPromise = new B<void>((resolve, reject) => {
       setTimeout(() => reject(new Error(timeoutErrorMsg)), timeoutMs);
 
-      logcatMonitor.on('exit', () => reject(new Error(timeoutErrorMsg)));
-      ['lines-stderr', 'lines-stdout'].map((evt) => logcatMonitor.on(evt, (lines) => {
+      monitor.on('exit', () => reject(new Error(timeoutErrorMsg)));
+      (['lines-stderr', 'lines-stdout'] as const).map((evt) => monitor.on(evt, (lines: string[]) => {
         if (lines.some((line) => GPS_CACHE_REFRESHED_LOGS.some((x) => line.includes(x)))) {
           resolve();
         }
