@@ -11,6 +11,7 @@
     "js:lint:fix": "npm run lint -- --fix",
     "move-apks": "rm -rf apks && mkdir -p apks && cp app/build/outputs/apk/debug/settings_apk-debug.apk apks",
     "build": "tsc -b && ./gradlew clean assembleDebug && npm run move-apks",
+    "js:build": "tsc -b",
     "prepare": "npm run build",
     "version": "npm run bump-gradle-version && npm run build",
     "clean": "npm run build -- --clean",

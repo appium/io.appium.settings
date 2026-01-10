@@ -36,3 +36,44 @@ export interface StartMediaProjectionRecordingOpts {
    * invalid file name will fail to start the recording. */
   filename?: string;
 }
+
+/**
+ * Supported locale information.
+ */
+export interface SupportedLocale {
+  language: string;
+  country: string;
+  script?: string;
+}
+
+/**
+ * Options for retrieving SMS list.
+ */
+export interface SmsListOptions {
+  /** The maximum count of recent messages to retrieve */
+  max?: number;
+}
+
+/**
+ * Individual SMS message item.
+ */
+export interface SmsListResultItem {
+  id: string;
+  address: string;
+  person: string | null;
+  date: string;
+  read: string;
+  status: string;
+  type: string;
+  subject: string | null;
+  body: string;
+  serviceCenter: string | null;
+}
+
+/**
+ * SMS list result containing items and total count.
+ */
+export interface SmsListResult {
+  items: SmsListResultItem[];
+  total: number;
+}

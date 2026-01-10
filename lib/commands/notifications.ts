@@ -3,6 +3,7 @@ import {
   NOTIFICATIONS_RETRIEVAL_ACTION,
   SETTING_NOTIFICATIONS_LISTENER_SERVICE,
 } from '../constants';
+import type { SettingsApp } from '../client';
 
 /**
  * Retrieves Android notifications via Appium Settings helper.
@@ -18,8 +19,7 @@ import {
  * and https://developer.android.com/reference/android/app/Notification.html
  * for more information on available notification properties and their values.
  *
- * @this {import('../client').SettingsApp}
- * @returns {Promise<Record<string, any>>} The example output is:
+ * The example output is:
  * ```json
  * {
  *   "statusBarNotifications":[
@@ -50,24 +50,25 @@ import {
  *   ]
  * }
  * ```
+ *
+ * @returns The notifications result
  * @throws {Error} If there was an error while getting the notifications list
  */
-export async function getNotifications () {
+export async function getNotifications(this: SettingsApp): Promise<Record<string, any>> {
   this.log.debug(LOG_PREFIX, 'Retrieving notifications');
   const output = await this.checkBroadcast([
     '-a', NOTIFICATIONS_RETRIEVAL_ACTION,
   ], 'retrieve notifications');
   return this._parseJsonData(output, 'notifications');
-};
+}
 
 /**
  * Adjusts the necessary permissions for the
  * Notifications retrieval service for Android API level 29+
  *
- * @this {import('../client').SettingsApp}
- * @returns {Promise<boolean>} If permissions adjustment has been actually made
+ * @returns If permissions adjustment has been actually made
  */
-export async function adjustNotificationsPermissions() {
+export async function adjustNotificationsPermissions(this: SettingsApp): Promise<boolean> {
   if (await this.adb.getApiLevel() >= 29) {
     await this.adb.shell([
       'cmd',

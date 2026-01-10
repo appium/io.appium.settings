@@ -3,12 +3,12 @@ import {
   LOCATION_SERVICE,
   LOCATION_RECEIVER,
   LOCATION_RETRIEVAL_ACTION,
-} from '../constants.js';
+} from '../constants';
 import { SubProcess } from 'teen_process';
 import B from 'bluebird';
-import { LOG_PREFIX } from '../logger.js';
-import type { SettingsApp } from '../client.js';
-import type { Location } from './types.js';
+import { LOG_PREFIX } from '../logger';
+import type { SettingsApp } from '../client';
+import type { Location } from './types';
 
 const DEFAULT_SATELLITES_COUNT = 12;
 const DEFAULT_ALTITUDE = 0.0;
