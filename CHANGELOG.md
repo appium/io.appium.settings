@@ -1,3 +1,9 @@
+## [7.0.9](https://github.com/appium/io.appium.settings/compare/v7.0.8...v7.0.9) (2026-01-10)
+
+### Miscellaneous Chores
+
+* Migrate various commands to typescript (part 1) ([#262](https://github.com/appium/io.appium.settings/issues/262)) ([0fbd1f3](https://github.com/appium/io.appium.settings/commit/0fbd1f3404d0614e8671cb4f872113c305223f4e))
+
 ## [7.0.8](https://github.com/appium/io.appium.settings/compare/v7.0.7...v7.0.8) (2025-12-21)
 
 ### Miscellaneous Chores
