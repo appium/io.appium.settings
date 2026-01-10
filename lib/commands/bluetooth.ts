@@ -3,15 +3,15 @@ import {
   BLUETOOTH_SETTING_RECEIVER,
   BLUETOOTH_UNPAIR_ACTION,
   BLUETOOTH_UNPAIR_RECEIVER,
-} from '../constants.js';
+} from '../constants';
+import type { SettingsApp } from '../client';
 
 /**
  * Change the state of bluetooth on the device under test.
  *
- * @this {import('../client').SettingsApp}
- * @param {boolean} on - True to enable and false to disable it.
+ * @param on - True to enable and false to disable it
  */
-export async function setBluetoothState (on) {
+export async function setBluetoothState(this: SettingsApp, on: boolean): Promise<void> {
   if (await this.adb.getApiLevel() < 30) {
     await this.checkBroadcast([
       '-a', BLUETOOTH_SETTING_ACTION,
@@ -25,10 +25,8 @@ export async function setBluetoothState (on) {
 
 /**
  * Unpairs all previously paired bluetooth devices if any exist
- *
- * @this {import('../client').SettingsApp}
  */
-export async function unpairAllBluetoothDevices() {
+export async function unpairAllBluetoothDevices(this: SettingsApp): Promise<void> {
   await this.checkBroadcast([
     '-a', BLUETOOTH_UNPAIR_ACTION,
     '-n', BLUETOOTH_UNPAIR_RECEIVER,

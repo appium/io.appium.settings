@@ -1,3 +1,5 @@
+import type { SettingsApp } from '../client';
+
 /**
  * Change the state of animation on the device under test via adb settings command for API level 26+.
  * Animation on the device is controlled by the following global properties:
@@ -9,9 +11,8 @@
  * Turning off animation might be useful to improve stability
  * and reduce tests execution time.
  *
- * @this {import('../client').SettingsApp}
- * @param {boolean} on - True to enable and false to disable it.
+ * @param on - True to enable and false to disable it
  */
-export async function setAnimationState (on) {
+export async function setAnimationState(this: SettingsApp, on: boolean): Promise<void> {
   await this.adb.setAnimationScale(Number(on));
 }
