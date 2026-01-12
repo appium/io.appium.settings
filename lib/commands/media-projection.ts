@@ -47,7 +47,7 @@ const RECORDINGS_ROOT = `/storage/emulated/0/Android/data/${SETTINGS_HELPER_ID}/
  * This class provides methods to start, stop, and manage screen recordings
  * using Android's MediaProjection API (API 29+).
  */
-class MediaProjectionRecorder {
+export class MediaProjectionRecorder {
   private readonly adb: ADB;
 
   /**
