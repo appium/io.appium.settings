@@ -1,3 +1,9 @@
+## [7.0.12](https://github.com/appium/io.appium.settings/compare/v7.0.11...v7.0.12) (2026-01-13)
+
+### Miscellaneous Chores
+
+* Migrate the rest of project files to typescript ([#265](https://github.com/appium/io.appium.settings/issues/265)) ([6384e45](https://github.com/appium/io.appium.settings/commit/6384e45bc333f66fe897c8257797a3a6aadb8174))
+
 ## [7.0.11](https://github.com/appium/io.appium.settings/compare/v7.0.10...v7.0.11) (2026-01-12)
 
 ### Miscellaneous Chores
