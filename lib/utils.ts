@@ -7,9 +7,9 @@ const MODULE_NAME = 'io.appium.settings';
  * Tries to synchronously detect the absolute path to the folder
  * where the given `moduleName` is located.
  *
- * @returns {string} Full path to the module root
+ * @returns Full path to the module root
  */
-function getModuleRootSync () {
+function getModuleRootSync(): string {
   let currentDir = __dirname;
   let isAtFsRoot = false;
   while (!isAtFsRoot) {
@@ -29,8 +29,8 @@ function getModuleRootSync () {
 /**
  * Get the full path to the Settings APK
  *
- * @returns {string}
+ * @returns Full path to the APK file
  */
-export function getSettingsApkPath() {
+export function getSettingsApkPath(): string {
   return path.resolve(getModuleRootSync(), 'apks', 'settings_apk-debug.apk');
 }

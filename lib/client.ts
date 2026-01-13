@@ -1,6 +1,6 @@
 import { log, LOG_PREFIX } from './logger';
 import { waitForCondition } from 'asyncbox';
-import { SETTINGS_HELPER_ID, SETTINGS_HELPER_MAIN_ACTIVITY } from './constants.js';
+import { SETTINGS_HELPER_ID, SETTINGS_HELPER_MAIN_ACTIVITY } from './constants';
 import { setAnimationState } from './commands/animation';
 import { setBluetoothState, unpairAllBluetoothDevices } from './commands/bluetooth';
 import { getClipboard } from './commands/clipboard';
@@ -15,47 +15,40 @@ import {
   makeMediaProjectionRecorder,
   adjustMediaProjectionServicePermissions,
 } from './commands/media-projection';
+import type { ADB } from 'appium-adb';
+import type { Logger } from '@appium/logger';
 
-/**
- * @typedef {Object} SettingsAppOpts
- * @property {import('appium-adb').ADB} adb
- */
+export interface SettingsAppOpts {
+  adb: ADB;
+}
 
+export interface SettingsAppStartupOptions {
+  /** The maximum number of milliseconds to wait until the app has started */
+  timeout?: number;
+  /** Whether to restore the activity which was the current one before Settings startup */
+  shouldRestoreCurrentApp?: boolean;
+  /** Whether to forcefully restart the Settings app if it is already running */
+  forceRestart?: boolean;
+}
 
 export class SettingsApp {
-  /** @type {import('appium-adb').ADB} */
-  adb;
+  readonly adb: ADB;
+  readonly log: Logger;
 
-  /** @type {import('@appium/logger').Logger} */
-  log;
-
-  /**
-   * @param {SettingsAppOpts} opts
-   */
-  constructor (opts) {
+  constructor(opts: SettingsAppOpts) {
     this.adb = opts.adb;
     this.log = log;
   }
 
   /**
-   * @typedef {Object} SettingsAppStartupOptions
-   * @property {number} [timeout=5000] The maximum number of milliseconds
-   * to wait until the app has started
-   * @property {boolean} [shouldRestoreCurrentApp=false] Whether to restore
-   * the activity which was the current one before Settings startup
-   * @property {boolean} [forceRestart=false] Whether to forcefully restart
-   * the Settings app if it is already running
-   */
-
-  /**
    * Ensures that Appium Settings helper application is running
    * and starts it if necessary
    *
-   * @param {SettingsAppStartupOptions} [opts={}]
+   * @param opts Startup options
    * @throws {Error} If Appium Settings has failed to start
-   * @returns {Promise<SettingsApp>} self instance for chaining
+   * @returns Self instance for chaining
    */
-  async requireRunning (opts = {}) {
+  async requireRunning(opts: SettingsAppStartupOptions = {}): Promise<SettingsApp> {
     const {
       timeout = 5000,
       shouldRestoreCurrentApp = false,
@@ -69,11 +62,12 @@ export class SettingsApp {
     }
 
     this.log.debug(LOG_PREFIX, 'Starting Appium Settings app');
-    let appPackage;
+    let appPackage: string | undefined;
     if (shouldRestoreCurrentApp) {
       try {
-        ({appPackage} = await this.adb.getFocusedPackageAndActivity());
-      } catch (e) {
+        const result = await this.adb.getFocusedPackageAndActivity();
+        appPackage = result.appPackage ?? undefined;
+      } catch (e: any) {
         this.log.warn(LOG_PREFIX, `The current application can not be restored: ${e.message}`);
       }
     }
@@ -93,7 +87,7 @@ export class SettingsApp {
       if (shouldRestoreCurrentApp && appPackage) {
         try {
           await this.adb.activateApp(appPackage);
-        } catch (e) {
+        } catch (e: any) {
           log.warn(`The current application can not be restored: ${e.message}`);
         }
       }
@@ -106,10 +100,10 @@ export class SettingsApp {
   /**
    * If the io.appium.settings package has running foreground service.
    *
-   * @throws {Error} If the method gets an error in the adb shell execution.
-   * @returns {Promise<boolean>} Return true if the device Settings app has a servicve running in foreground.
+   * @throws {Error} If the method gets an error in the adb shell execution
+   * @returns Return true if the device Settings app has a service running in foreground
    */
-  async isRunningInForeground () {
+  async isRunningInForeground(): Promise<boolean> {
     // 'dumpsys activity services <package>' had slightly better performance
     // than 'dumpsys activity services' and parsing the foreground apps.
     const output = await this.adb.shell(['dumpsys', 'activity', 'services', SETTINGS_HELPER_ID]);
@@ -119,12 +113,13 @@ export class SettingsApp {
   /**
    * Performs broadcast and verifies the result of it
    *
-   * @param {string[]} args Arguments passed to the `am broadcast` command
-   * @param {string} action The exception message in case of broadcast failure
-   * @param {boolean} [requireRunningApp=true] Whether to run a check for a running Appium Settings app
-   * @returns {Promise<string>}
+   * @param args Arguments passed to the `am broadcast` command
+   * @param action The exception message in case of broadcast failure
+   * @param requireRunningApp Whether to run a check for a running Appium Settings app
+   * @returns The broadcast output
+   * @throws {Error} If the broadcast fails
    */
-  async checkBroadcast(args, action, requireRunningApp = true) {
+  async checkBroadcast(args: string[], action: string, requireRunningApp = true): Promise<string> {
     if (requireRunningApp) {
       await this.requireRunning({shouldRestoreCurrentApp: true});
     }
@@ -135,8 +130,7 @@ export class SettingsApp {
     ]);
     if (!output.includes('result=-1')) {
       this.log.debug(LOG_PREFIX, output);
-      const error = new Error(`Cannot execute the '${action}' action. Check the logcat output for more details.`);
-      // @ts-ignore This is fine
+      const error = new Error(`Cannot execute the '${action}' action. Check the logcat output for more details.`) as Error & { output?: string };
       error.output = output;
       throw error;
     }
@@ -147,14 +141,12 @@ export class SettingsApp {
    * Parses the output in JSON format retrieved from
    * the corresponding Appium Settings broadcast calls
    *
-   * @param {string} output The actual command output
-   * @param {string} entityName The name of the entity which is
-   * going to be parsed
-   * @returns {Object} The parsed JSON object
-   * @throws {Error} If the output cannot be parsed
-   * as a valid JSON
+   * @param output The actual command output
+   * @param entityName The name of the entity which is going to be parsed
+   * @returns The parsed JSON object
+   * @throws {Error} If the output cannot be parsed as a valid JSON
    */
-  _parseJsonData (output, entityName) {
+  _parseJsonData(output: string, entityName: string): any {
     if (!/\bresult=-1\b/.test(output) || !/\bdata="/.test(output)) {
       this.log.debug(LOG_PREFIX, output);
       throw new Error(
