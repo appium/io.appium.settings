@@ -47,7 +47,7 @@
   "homepage": "https://github.com/appium/io.appium.settings",
   "dependencies": {
     "@appium/logger": "^2.0.0-rc.1",
-    "asyncbox": "^4.0.1",
+    "asyncbox": "^6.0.1",
     "bluebird": "^3.5.1",
     "lodash": "^4.2.1",
     "semver": "^7.5.4",
