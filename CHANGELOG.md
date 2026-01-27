@@ -1,3 +1,9 @@
+## [7.0.15](https://github.com/appium/io.appium.settings/compare/v7.0.14...v7.0.15) (2026-01-27)
+
+### Miscellaneous Chores
+
+* **deps:** bump asyncbox from 4.1.1 to 6.0.1 ([#269](https://github.com/appium/io.appium.settings/issues/269)) ([40df65f](https://github.com/appium/io.appium.settings/commit/40df65f23e73691d69d424d3dc417e2d284f3891))
+
 ## [7.0.14](https://github.com/appium/io.appium.settings/compare/v7.0.13...v7.0.14) (2026-01-27)
 
 ### Miscellaneous Chores
