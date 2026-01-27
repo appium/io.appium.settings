@@ -1,3 +1,9 @@
+## [7.0.14](https://github.com/appium/io.appium.settings/compare/v7.0.13...v7.0.14) (2026-01-27)
+
+### Miscellaneous Chores
+
+* **deps:** bump gradle-wrapper from 9.1.0 to 9.3.0 ([#270](https://github.com/appium/io.appium.settings/issues/270)) ([dd04bbe](https://github.com/appium/io.appium.settings/commit/dd04bbe522115db9d1f3132a5e4ad8701246ffcc))
+
 ## [7.0.13](https://github.com/appium/io.appium.settings/compare/v7.0.12...v7.0.13) (2026-01-16)
 
 ### Miscellaneous Chores
