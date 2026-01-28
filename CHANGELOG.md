@@ -1,3 +1,9 @@
+## [7.0.16](https://github.com/appium/io.appium.settings/compare/v7.0.15...v7.0.16) (2026-01-28)
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @appium/eslint-config-appium-ts from 2.0.5 to 3.0.0 ([#271](https://github.com/appium/io.appium.settings/issues/271)) ([6d496b0](https://github.com/appium/io.appium.settings/commit/6d496b0a248b1091234acd911087d50639174ff7))
+
 ## [7.0.15](https://github.com/appium/io.appium.settings/compare/v7.0.14...v7.0.15) (2026-01-27)
 
 ### Miscellaneous Chores
