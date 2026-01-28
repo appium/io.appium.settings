@@ -8,7 +8,7 @@
     "bump-gradle-version": "node scripts/gradle-version-update.js --package-version=${npm_package_version} && git add app/build.gradle",
     "lint": "./gradlew lint",
     "js:lint": "eslint .",
-    "js:lint:fix": "npm run lint -- --fix",
+    "js:lint:fix": "npm run js:lint -- --fix",
     "move-apks": "rm -rf apks && mkdir -p apks && cp app/build/outputs/apk/debug/settings_apk-debug.apk apks",
     "build": "tsc -b && ./gradlew clean assembleDebug && npm run move-apks",
     "js:build": "tsc -b",
@@ -54,7 +54,7 @@
     "teen_process": "^4.0.4"
   },
   "devDependencies": {
-    "@appium/eslint-config-appium-ts": "^2.0.0-rc.1",
+    "@appium/eslint-config-appium-ts": "^3.0.0",
     "@appium/tsconfig": "^1.0.0-rc.1",
     "@appium/types": "^1.0.0-rc.1",
     "@semantic-release/changelog": "^6.0.1",
