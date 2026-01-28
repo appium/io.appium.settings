@@ -1,7 +1,7 @@
 import {waitForCondition} from 'asyncbox';
 import B from 'bluebird';
 import _ from 'lodash';
-import fs from 'fs/promises';
+import fs from 'node:fs/promises';
 import path from 'node:path';
 import {
   SETTINGS_HELPER_ID,

@@ -1,7 +1,7 @@
 import { SettingsApp } from '../../lib/client';
 import { ADB } from 'appium-adb';
 import { getSettingsApkPath } from '../../lib/utils';
-import fs from 'fs/promises';
+import fs from 'node:fs/promises';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 

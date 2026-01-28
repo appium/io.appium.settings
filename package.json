@@ -8,7 +8,7 @@
     "bump-gradle-version": "node scripts/gradle-version-update.js --package-version=${npm_package_version} && git add app/build.gradle",
     "lint": "./gradlew lint",
     "js:lint": "eslint .",
-    "js:lint:fix": "npm run lint -- --fix",
+    "js:lint:fix": "npm run js:lint -- --fix",
     "move-apks": "rm -rf apks && mkdir -p apks && cp app/build/outputs/apk/debug/settings_apk-debug.apk apks",
     "build": "tsc -b && ./gradlew clean assembleDebug && npm run move-apks",
     "js:build": "tsc -b",
