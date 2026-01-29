@@ -1,3 +1,9 @@
+## [7.0.17](https://github.com/appium/io.appium.settings/compare/v7.0.16...v7.0.17) (2026-01-29)
+
+### Bug Fixes
+
+* explicitly set READ_MEDIA_IMAGES for API level 33+ ([#272](https://github.com/appium/io.appium.settings/issues/272)) ([2f07f28](https://github.com/appium/io.appium.settings/commit/2f07f28305553b758f9c8f18c0deec202d78c29e))
+
 ## [7.0.16](https://github.com/appium/io.appium.settings/compare/v7.0.15...v7.0.16) (2026-01-28)
 
 ### Miscellaneous Chores
