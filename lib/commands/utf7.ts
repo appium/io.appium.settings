@@ -123,7 +123,8 @@ function allocateBase64Buffer(str: string): Buffer {
 function _decode(str: string): string {
   const b = allocateBase64Buffer(str);
   const r: string[] = [];
-  for (let i = 0; i < b.length; ) { // eslint-disable-line @stylistic/space-in-parens
+  // eslint-disable-next-line @stylistic/space-in-parens
+  for (let i = 0; i < b.length; ) {
     // Calculate charcode from two adjacent bytes.
     r.push(String.fromCharCode((b[i++] << 8) | b[i++]));
   }
