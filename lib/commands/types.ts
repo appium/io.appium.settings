@@ -30,7 +30,7 @@ export interface StartMediaProjectionRecordingOpts {
   /** Recording thread priority.
    * If you face performance drops during testing with recording enabled, you
    * can reduce recording priority */
-  priority?: "high" | "normal" | "low";
+  priority?: 'high' | 'normal' | 'low';
   /** You can type recording video file name as you want, but recording currently
    * supports only "mp4" format so your filename must end with ".mp4". An
    * invalid file name will fail to start the recording. */

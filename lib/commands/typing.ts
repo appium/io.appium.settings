@@ -1,8 +1,8 @@
-import _ from "lodash";
-import { APPIUM_IME, UNICODE_IME } from "../constants";
-import { imap } from "./utf7";
-import { LOG_PREFIX } from "../logger";
-import type { SettingsApp } from "../client";
+import _ from 'lodash';
+import {APPIUM_IME, UNICODE_IME} from '../constants';
+import {imap} from './utf7';
+import {LOG_PREFIX} from '../logger';
+import type {SettingsApp} from '../client';
 
 /**
  * Performs the given editor action on the focused input field.
@@ -20,7 +20,7 @@ export async function performEditorAction(
   this.log.debug(LOG_PREFIX, `Performing editor action: ${action}`);
   await this.adb.runInImeContext(
     APPIUM_IME,
-    async () => await this.adb.shell(["input", "text", `/${action}/`]),
+    async () => await this.adb.shell(['input', 'text', `/${action}/`]),
   );
 }
 
@@ -43,7 +43,7 @@ export async function typeUnicode(
   const textStr = `${text}`;
   this.log.debug(
     LOG_PREFIX,
-    `Typing ${textStr.length} character${textStr.length === 1 ? "" : "s"}`,
+    `Typing ${textStr.length} character${textStr.length === 1 ? '' : 's'}`,
   );
   if (!textStr) {
     return false;

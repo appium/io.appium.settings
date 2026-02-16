@@ -1,5 +1,5 @@
-import { getSettingsApkPath } from "./utils";
+import {getSettingsApkPath} from './utils';
 
 export const path = getSettingsApkPath();
-export * from "./constants";
-export { SettingsApp } from "./client";
+export * from './constants';
+export {SettingsApp} from './client';

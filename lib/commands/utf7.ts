@@ -3,29 +3,26 @@
  */
 
 // Character classes defined by RFC 2152.
-const setD = "A-Za-z0-9" + escape(`'(),-./:?`);
+const setD = 'A-Za-z0-9' + escape(`'(),-./:?`);
 const setO = escape(`!"#$%&*;<=>@[]^_'{|}`);
 const setW = escape(` \r\n\t`);
 
 // Stores compiled regexes for various replacement pattern.
 const regexes: Record<string, RegExp> = {};
-const regexAll = new RegExp(`[^${setW}${setD}${setO}]+`, "g");
+const regexAll = new RegExp(`[^${setW}${setD}${setO}]+`, 'g');
 
 /**
  * RFC 2152 UTF-7 encoding.
  *
  * @param mask Optional mask characters to exclude from encoding
  */
-export const encode = function encode(
-  str: string,
-  mask: string | null = null,
-): string {
+export const encode = function encode(str: string, mask: string | null = null): string {
   // Generate a RegExp object from the string of mask characters.
   if (!mask) {
-    mask = "";
+    mask = '';
   }
   if (!regexes[mask]) {
-    regexes[mask] = new RegExp(`[^${setD}${escape(mask)}]+`, "g");
+    regexes[mask] = new RegExp(`[^${setD}${escape(mask)}]+`, 'g');
   }
 
   // We replace subsequent disallowed chars with their escape sequence.
@@ -33,7 +30,7 @@ export const encode = function encode(
     regexes[mask],
     (chunk) =>
       // + is represented by an empty sequence +-, otherwise call encode().
-      `+${chunk === "+" ? "" : _encode(chunk)}-`,
+      `+${chunk === '+' ? '' : _encode(chunk)}-`,
   );
 };
 
@@ -48,7 +45,7 @@ export function encodeAll(str: string): string {
     regexAll,
     (chunk) =>
       // + is represented by an empty sequence +-, otherwise call encode().
-      `+${chunk === "+" ? "" : _encode(chunk)}-`,
+      `+${chunk === '+' ? '' : _encode(chunk)}-`,
   );
 }
 
@@ -58,7 +55,7 @@ export function encodeAll(str: string): string {
 export const decode = function decode(str: string): string {
   return str.replace(/\+([A-Za-z0-9/]*)-?/gi, (_, chunk) =>
     // &- represents &.
-    chunk === "" ? "+" : _decode(chunk),
+    chunk === '' ? '+' : _decode(chunk),
   );
 };
 
@@ -69,9 +66,9 @@ export const imap = {
   encode(str: string): string {
     // All printable ASCII chars except for & must be represented by themselves.
     // We replace subsequent non-representable chars with their escape sequence.
-    return str.replace(/&/g, "&-").replace(/[^\x20-\x7e]+/g, (chunk) => {
+    return str.replace(/&/g, '&-').replace(/[^\x20-\x7e]+/g, (chunk) => {
       // & is represented by an empty sequence &-, otherwise call encode().
-      chunk = (chunk === "&" ? "" : _encode(chunk)).replace(/\//g, ",");
+      chunk = (chunk === '&' ? '' : _encode(chunk)).replace(/\//g, ',');
       return `&${chunk}-`;
     });
   },
@@ -82,7 +79,7 @@ export const imap = {
   decode(str: string): string {
     return str.replace(/&([^-]*)-/g, (_, chunk) =>
       // &- represents &.
-      chunk === "" ? "&" : _decode(chunk.replace(/,/g, "/")),
+      chunk === '' ? '&' : _decode(chunk.replace(/,/g, '/')),
     );
   },
 };
@@ -91,7 +88,7 @@ export const imap = {
  * Allocates an ASCII buffer of the specified length.
  */
 function allocateAsciiBuffer(length: number): Buffer {
-  return Buffer.alloc(length, "ascii");
+  return Buffer.alloc(length, 'ascii');
 }
 
 /**
@@ -110,14 +107,14 @@ function _encode(str: string): string {
     b[bi++] = c & 0xff;
   }
   // Modified Base64 uses , instead of / and omits trailing =.
-  return b.toString("base64").replace(/=+$/, "");
+  return b.toString('base64').replace(/=+$/, '');
 }
 
 /**
  * Allocates a buffer from a base64 string.
  */
 function allocateBase64Buffer(str: string): Buffer {
-  return Buffer.from(str, "base64");
+  return Buffer.from(str, 'base64');
 }
 
 /**
@@ -130,7 +127,7 @@ function _decode(str: string): string {
     // Calculate charcode from two adjacent bytes.
     r.push(String.fromCharCode((b[i++] << 8) | b[i++]));
   }
-  return r.join("");
+  return r.join('');
 }
 
 /**
@@ -138,5 +135,5 @@ function _decode(str: string): string {
  * From http://simonwillison.net/2006/Jan/20/escape/
  */
 function escape(chars: string): string {
-  return chars.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+  return chars.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
 }

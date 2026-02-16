@@ -1,9 +1,6 @@
-import { LOG_PREFIX } from "../logger";
-import {
-  NOTIFICATIONS_RETRIEVAL_ACTION,
-  SETTING_NOTIFICATIONS_LISTENER_SERVICE,
-} from "../constants";
-import type { SettingsApp } from "../client";
+import {LOG_PREFIX} from '../logger';
+import {NOTIFICATIONS_RETRIEVAL_ACTION, SETTING_NOTIFICATIONS_LISTENER_SERVICE} from '../constants';
+import type {SettingsApp} from '../client';
 
 /**
  * Retrieves Android notifications via Appium Settings helper.
@@ -54,15 +51,13 @@ import type { SettingsApp } from "../client";
  * @returns The notifications result
  * @throws {Error} If there was an error while getting the notifications list
  */
-export async function getNotifications(
-  this: SettingsApp,
-): Promise<Record<string, any>> {
-  this.log.debug(LOG_PREFIX, "Retrieving notifications");
+export async function getNotifications(this: SettingsApp): Promise<Record<string, any>> {
+  this.log.debug(LOG_PREFIX, 'Retrieving notifications');
   const output = await this.checkBroadcast(
-    ["-a", NOTIFICATIONS_RETRIEVAL_ACTION],
-    "retrieve notifications",
+    ['-a', NOTIFICATIONS_RETRIEVAL_ACTION],
+    'retrieve notifications',
   );
-  return this._parseJsonData(output, "notifications");
+  return this._parseJsonData(output, 'notifications');
 }
 
 /**
@@ -71,14 +66,12 @@ export async function getNotifications(
  *
  * @returns If permissions adjustment has been actually made
  */
-export async function adjustNotificationsPermissions(
-  this: SettingsApp,
-): Promise<boolean> {
+export async function adjustNotificationsPermissions(this: SettingsApp): Promise<boolean> {
   if ((await this.adb.getApiLevel()) >= 29) {
     await this.adb.shell([
-      "cmd",
-      "notification",
-      "allow_listener",
+      'cmd',
+      'notification',
+      'allow_listener',
       SETTING_NOTIFICATIONS_LISTENER_SERVICE,
     ]);
     return true;

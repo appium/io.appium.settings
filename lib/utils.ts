@@ -1,7 +1,7 @@
-import path from "node:path";
-import fs from "node:fs";
+import path from 'node:path';
+import fs from 'node:fs';
 
-const MODULE_NAME = "io.appium.settings";
+const MODULE_NAME = 'io.appium.settings';
 
 /**
  * Tries to synchronously detect the absolute path to the folder
@@ -13,11 +13,11 @@ function getModuleRootSync(): string {
   let currentDir = __dirname;
   let isAtFsRoot = false;
   while (!isAtFsRoot) {
-    const manifestPath = path.join(currentDir, "package.json");
+    const manifestPath = path.join(currentDir, 'package.json');
     try {
       if (
         fs.existsSync(manifestPath) &&
-        JSON.parse(fs.readFileSync(manifestPath, "utf8")).name === MODULE_NAME
+        JSON.parse(fs.readFileSync(manifestPath, 'utf8')).name === MODULE_NAME
       ) {
         return currentDir;
       }
@@ -34,5 +34,5 @@ function getModuleRootSync(): string {
  * @returns Full path to the APK file
  */
 export function getSettingsApkPath(): string {
-  return path.resolve(getModuleRootSync(), "apks", "settings_apk-debug.apk");
+  return path.resolve(getModuleRootSync(), 'apks', 'settings_apk-debug.apk');
 }

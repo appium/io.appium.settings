@@ -1,8 +1,5 @@
-import {
-  WIFI_CONNECTION_SETTING_ACTION,
-  WIFI_CONNECTION_SETTING_RECEIVER,
-} from "../constants";
-import type { SettingsApp } from "../client";
+import {WIFI_CONNECTION_SETTING_ACTION, WIFI_CONNECTION_SETTING_RECEIVER} from '../constants';
+import type {SettingsApp} from '../client';
 
 /**
  * Change the state of WiFi on the device under test.
@@ -17,7 +14,7 @@ export async function setWifiState(
 ): Promise<void> {
   if (isEmulator) {
     // The svc command does not require to be root since API 26
-    await this.adb.shell(["svc", "wifi", on ? "enable" : "disable"]);
+    await this.adb.shell(['svc', 'wifi', on ? 'enable' : 'disable']);
     return;
   }
 
@@ -27,26 +24,20 @@ export async function setWifiState(
     // as a workaround
     await this.checkBroadcast(
       [
-        "-a",
+        '-a',
         WIFI_CONNECTION_SETTING_ACTION,
-        "-n",
+        '-n',
         WIFI_CONNECTION_SETTING_RECEIVER,
-        "--es",
-        "setstatus",
-        on ? "enable" : "disable",
+        '--es',
+        'setstatus',
+        on ? 'enable' : 'disable',
       ],
-      `${on ? "enable" : "disable"} WiFi`,
+      `${on ? 'enable' : 'disable'} WiFi`,
     );
     return;
   }
 
-  await this.adb.shell([
-    "cmd",
-    "-w",
-    "wifi",
-    "set-wifi-enabled",
-    on ? "enabled" : "disabled",
-  ]);
+  await this.adb.shell(['cmd', '-w', 'wifi', 'set-wifi-enabled', on ? 'enabled' : 'disabled']);
 }
 
 /**
@@ -63,14 +54,12 @@ export async function setDataState(
 ): Promise<void> {
   if (isEmulator) {
     // The svc command does not require to be root since API 26
-    await this.adb.shell(["svc", "data", on ? "enable" : "disable"]);
+    await this.adb.shell(['svc', 'data', on ? 'enable' : 'disable']);
   } else {
     try {
-      await this.adb.shell(["cmd", "phone", "data", on ? "enable" : "disable"]);
+      await this.adb.shell(['cmd', 'phone', 'data', on ? 'enable' : 'disable']);
     } catch (e: any) {
-      throw new Error(
-        `Cannot change the data state. Original error: ${e.stderr || e.message}`,
-      );
+      throw new Error(`Cannot change the data state. Original error: ${e.stderr || e.message}`);
     }
   }
 }
