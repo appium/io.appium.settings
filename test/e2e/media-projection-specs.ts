@@ -1,8 +1,8 @@
-import { SettingsApp } from '../../lib/client';
-import { ADB } from 'appium-adb';
-import { getSettingsApkPath } from '../../lib/utils';
+import {SettingsApp} from '../../lib/client';
+import {ADB} from 'appium-adb';
+import {getSettingsApkPath} from '../../lib/utils';
 import fs from 'node:fs/promises';
-import { expect, use } from 'chai';
+import {expect, use} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
 use(chaiAsPromised);
@@ -23,11 +23,16 @@ describe('Media Projection', function () {
     }
 
     // Initialize SettingsApp
-    settingsApp = new SettingsApp({ adb });
+    settingsApp = new SettingsApp({adb});
 
     // Ensure the app is installed
     const apkPath = getSettingsApkPath();
-    if (!(await fs.access(apkPath).then(() => true).catch(() => false))) {
+    if (
+      !(await fs
+        .access(apkPath)
+        .then(() => true)
+        .catch(() => false))
+    ) {
       throw new Error(`APK not found at ${apkPath}. Please run 'npm run build' first.`);
     }
     await adb.install(apkPath, {
@@ -165,4 +170,3 @@ describe('Media Projection', function () {
     });
   });
 });
-

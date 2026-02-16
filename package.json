@@ -17,7 +17,7 @@
     "clean": "npm run build -- --clean",
     "js:test": "mocha --exit --timeout 1m \"./test/unit/**/*-specs.ts\"",
     "e2e-test": "mocha --exit --timeout 5m \"./test/e2e/**/*-specs.ts\"",
-    "format": "prettier -w ./lib",
+    "format": "prettier -w ./lib ./test",
     "format:check": "prettier --check ./lib ./test"
   },
   "repository": {

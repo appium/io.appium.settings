@@ -1,6 +1,6 @@
-import { SettingsApp } from '../../lib/client';
-import { expect } from 'chai';
-import { ADB } from 'appium-adb';
+import {SettingsApp} from '../../lib/client';
+import {expect} from 'chai';
+import {ADB} from 'appium-adb';
 
 describe('parseJsonData', function () {
   const adb = new ADB({});
@@ -39,4 +39,3 @@ describe('parseJsonData', function () {
     expect(() => client._parseJsonData(broadcastOutput, '')).to.throw();
   });
 });
-

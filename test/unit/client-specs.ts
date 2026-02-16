@@ -1,6 +1,6 @@
-import { SettingsApp } from '../../lib/client';
-import { ADB } from 'appium-adb';
-import { expect, use } from 'chai';
+import {SettingsApp} from '../../lib/client';
+import {ADB} from 'appium-adb';
+import {expect, use} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import sinon from 'sinon';
 
@@ -77,7 +77,10 @@ describe('client', function () {
               binding=AppBindRecord{c78a275 io.appium.settings/.NLService:system}
               conn=android.app.LoadedApk$ServiceDispatcher$InnerConnection@339692b flags=0x5000101`;
       sandbox.stub(adb, 'getApiLevel').resolves(26);
-      sandbox.stub(adb, 'shell').withArgs(['dumpsys', 'activity', 'services', 'io.appium.settings']).resolves(getActivityServiceOutput);
+      sandbox
+        .stub(adb, 'shell')
+        .withArgs(['dumpsys', 'activity', 'services', 'io.appium.settings'])
+        .resolves(getActivityServiceOutput);
       await expect(client.isRunningInForeground()).to.eventually.be.true;
     });
     it('should return false if the output does not include isForeground=true', async function () {
@@ -122,9 +125,11 @@ describe('client', function () {
             conn=android.app.LoadedApk$ServiceDispatcher$InnerConnection@d481010 flags=0x5000101`;
 
       sandbox.stub(adb, 'getApiLevel').resolves(26);
-      sandbox.stub(adb, 'shell').withArgs(['dumpsys', 'activity', 'services', 'io.appium.settings']).resolves(getActivityServiceOutput);
+      sandbox
+        .stub(adb, 'shell')
+        .withArgs(['dumpsys', 'activity', 'services', 'io.appium.settings'])
+        .resolves(getActivityServiceOutput);
       await expect(client.isRunningInForeground()).to.eventually.be.false;
     });
   });
 });
-
