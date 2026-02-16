@@ -1,22 +1,32 @@
-import { log, LOG_PREFIX } from './logger';
-import { waitForCondition } from 'asyncbox';
-import { SETTINGS_HELPER_ID, SETTINGS_HELPER_MAIN_ACTIVITY } from './constants';
-import { setAnimationState } from './commands/animation';
-import { setBluetoothState, unpairAllBluetoothDevices } from './commands/bluetooth';
-import { getClipboard } from './commands/clipboard';
-import { setGeoLocation, getGeoLocation, refreshGeoLocationCache } from './commands/geolocation';
-import { setDeviceLocale, listSupportedLocales } from './commands/locale';
-import { scanMedia } from './commands/media';
-import { setDataState, setWifiState } from './commands/network';
-import { getNotifications, adjustNotificationsPermissions } from './commands/notifications';
-import { getSmsList } from './commands/sms';
-import { performEditorAction, typeUnicode } from './commands/typing';
+import { log, LOG_PREFIX } from "./logger";
+import { waitForCondition } from "asyncbox";
+import { SETTINGS_HELPER_ID, SETTINGS_HELPER_MAIN_ACTIVITY } from "./constants";
+import { setAnimationState } from "./commands/animation";
+import {
+  setBluetoothState,
+  unpairAllBluetoothDevices,
+} from "./commands/bluetooth";
+import { getClipboard } from "./commands/clipboard";
+import {
+  setGeoLocation,
+  getGeoLocation,
+  refreshGeoLocationCache,
+} from "./commands/geolocation";
+import { setDeviceLocale, listSupportedLocales } from "./commands/locale";
+import { scanMedia } from "./commands/media";
+import { setDataState, setWifiState } from "./commands/network";
+import {
+  getNotifications,
+  adjustNotificationsPermissions,
+} from "./commands/notifications";
+import { getSmsList } from "./commands/sms";
+import { performEditorAction, typeUnicode } from "./commands/typing";
 import {
   makeMediaProjectionRecorder,
   adjustMediaProjectionServicePermissions,
-} from './commands/media-projection';
-import type { ADB } from 'appium-adb';
-import type { Logger } from '@appium/logger';
+} from "./commands/media-projection";
+import type { ADB } from "appium-adb";
+import type { Logger } from "@appium/logger";
 
 export interface SettingsAppOpts {
   adb: ADB;
@@ -48,7 +58,9 @@ export class SettingsApp {
    * @throws {Error} If Appium Settings has failed to start
    * @returns Self instance for chaining
    */
-  async requireRunning(opts: SettingsAppStartupOptions = {}): Promise<SettingsApp> {
+  async requireRunning(
+    opts: SettingsAppStartupOptions = {},
+  ): Promise<SettingsApp> {
     const {
       timeout = 5000,
       shouldRestoreCurrentApp = false,
@@ -61,21 +73,24 @@ export class SettingsApp {
       return this;
     }
 
-    this.log.debug(LOG_PREFIX, 'Starting Appium Settings app');
+    this.log.debug(LOG_PREFIX, "Starting Appium Settings app");
     let appPackage: string | undefined;
     if (shouldRestoreCurrentApp) {
       try {
         const result = await this.adb.getFocusedPackageAndActivity();
         appPackage = result.appPackage ?? undefined;
       } catch (e: any) {
-        this.log.warn(LOG_PREFIX, `The current application can not be restored: ${e.message}`);
+        this.log.warn(
+          LOG_PREFIX,
+          `The current application can not be restored: ${e.message}`,
+        );
       }
     }
     await this.adb.startApp({
       pkg: SETTINGS_HELPER_ID,
       activity: SETTINGS_HELPER_MAIN_ACTIVITY,
-      action: 'android.intent.action.MAIN',
-      category: 'android.intent.category.LAUNCHER',
+      action: "android.intent.action.MAIN",
+      category: "android.intent.category.LAUNCHER",
       stopApp: false,
       waitForLaunch: false,
     });
@@ -106,8 +121,13 @@ export class SettingsApp {
   async isRunningInForeground(): Promise<boolean> {
     // 'dumpsys activity services <package>' had slightly better performance
     // than 'dumpsys activity services' and parsing the foreground apps.
-    const output = await this.adb.shell(['dumpsys', 'activity', 'services', SETTINGS_HELPER_ID]);
-    return output.includes('isForeground=true');
+    const output = await this.adb.shell([
+      "dumpsys",
+      "activity",
+      "services",
+      SETTINGS_HELPER_ID,
+    ]);
+    return output.includes("isForeground=true");
   }
 
   /**
@@ -119,18 +139,21 @@ export class SettingsApp {
    * @returns The broadcast output
    * @throws {Error} If the broadcast fails
    */
-  async checkBroadcast(args: string[], action: string, requireRunningApp = true): Promise<string> {
+  async checkBroadcast(
+    args: string[],
+    action: string,
+    requireRunningApp = true,
+  ): Promise<string> {
     if (requireRunningApp) {
-      await this.requireRunning({shouldRestoreCurrentApp: true});
+      await this.requireRunning({ shouldRestoreCurrentApp: true });
     }
 
-    const output = await this.adb.shell([
-      'am', 'broadcast',
-      ...args,
-    ]);
-    if (!output.includes('result=-1')) {
+    const output = await this.adb.shell(["am", "broadcast", ...args]);
+    if (!output.includes("result=-1")) {
       this.log.debug(LOG_PREFIX, output);
-      const error = new Error(`Cannot execute the '${action}' action. Check the logcat output for more details.`) as Error & { output?: string };
+      const error = new Error(
+        `Cannot execute the '${action}' action. Check the logcat output for more details.`,
+      ) as Error & { output?: string };
       error.output = output;
       throw error;
     }
@@ -151,7 +174,7 @@ export class SettingsApp {
       this.log.debug(LOG_PREFIX, output);
       throw new Error(
         `Cannot retrieve ${entityName} from the device. ` +
-        'Check the server log for more details'
+          "Check the server log for more details",
       );
     }
     const match = /\bdata="(.+)",?/.exec(output);
@@ -159,7 +182,7 @@ export class SettingsApp {
       this.log.debug(LOG_PREFIX, output);
       throw new Error(
         `Cannot parse ${entityName} from the command output. ` +
-        'Check the server log for more details'
+          "Check the server log for more details",
       );
     }
     const jsonStr = match[1].trim();
@@ -169,7 +192,7 @@ export class SettingsApp {
       log.debug(jsonStr);
       throw new Error(
         `Cannot parse ${entityName} from the resulting data string. ` +
-        'Check the server log for more details'
+          "Check the server log for more details",
       );
     }
   }
@@ -201,5 +224,6 @@ export class SettingsApp {
   typeUnicode = typeUnicode;
 
   makeMediaProjectionRecorder = makeMediaProjectionRecorder;
-  adjustMediaProjectionServicePermissions = adjustMediaProjectionServicePermissions;
+  adjustMediaProjectionServicePermissions =
+    adjustMediaProjectionServicePermissions;
 }

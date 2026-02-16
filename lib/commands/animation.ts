@@ -1,4 +1,4 @@
-import type { SettingsApp } from '../client';
+import type { SettingsApp } from "../client";
 
 /**
  * Change the state of animation on the device under test via adb settings command for API level 26+.
@@ -13,6 +13,9 @@ import type { SettingsApp } from '../client';
  *
  * @param on - True to enable and false to disable it
  */
-export async function setAnimationState(this: SettingsApp, on: boolean): Promise<void> {
+export async function setAnimationState(
+  this: SettingsApp,
+  on: boolean,
+): Promise<void> {
   await this.adb.setAnimationScale(Number(on));
 }

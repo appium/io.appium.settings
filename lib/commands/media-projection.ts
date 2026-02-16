@@ -1,18 +1,18 @@
-import {waitForCondition} from 'asyncbox';
-import B from 'bluebird';
-import _ from 'lodash';
-import fs from 'node:fs/promises';
-import path from 'node:path';
+import { waitForCondition } from "asyncbox";
+import B from "bluebird";
+import _ from "lodash";
+import fs from "node:fs/promises";
+import path from "node:path";
 import {
   SETTINGS_HELPER_ID,
   RECORDING_ACTION_START,
   RECORDING_ACTION_STOP,
   RECORDING_ACTIVITY_NAME,
   RECORDING_SERVICE_NAME,
-} from '../constants';
-import type { ADB } from 'appium-adb';
-import type { SettingsApp } from '../client';
-import type { StartMediaProjectionRecordingOpts } from './types';
+} from "../constants";
+import type { ADB } from "appium-adb";
+import type { SettingsApp } from "../client";
+import type { StartMediaProjectionRecordingOpts } from "./types";
 
 /**
  * Creates a new instance of the MediaProjection-based recorder.
@@ -20,7 +20,9 @@ import type { StartMediaProjectionRecordingOpts } from './types';
  *
  * @returns The recorder instance
  */
-export function makeMediaProjectionRecorder(this: SettingsApp): MediaProjectionRecorder {
+export function makeMediaProjectionRecorder(
+  this: SettingsApp,
+): MediaProjectionRecorder {
   return new MediaProjectionRecorder(this.adb);
 }
 
@@ -30,9 +32,17 @@ export function makeMediaProjectionRecorder(this: SettingsApp): MediaProjectionR
  *
  * @returns True if permissions were adjusted, false if device API level is below 29
  */
-export async function adjustMediaProjectionServicePermissions(this: SettingsApp): Promise<boolean> {
-  if (await this.adb.getApiLevel() >= 29) {
-    await this.adb.shell(['appops', 'set', SETTINGS_HELPER_ID, 'PROJECT_MEDIA', 'allow']);
+export async function adjustMediaProjectionServicePermissions(
+  this: SettingsApp,
+): Promise<boolean> {
+  if ((await this.adb.getApiLevel()) >= 29) {
+    await this.adb.shell([
+      "appops",
+      "set",
+      SETTINGS_HELPER_ID,
+      "PROJECT_MEDIA",
+      "allow",
+    ]);
     return true;
   }
   return false;
@@ -64,9 +74,9 @@ export class MediaProjectionRecorder {
    */
   async isRunning(): Promise<boolean> {
     const stdout = await this.adb.shell([
-      'dumpsys',
-      'activity',
-      'services',
+      "dumpsys",
+      "activity",
+      "services",
       RECORDING_SERVICE_NAME,
     ]);
     return stdout.includes(RECORDING_SERVICE_NAME);
@@ -86,19 +96,26 @@ export class MediaProjectionRecorder {
     }
 
     await this.cleanup();
-    const {filename, maxDurationSec, priority, resolution} = opts;
-    const args: string[] = ['am', 'start', '-n', RECORDING_ACTIVITY_NAME, '-a', RECORDING_ACTION_START];
+    const { filename, maxDurationSec, priority, resolution } = opts;
+    const args: string[] = [
+      "am",
+      "start",
+      "-n",
+      RECORDING_ACTIVITY_NAME,
+      "-a",
+      RECORDING_ACTION_START,
+    ];
     if (filename) {
-      args.push('--es', 'filename', filename);
+      args.push("--es", "filename", filename);
     }
     if (maxDurationSec) {
-      args.push('--es', 'max_duration_sec', `${maxDurationSec}`);
+      args.push("--es", "max_duration_sec", `${maxDurationSec}`);
     }
     if (priority) {
-      args.push('--es', 'priority', priority);
+      args.push("--es", "priority", priority);
     }
     if (resolution) {
-      args.push('--es', 'resolution', resolution);
+      args.push("--es", "resolution", resolution);
     }
     await this.adb.shell(args);
     await new B<void>((resolve, reject) => {
@@ -107,8 +124,8 @@ export class MediaProjectionRecorder {
           return reject(
             new Error(
               `The media projection recording is not running after ${RECORDING_STARTUP_TIMEOUT_MS}ms. ` +
-                `Please check the logcat output for more details.`
-            )
+                `Please check the logcat output for more details.`,
+            ),
           );
         }
         resolve();
@@ -130,15 +147,17 @@ export class MediaProjectionRecorder {
    * @returns Path to the pulled file, or null if no recordings exist
    */
   async pullRecent(): Promise<string | null> {
-    const recordings = await this.adb.ls(RECORDINGS_ROOT, ['-tr']);
+    const recordings = await this.adb.ls(RECORDINGS_ROOT, ["-tr"]);
     if (_.isEmpty(recordings)) {
       return null;
     }
 
-    const tmpRoot = await fs.mkdtemp('recording');
+    const tmpRoot = await fs.mkdtemp("recording");
     const dstPath = path.join(tmpRoot, recordings[0]);
     // increase timeout to 5 minutes because it might take a while to pull a large video file
-    await this.adb.pull(`${RECORDINGS_ROOT}/${recordings[0]}`, dstPath, {timeout: 300000});
+    await this.adb.pull(`${RECORDINGS_ROOT}/${recordings[0]}`, dstPath, {
+      timeout: 300000,
+    });
     return dstPath;
   }
 
@@ -154,11 +173,11 @@ export class MediaProjectionRecorder {
     }
 
     await this.adb.shell([
-      'am',
-      'start',
-      '-n',
+      "am",
+      "start",
+      "-n",
       RECORDING_ACTIVITY_NAME,
-      '-a',
+      "-a",
       RECORDING_ACTION_STOP,
     ]);
     try {
@@ -169,7 +188,7 @@ export class MediaProjectionRecorder {
     } catch {
       throw new Error(
         `The attempt to stop the current media projection recording timed out after ` +
-          `${RECORDING_STOP_TIMEOUT_MS}ms`
+          `${RECORDING_STOP_TIMEOUT_MS}ms`,
       );
     }
     return true;

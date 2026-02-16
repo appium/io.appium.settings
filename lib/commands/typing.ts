@@ -1,8 +1,8 @@
-import _ from 'lodash';
-import { APPIUM_IME, UNICODE_IME } from '../constants';
-import { imap } from './utf7';
-import { LOG_PREFIX } from '../logger';
-import type { SettingsApp } from '../client';
+import _ from "lodash";
+import { APPIUM_IME, UNICODE_IME } from "../constants";
+import { imap } from "./utf7";
+import { LOG_PREFIX } from "../logger";
+import type { SettingsApp } from "../client";
 
 /**
  * Performs the given editor action on the focused input field.
@@ -13,10 +13,15 @@ import type { SettingsApp } from '../client';
  * @param action - Either action code or name. The following action names are supported:
  *                 `normal, unspecified, none, go, search, send, next, done, previous`
  */
-export async function performEditorAction(this: SettingsApp, action: string | number): Promise<void> {
+export async function performEditorAction(
+  this: SettingsApp,
+  action: string | number,
+): Promise<void> {
   this.log.debug(LOG_PREFIX, `Performing editor action: ${action}`);
-  await this.adb.runInImeContext(APPIUM_IME,
-    async () => await this.adb.shell(['input', 'text', `/${action}/`]));
+  await this.adb.runInImeContext(
+    APPIUM_IME,
+    async () => await this.adb.shell(["input", "text", `/${action}/`]),
+  );
 }
 
 /**
@@ -27,18 +32,25 @@ export async function performEditorAction(this: SettingsApp, action: string | nu
  * @param text The string to type
  * @returns `true` if the input text has been successfully sent to adb
  */
-export async function typeUnicode(this: SettingsApp, text: string | null | undefined): Promise<boolean> {
+export async function typeUnicode(
+  this: SettingsApp,
+  text: string | null | undefined,
+): Promise<boolean> {
   if (_.isNil(text)) {
     return false;
   }
 
   const textStr = `${text}`;
-  this.log.debug(LOG_PREFIX, `Typing ${textStr.length} character${textStr.length === 1 ? '' : 's'}`);
+  this.log.debug(
+    LOG_PREFIX,
+    `Typing ${textStr.length} character${textStr.length === 1 ? "" : "s"}`,
+  );
   if (!textStr) {
     return false;
   }
   await this.adb.runInImeContext(
-    UNICODE_IME, async () => await this.adb.inputText(imap.encode(textStr))
+    UNICODE_IME,
+    async () => await this.adb.inputText(imap.encode(textStr)),
   );
   return true;
 }

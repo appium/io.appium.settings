@@ -1,7 +1,7 @@
-import { LOG_PREFIX } from '../logger';
-import { SMS_LIST_RECEIVER, SMS_LIST_RETRIEVAL_ACTION } from '../constants';
-import type { SettingsApp } from '../client';
-import type { SmsListOptions, SmsListResult } from './types';
+import { LOG_PREFIX } from "../logger";
+import { SMS_LIST_RECEIVER, SMS_LIST_RETRIEVAL_ACTION } from "../constants";
+import type { SettingsApp } from "../client";
+import type { SmsListOptions, SmsListResult } from "./types";
 
 /**
  * Retrieves the list of the most recent SMS
@@ -45,15 +45,20 @@ import type { SmsListOptions, SmsListResult } from './types';
  * @returns The SMS list result
  * @throws {Error} If there was an error while getting the SMS list
  */
-export async function getSmsList(this: SettingsApp, opts: SmsListOptions = {}): Promise<SmsListResult> {
-  this.log.debug(LOG_PREFIX, 'Retrieving the recent SMS messages');
+export async function getSmsList(
+  this: SettingsApp,
+  opts: SmsListOptions = {},
+): Promise<SmsListResult> {
+  this.log.debug(LOG_PREFIX, "Retrieving the recent SMS messages");
   const args: string[] = [
-    '-n', SMS_LIST_RECEIVER,
-    '-a', SMS_LIST_RETRIEVAL_ACTION,
+    "-n",
+    SMS_LIST_RECEIVER,
+    "-a",
+    SMS_LIST_RETRIEVAL_ACTION,
   ];
   if (opts.max) {
-    args.push('--es', 'max', `${opts.max}`);
+    args.push("--es", "max", `${opts.max}`);
   }
-  const output = await this.checkBroadcast(args, 'list SMS');
-  return this._parseJsonData(output, 'SMS list');
+  const output = await this.checkBroadcast(args, "list SMS");
+  return this._parseJsonData(output, "SMS list");
 }

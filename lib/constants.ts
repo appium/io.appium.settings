@@ -1,5 +1,5 @@
-export const SETTINGS_HELPER_ID = 'io.appium.settings';
-export const SETTINGS_HELPER_MAIN_ACTIVITY = '.Settings';
+export const SETTINGS_HELPER_ID = "io.appium.settings";
+export const SETTINGS_HELPER_MAIN_ACTIVITY = ".Settings";
 
 const RECEIVERS_PKG = `${SETTINGS_HELPER_ID}/.receivers`;
 
