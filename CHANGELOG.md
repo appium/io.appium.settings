@@ -1,3 +1,10 @@
+## [7.0.21](https://github.com/appium/io.appium.settings/compare/v7.0.20...v7.0.21) (2026-03-05)
+
+### Miscellaneous Chores
+
+* **deps:** bump com.android.tools.build:gradle from 9.0.1 to 9.1.0 ([#277](https://github.com/appium/io.appium.settings/issues/277)) ([3a356f8](https://github.com/appium/io.appium.settings/commit/3a356f8f21d9d2e93b6beef76b04a1fad65a453f))
+* **deps:** bump gradle-wrapper from 9.3.1 to 9.4.0 ([#276](https://github.com/appium/io.appium.settings/issues/276)) ([37203da](https://github.com/appium/io.appium.settings/commit/37203da73cecdaf51832ef51266c78218a7efd2b))
+
 ## [7.0.20](https://github.com/appium/io.appium.settings/compare/v7.0.19...v7.0.20) (2026-02-16)
 
 ### Miscellaneous Chores
