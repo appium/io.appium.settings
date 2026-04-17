@@ -5,8 +5,13 @@
     "outDir": "build",
     "checkJs": true,
     "esModuleInterop": true,
-    "types": ["node", "mocha"],
-    "strict": false
+    "types": ["node", "mocha"]
+  },
+  "ts-node": {
+    "transpileOnly": true,
+    "compilerOptions": {
+      "rootDir": "."
+    }
   },
   "include": ["lib", "test"]
 }
