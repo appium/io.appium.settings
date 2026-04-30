@@ -4,6 +4,15 @@ import fs from 'node:fs';
 const MODULE_NAME = 'io.appium.settings';
 
 /**
+ * Get the full path to the Settings APK
+ *
+ * @returns Full path to the APK file
+ */
+export function getSettingsApkPath(): string {
+  return path.resolve(getModuleRootSync(), 'apks', 'settings_apk-debug.apk');
+}
+
+/**
  * Tries to synchronously detect the absolute path to the folder
  * where the given `moduleName` is located.
  *
@@ -26,13 +35,4 @@ function getModuleRootSync(): string {
     isAtFsRoot = currentDir.length <= path.dirname(currentDir).length;
   }
   throw new Error(`Cannot find the root of the ${MODULE_NAME} Node.js module`);
-}
-
-/**
- * Get the full path to the Settings APK
- *
- * @returns Full path to the APK file
- */
-export function getSettingsApkPath(): string {
-  return path.resolve(getModuleRootSync(), 'apks', 'settings_apk-debug.apk');
 }

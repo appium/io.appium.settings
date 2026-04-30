@@ -35,6 +35,35 @@ export class SettingsApp {
   readonly adb: ADB;
   readonly log: Logger;
 
+  setAnimationState = setAnimationState;
+
+  setBluetoothState = setBluetoothState;
+  unpairAllBluetoothDevices = unpairAllBluetoothDevices;
+
+  getClipboard = getClipboard;
+
+  setGeoLocation = setGeoLocation;
+  getGeoLocation = getGeoLocation;
+  refreshGeoLocationCache = refreshGeoLocationCache;
+
+  listSupportedLocales = listSupportedLocales;
+  setDeviceLocale = setDeviceLocale;
+
+  scanMedia = scanMedia;
+
+  setDataState = setDataState;
+  setWifiState = setWifiState;
+
+  getNotifications = getNotifications;
+  adjustNotificationsPermissions = adjustNotificationsPermissions;
+  getSmsList = getSmsList;
+
+  performEditorAction = performEditorAction;
+  typeUnicode = typeUnicode;
+
+  makeMediaProjectionRecorder = makeMediaProjectionRecorder;
+  adjustMediaProjectionServicePermissions = adjustMediaProjectionServicePermissions;
+
   constructor(opts: SettingsAppOpts) {
     this.adb = opts.adb;
     this.log = log;
@@ -167,33 +196,4 @@ export class SettingsApp {
       );
     }
   }
-
-  setAnimationState = setAnimationState;
-
-  setBluetoothState = setBluetoothState;
-  unpairAllBluetoothDevices = unpairAllBluetoothDevices;
-
-  getClipboard = getClipboard;
-
-  setGeoLocation = setGeoLocation;
-  getGeoLocation = getGeoLocation;
-  refreshGeoLocationCache = refreshGeoLocationCache;
-
-  listSupportedLocales = listSupportedLocales;
-  setDeviceLocale = setDeviceLocale;
-
-  scanMedia = scanMedia;
-
-  setDataState = setDataState;
-  setWifiState = setWifiState;
-
-  getNotifications = getNotifications;
-  adjustNotificationsPermissions = adjustNotificationsPermissions;
-  getSmsList = getSmsList;
-
-  performEditorAction = performEditorAction;
-  typeUnicode = typeUnicode;
-
-  makeMediaProjectionRecorder = makeMediaProjectionRecorder;
-  adjustMediaProjectionServicePermissions = adjustMediaProjectionServicePermissions;
 }
