@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import {APPIUM_IME, UNICODE_IME} from '../constants';
 import {imap} from './utf7';
 import {LOG_PREFIX} from '../logger';
@@ -36,7 +35,7 @@ export async function typeUnicode(
   this: SettingsApp,
   text: string | null | undefined,
 ): Promise<boolean> {
-  if (_.isNil(text)) {
+  if (text === null || text === undefined) {
     return false;
   }
 

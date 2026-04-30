@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import {LOG_PREFIX} from '../logger';
 import {
   LOCALE_SETTING_ACTION,
@@ -30,10 +29,10 @@ export async function setDeviceLocale(
   country: string,
   script: string | null = null,
 ): Promise<void> {
-  if (_.isEmpty(language)) {
+  if (!language || language.trim().length === 0) {
     throw new Error('Language name must be provided');
   }
-  if (_.isEmpty(country)) {
+  if (!country || country.trim().length === 0) {
     throw new Error('Country name must be provided');
   }
 
@@ -103,7 +102,11 @@ async function setDeviceLocaleInternal(
     try {
       await this.checkBroadcast(params, 'set device locale');
     } catch (err: any) {
-      if (retry === 0 && _.has(err, 'output') && err.output.includes('NoSuchMethodException')) {
+      if (
+        retry === 0 &&
+        typeof err?.output === 'string' &&
+        err.output.includes('NoSuchMethodException')
+      ) {
         // The above exception may be thrown if hidden API policies have not been picked up by
         // Settings app yet. Restart might fix this issue.
         await this.requireRunning({

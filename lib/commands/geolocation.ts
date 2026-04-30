@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import {LOCATION_SERVICE, LOCATION_RECEIVER, LOCATION_RETRIEVAL_ACTION} from '../constants';
 import {SubProcess} from 'teen_process';
 import B from 'bluebird';
@@ -30,20 +29,21 @@ export async function setGeoLocation(
   isEmulator = false,
 ): Promise<void> {
   const formatLocationValue = (valueName: keyof Location, isRequired = true): string | null => {
-    if (_.isNil(location[valueName])) {
+    const value = location[valueName];
+    if (value === null || value === undefined) {
       if (isRequired) {
         throw new Error(`${valueName} must be provided`);
       }
       return null;
     }
-    const floatValue = parseFloat(String(location[valueName]));
+    const floatValue = parseFloat(String(value));
     if (!isNaN(floatValue)) {
-      return `${_.ceil(floatValue, 5)}`;
+      // Native ceil to 5 decimals
+      return `${Math.ceil(floatValue * 1e5) / 1e5}`;
     }
     if (isRequired) {
       throw new Error(
-        `${valueName} is expected to be a valid float number. ` +
-          `'${location[valueName]}' is given instead`,
+        `${valueName} is expected to be a valid float number. ` + `'${value}' is given instead`,
       );
     }
     return null;
@@ -56,7 +56,7 @@ export async function setGeoLocation(
   const accuracy = formatLocationValue('accuracy', false);
   if (isEmulator) {
     const args: string[] = [longitude, latitude];
-    if (!_.isNil(altitude)) {
+    if (altitude) {
       args.push(altitude);
     }
     const satellites = parseInt(`${location.satellites}`, 10);
@@ -66,7 +66,7 @@ export async function setGeoLocation(
       }
       args.push(`${satellites}`);
     }
-    if (!_.isNil(speed)) {
+    if (speed) {
       if (args.length < 3) {
         args.push(`${DEFAULT_ALTITUDE}`);
       }
@@ -90,23 +90,26 @@ export async function setGeoLocation(
       'latitude',
       latitude,
     ];
-    if (!_.isNil(altitude)) {
+    if (altitude) {
       args.push('-e', 'altitude', altitude);
     }
-    if (!_.isNil(speed)) {
-      if (_.toNumber(speed) < 0) {
+    if (speed) {
+      const speedNum = Number(speed);
+      if (isNaN(speedNum) || speedNum < 0) {
         throw new Error(`${speed} is expected to be 0.0 or greater.`);
       }
       args.push('-e', 'speed', speed);
     }
-    if (!_.isNil(bearing)) {
-      if (!_.inRange(_.toNumber(bearing), 0, 360)) {
-        throw new Error(`${accuracy} is expected to be in [0, 360) range.`);
+    if (bearing) {
+      const bearingNum = Number(bearing);
+      if (isNaN(bearingNum) || bearingNum < 0 || bearingNum >= 360) {
+        throw new Error(`${bearing} is expected to be in [0, 360) range.`);
       }
       args.push('-e', 'bearing', bearing);
     }
-    if (!_.isNil(accuracy)) {
-      if (_.toNumber(accuracy) < 0) {
+    if (accuracy) {
+      const accuracyNum = Number(accuracy);
+      if (isNaN(accuracyNum) || accuracyNum < 0) {
         throw new Error(`${accuracy} is expected to be 0.0 or greater.`);
       }
       args.push('-e', 'accuracy', accuracy);

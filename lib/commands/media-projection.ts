@@ -1,6 +1,5 @@
 import {waitForCondition} from 'asyncbox';
 import B from 'bluebird';
-import _ from 'lodash';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {
@@ -138,7 +137,7 @@ export class MediaProjectionRecorder {
    */
   async pullRecent(): Promise<string | null> {
     const recordings = await this.adb.ls(RECORDINGS_ROOT, ['-tr']);
-    if (_.isEmpty(recordings)) {
+    if (!recordings) {
       return null;
     }
 
