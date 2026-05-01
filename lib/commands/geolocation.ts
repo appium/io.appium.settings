@@ -43,7 +43,7 @@ export async function setGeoLocation(
     }
     if (isRequired) {
       throw new Error(
-        `${valueName} is expected to be a valid float number. ` + `'${value}' is given instead`,
+        `${valueName} is expected to be a valid float number. '${value}' is given instead`,
       );
     }
     return null;

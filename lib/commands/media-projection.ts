@@ -137,7 +137,7 @@ export class MediaProjectionRecorder {
    */
   async pullRecent(): Promise<string | null> {
     const recordings = await this.adb.ls(RECORDINGS_ROOT, ['-tr']);
-    if (!recordings) {
+    if (recordings.length === 0) {
       return null;
     }
 
