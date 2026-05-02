@@ -56,7 +56,7 @@ export async function setGeoLocation(
   const accuracy = formatLocationValue('accuracy', false);
   if (isEmulator) {
     const args: string[] = [longitude, latitude];
-    if (altitude) {
+    if (altitude != null) {
       args.push(altitude);
     }
     const satellites = parseInt(`${location.satellites}`, 10);
@@ -66,7 +66,7 @@ export async function setGeoLocation(
       }
       args.push(`${satellites}`);
     }
-    if (speed) {
+    if (speed != null) {
       if (args.length < 3) {
         args.push(`${DEFAULT_ALTITUDE}`);
       }
@@ -90,24 +90,24 @@ export async function setGeoLocation(
       'latitude',
       latitude,
     ];
-    if (altitude) {
+    if (altitude != null) {
       args.push('-e', 'altitude', altitude);
     }
-    if (speed) {
+    if (speed != null) {
       const speedNum = Number(speed);
       if (isNaN(speedNum) || speedNum < 0) {
         throw new Error(`${speed} is expected to be 0.0 or greater.`);
       }
       args.push('-e', 'speed', speed);
     }
-    if (bearing) {
+    if (bearing != null) {
       const bearingNum = Number(bearing);
       if (isNaN(bearingNum) || bearingNum < 0 || bearingNum >= 360) {
         throw new Error(`${bearing} is expected to be in [0, 360) range.`);
       }
       args.push('-e', 'bearing', bearing);
     }
-    if (accuracy) {
+    if (accuracy != null) {
       const accuracyNum = Number(accuracy);
       if (isNaN(accuracyNum) || accuracyNum < 0) {
         throw new Error(`${accuracy} is expected to be 0.0 or greater.`);
