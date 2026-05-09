@@ -1,6 +1,5 @@
 import {LOCATION_SERVICE, LOCATION_RECEIVER, LOCATION_RETRIEVAL_ACTION} from '../constants';
 import {SubProcess} from 'teen_process';
-import B from 'bluebird';
 import {LOG_PREFIX} from '../logger';
 import type {SettingsApp} from '../client';
 import type {Location} from './types';
@@ -171,17 +170,31 @@ export async function refreshGeoLocationCache(this: SettingsApp, timeoutMs = 200
       `Also, it is required that the device has Google Play Services installed or is running ` +
       `Android 10+ otherwise.`;
     const monitor = logcatMonitor;
-    monitoringPromise = new B<void>((resolve, reject) => {
-      setTimeout(() => reject(new Error(timeoutErrorMsg)), timeoutMs);
+    monitoringPromise = new Promise<void>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        cleanup();
+        reject(new Error(timeoutErrorMsg));
+      }, timeoutMs);
+      const onExit = () => {
+        cleanup();
+        reject(new Error(timeoutErrorMsg));
+      };
+      const onLines = (lines: string[]) => {
+        if (lines.some((line) => GPS_CACHE_REFRESHED_LOGS.some((x) => line.includes(x)))) {
+          cleanup();
+          resolve();
+        }
+      };
+      const cleanup = () => {
+        clearTimeout(timer);
+        monitor.off('exit', onExit);
+        monitor.off('lines-stderr', onLines);
+        monitor.off('lines-stdout', onLines);
+      };
 
-      monitor.on('exit', () => reject(new Error(timeoutErrorMsg)));
-      (['lines-stderr', 'lines-stdout'] as const).map((evt) =>
-        monitor.on(evt, (lines: string[]) => {
-          if (lines.some((line) => GPS_CACHE_REFRESHED_LOGS.some((x) => line.includes(x)))) {
-            resolve();
-          }
-        }),
-      );
+      monitor.on('exit', onExit);
+      monitor.on('lines-stderr', onLines);
+      monitor.on('lines-stdout', onLines);
     });
     await logcatMonitor.start(0);
   }

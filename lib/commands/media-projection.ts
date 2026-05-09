@@ -1,5 +1,4 @@
 import {waitForCondition} from 'asyncbox';
-import B from 'bluebird';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {
@@ -107,19 +106,17 @@ export class MediaProjectionRecorder {
       args.push('--es', 'resolution', resolution);
     }
     await this.adb.shell(args);
-    await new B<void>((resolve, reject) => {
-      setTimeout(async () => {
-        if (!(await this.isRunning())) {
-          return reject(
-            new Error(
-              `The media projection recording is not running after ${RECORDING_STARTUP_TIMEOUT_MS}ms. ` +
-                `Please check the logcat output for more details.`,
-            ),
-          );
-        }
-        resolve();
-      }, RECORDING_STARTUP_TIMEOUT_MS);
-    });
+    try {
+      await waitForCondition(async () => await this.isRunning(), {
+        waitMs: RECORDING_STARTUP_TIMEOUT_MS,
+        intervalMs: 500,
+      });
+    } catch {
+      throw new Error(
+        `The media projection recording is not running after ${RECORDING_STARTUP_TIMEOUT_MS}ms. ` +
+          `Please check the logcat output for more details.`,
+      );
+    }
     return true;
   }
 

@@ -5,7 +5,8 @@
     "outDir": "build",
     "checkJs": true,
     "esModuleInterop": true,
-    "types": ["node", "mocha"]
+    "types": ["node", "mocha"],
+    "strict": true
   },
   "ts-node": {
     "transpileOnly": true,

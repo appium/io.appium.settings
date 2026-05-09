@@ -113,7 +113,7 @@ export class SettingsApp {
         try {
           await this.adb.activateApp(appPackage);
         } catch (e: any) {
-          log.warn(`The current application can not be restored: ${e.message}`);
+          this.log.warn(LOG_PREFIX, `The current application can not be restored: ${e.message}`);
         }
       }
       return this;
@@ -189,7 +189,7 @@ export class SettingsApp {
     try {
       return JSON.parse(jsonStr);
     } catch {
-      log.debug(jsonStr);
+      this.log.debug(LOG_PREFIX, jsonStr);
       throw new Error(
         `Cannot parse ${entityName} from the resulting data string. ` +
           'Check the server log for more details',
