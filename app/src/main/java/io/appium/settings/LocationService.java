@@ -71,6 +71,7 @@ public class LocationService extends Service {
             if (getApplicationContext().checkCallingOrSelfPermission(p)
                     != PackageManager.PERMISSION_GRANTED) {
                 Log.e(TAG, String.format("Cannot mock location due to missing permission '%s'", p));
+                stopSelf();
                 return START_NOT_STICKY;
             }
         }
@@ -79,9 +80,16 @@ public class LocationService extends Service {
         // https://developer.android.com/about/versions/oreo/android-8.0-changes.html
         finishForegroundSetup();
 
+        if (intent == null) {
+            Log.w(TAG, "Null intent received. Stopping mock location service");
+            stopForeground(true);
+            stopSelf();
+            return START_NOT_STICKY;
+        }
+
         handleIntent(intent);
 
-        return START_STICKY;
+        return START_NOT_STICKY;
     }
 
     @Override
@@ -89,13 +97,11 @@ public class LocationService extends Service {
         Log.i(TAG, "Shutting down MockLocationService");
         locationUpdatesTimer.cancel();
         disableLocationProviders();
+        stopForeground(true);
         super.onDestroy();
     }
 
     private void handleIntent(Intent intent) {
-        if (intent == null) {
-            return;
-        }
         Log.i(TAG, "INTENT " + intent.getExtras());
 
         scheduleLocationUpdate(intent);
