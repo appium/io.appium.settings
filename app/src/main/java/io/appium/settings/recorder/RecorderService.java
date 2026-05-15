@@ -133,17 +133,17 @@ public class RecorderService extends Service {
         }
 
         int resultCode = intent.getIntExtra(ACTION_RECORDING_RESULT_CODE, 0);
-        // get MediaProjection
-        final MediaProjection projection = mediaProjectionManager.getMediaProjection(resultCode,
-                intent);
-        if (projection == null) {
-            Log.e(TAG, "Recording is stopped, Unable to retrieve MediaProjection instance");
-            return false;
-        }
 
         String outputFilePath = intent.getStringExtra(ACTION_RECORDING_FILENAME);
         if (outputFilePath == null) {
             Log.e(TAG, "Recording is stopped, Unable to retrieve outputFilePath instance");
+            return false;
+        }
+
+        final MediaProjection projection = mediaProjectionManager.getMediaProjection(resultCode,
+                intent);
+        if (projection == null) {
+            Log.e(TAG, "Recording is stopped, Unable to retrieve MediaProjection instance");
             return false;
         }
 
