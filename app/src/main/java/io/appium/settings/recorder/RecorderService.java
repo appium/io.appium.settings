@@ -58,7 +58,6 @@ public class RecorderService extends Service {
         if (recorderThread != null && recorderThread.isRecordingRunning()) {
             recorderThread.stopRecording();
         }
-        stopForeground(true);
         super.onDestroy();
     }
 
