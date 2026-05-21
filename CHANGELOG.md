@@ -1,3 +1,9 @@
+## [7.1.3](https://github.com/appium/io.appium.settings/compare/v7.1.2...v7.1.3) (2026-05-21)
+
+### Miscellaneous Chores
+
+* Bump appium-adb to version 15 ([697b541](https://github.com/appium/io.appium.settings/commit/697b54187bc473b17baab81faa6a4eeb03ec22a4))
+
 ## [7.1.2](https://github.com/appium/io.appium.settings/compare/v7.1.1...v7.1.2) (2026-05-16)
 
 ### Bug Fixes
