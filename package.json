@@ -64,7 +64,7 @@
     "@types/mocha": "^10.0.10",
     "@types/node": "^25.0.0",
     "@types/sinon": "^21.0.0",
-    "appium-adb": "^14.0.0",
+    "appium-adb": "^15.0.0",
     "chai": "^6.0.0",
     "chai-as-promised": "^8.0.0",
     "conventional-changelog-conventionalcommits": "^9.0.0",
