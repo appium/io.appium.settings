@@ -1,3 +1,10 @@
+## [7.1.4](https://github.com/appium/io.appium.settings/compare/v7.1.3...v7.1.4) (2026-06-19)
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 25.9.4 to 26.0.0 ([#292](https://github.com/appium/io.appium.settings/issues/292)) ([719d1e2](https://github.com/appium/io.appium.settings/commit/719d1e2f321a224edcfa631860f36b88879f40b5))
+* **deps:** bump gradle-wrapper from 9.5.1 to 9.6.0 ([#293](https://github.com/appium/io.appium.settings/issues/293)) ([c8c6721](https://github.com/appium/io.appium.settings/commit/c8c672176d06088661e174cddd58fca989fcab66))
+
 ## [7.1.3](https://github.com/appium/io.appium.settings/compare/v7.1.2...v7.1.3) (2026-05-21)
 
 ### Miscellaneous Chores
