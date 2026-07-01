@@ -1,3 +1,9 @@
+## [7.1.9](https://github.com/appium/io.appium.settings/compare/v7.1.8...v7.1.9) (2026-07-01)
+
+### Miscellaneous Chores
+
+* downgrade conventional-changelog-conventionalcommits to v9 ([#298](https://github.com/appium/io.appium.settings/issues/298)) ([77981ad](https://github.com/appium/io.appium.settings/commit/77981ad2c6eaa3508c95e55145d13cb4abf7d87e))
+
 ## [7.1.8](https://github.com/appium/io.appium.settings/compare/v7.1.7...v7.1.8) (2026-07-01)
 
 ## [7.1.7](https://github.com/appium/io.appium.settings/compare/v7.1.6...v7.1.7) (2026-06-29)
