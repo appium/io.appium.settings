@@ -1,3 +1,5 @@
+## [7.1.8](https://github.com/appium/io.appium.settings/compare/v7.1.7...v7.1.8) (2026-07-01)
+
 ## [7.1.7](https://github.com/appium/io.appium.settings/compare/v7.1.6...v7.1.7) (2026-06-29)
 
 ## [7.1.6](https://github.com/appium/io.appium.settings/compare/v7.1.5...v7.1.6) (2026-06-29)
