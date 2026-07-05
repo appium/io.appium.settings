@@ -4,7 +4,7 @@ import {getSettingsApkPath} from '../../lib/utils';
 import fs from 'node:fs/promises';
 import {expect, use} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import {describe, it, before, beforeEach, after} from 'node:test';
+import {describe, it, before, beforeEach, after, type TestContext} from 'node:test';
 
 use(chaiAsPromised);
 
@@ -81,7 +81,12 @@ describe('Media Projection', function () {
   });
 
   describe('Media Projection Recorder', function () {
-    it('should start and stop recording successfully', {skip: shouldSkip}, async function () {
+    it('should start and stop recording successfully', async function (ctx: TestContext) {
+      if (shouldSkip) {
+        ctx.skip();
+        return;
+      }
+
       // Initially, recording should not be running
       expect(await recorder.isRunning()).to.be.false;
 
@@ -110,7 +115,12 @@ describe('Media Projection', function () {
       expect(await recorder.isRunning()).to.be.false;
     });
 
-    it('should handle multiple start calls gracefully', {skip: shouldSkip}, async function () {
+    it('should handle multiple start calls gracefully', async function (ctx: TestContext) {
+      if (shouldSkip) {
+        ctx.skip();
+        return;
+      }
+
       // Adjust permissions
       await settingsApp.adjustMediaProjectionServicePermissions();
 
@@ -130,7 +140,12 @@ describe('Media Projection', function () {
       await recorder.stop();
     });
 
-    it('should pull recording file after stopping', {skip: shouldSkip}, async function () {
+    it('should pull recording file after stopping', async function (ctx: TestContext) {
+      if (shouldSkip) {
+        ctx.skip();
+        return;
+      }
+
       // Adjust permissions
       await settingsApp.adjustMediaProjectionServicePermissions();
 
@@ -162,7 +177,12 @@ describe('Media Projection', function () {
       }
     });
 
-    it('should handle cleanup of old recordings', {skip: shouldSkip}, async function () {
+    it('should handle cleanup of old recordings', async function (ctx: TestContext) {
+      if (shouldSkip) {
+        ctx.skip();
+        return;
+      }
+
       // Adjust permissions
       await settingsApp.adjustMediaProjectionServicePermissions();
 
