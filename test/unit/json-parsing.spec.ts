@@ -1,6 +1,7 @@
 import {SettingsApp} from '../../lib/client';
 import {expect} from 'chai';
 import {ADB} from 'appium-adb';
+import {describe, it} from 'node:test';
 
 describe('parseJsonData', function () {
   const adb = new ADB({});

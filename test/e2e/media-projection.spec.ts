@@ -4,6 +4,7 @@ import {getSettingsApkPath} from '../../lib/utils';
 import fs from 'node:fs/promises';
 import {expect, use} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
+import {describe, it, before, beforeEach, after} from 'node:test';
 
 use(chaiAsPromised);
 
@@ -11,6 +12,7 @@ describe('Media Projection', function () {
   let adb: ADB;
   let settingsApp: SettingsApp;
   let recorder: ReturnType<SettingsApp['makeMediaProjectionRecorder']>;
+  let shouldSkip: boolean;
 
   before(async function () {
     // Initialize ADB
@@ -19,7 +21,8 @@ describe('Media Projection', function () {
     // Check API level - media projection only works on API 29+
     const apiLevel = await adb.getApiLevel();
     if (apiLevel < 29) {
-      this.skip(); // Skip entire suite if API level is too low
+      shouldSkip = true; // Skip entire suite if API level is too low
+      return;
     }
 
     // Initialize SettingsApp
@@ -48,6 +51,10 @@ describe('Media Projection', function () {
   });
 
   beforeEach(async function () {
+    if (shouldSkip) {
+      return;
+    }
+
     // Ensure recorder is stopped before each test
     try {
       if (await recorder.isRunning()) {
@@ -59,6 +66,10 @@ describe('Media Projection', function () {
   });
 
   after(async function () {
+    if (shouldSkip) {
+      return;
+    }
+
     // Clean up: stop any running recording
     try {
       if (await recorder.isRunning()) {
@@ -70,7 +81,7 @@ describe('Media Projection', function () {
   });
 
   describe('Media Projection Recorder', function () {
-    it('should start and stop recording successfully', async function () {
+    it('should start and stop recording successfully', {skip: shouldSkip}, async function () {
       // Initially, recording should not be running
       expect(await recorder.isRunning()).to.be.false;
 
@@ -99,7 +110,7 @@ describe('Media Projection', function () {
       expect(await recorder.isRunning()).to.be.false;
     });
 
-    it('should handle multiple start calls gracefully', async function () {
+    it('should handle multiple start calls gracefully', {skip: shouldSkip}, async function () {
       // Adjust permissions
       await settingsApp.adjustMediaProjectionServicePermissions();
 
@@ -119,7 +130,7 @@ describe('Media Projection', function () {
       await recorder.stop();
     });
 
-    it('should pull recording file after stopping', async function () {
+    it('should pull recording file after stopping', {skip: shouldSkip}, async function () {
       // Adjust permissions
       await settingsApp.adjustMediaProjectionServicePermissions();
 
@@ -151,7 +162,7 @@ describe('Media Projection', function () {
       }
     });
 
-    it('should handle cleanup of old recordings', async function () {
+    it('should handle cleanup of old recordings', {skip: shouldSkip}, async function () {
       // Adjust permissions
       await settingsApp.adjustMediaProjectionServicePermissions();
 
