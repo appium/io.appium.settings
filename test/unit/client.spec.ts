@@ -1,4 +1,4 @@
-import {SettingsApp} from '../../lib/client';
+import {SettingsApp} from '../../lib/client.js';
 import {ADB} from 'appium-adb';
 import {expect, use} from 'chai';
 import chaiAsPromised from 'chai-as-promised';

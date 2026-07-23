@@ -1,4 +1,4 @@
-import {SettingsApp} from '../../lib/client';
+import {SettingsApp} from '../../lib/client.js';
 import {expect} from 'chai';
 import {ADB} from 'appium-adb';
 import {describe, it} from 'node:test';

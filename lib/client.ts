@@ -1,20 +1,20 @@
-import {log, LOG_PREFIX} from './logger';
+import {log, LOG_PREFIX} from './logger.js';
 import {waitForCondition} from 'asyncbox';
-import {SETTINGS_HELPER_ID, SETTINGS_HELPER_MAIN_ACTIVITY} from './constants';
-import {setAnimationState} from './commands/animation';
-import {setBluetoothState, unpairAllBluetoothDevices} from './commands/bluetooth';
-import {getClipboard} from './commands/clipboard';
-import {setGeoLocation, getGeoLocation, refreshGeoLocationCache} from './commands/geolocation';
-import {setDeviceLocale, listSupportedLocales} from './commands/locale';
-import {scanMedia} from './commands/media';
-import {setDataState, setWifiState} from './commands/network';
-import {getNotifications, adjustNotificationsPermissions} from './commands/notifications';
-import {getSmsList} from './commands/sms';
-import {performEditorAction, typeUnicode} from './commands/typing';
+import {SETTINGS_HELPER_ID, SETTINGS_HELPER_MAIN_ACTIVITY} from './constants.js';
+import {setAnimationState} from './commands/animation.js';
+import {setBluetoothState, unpairAllBluetoothDevices} from './commands/bluetooth.js';
+import {getClipboard} from './commands/clipboard.js';
+import {setGeoLocation, getGeoLocation, refreshGeoLocationCache} from './commands/geolocation.js';
+import {setDeviceLocale, listSupportedLocales} from './commands/locale.js';
+import {scanMedia} from './commands/media.js';
+import {setDataState, setWifiState} from './commands/network.js';
+import {getNotifications, adjustNotificationsPermissions} from './commands/notifications.js';
+import {getSmsList} from './commands/sms.js';
+import {performEditorAction, typeUnicode} from './commands/typing.js';
 import {
   makeMediaProjectionRecorder,
   adjustMediaProjectionServicePermissions,
-} from './commands/media-projection';
+} from './commands/media-projection.js';
 import type {ADB} from 'appium-adb';
 import type {Logger} from '@appium/logger';
 

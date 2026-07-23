@@ -1,5 +1,6 @@
 import path from 'node:path';
 import fs from 'node:fs';
+import {fileURLToPath} from 'node:url';
 
 const MODULE_NAME = 'io.appium.settings';
 
@@ -19,7 +20,7 @@ export function getSettingsApkPath(): string {
  * @returns Full path to the module root
  */
 function getModuleRootSync(): string {
-  let currentDir = __dirname;
+  let currentDir = path.dirname(fileURLToPath(import.meta.url));
   let isAtFsRoot = false;
   while (!isAtFsRoot) {
     const manifestPath = path.join(currentDir, 'package.json');

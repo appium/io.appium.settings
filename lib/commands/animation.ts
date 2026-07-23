@@ -1,4 +1,4 @@
-import type {SettingsApp} from '../client';
+import type {SettingsApp} from '../client.js';
 
 /**
  * Change the state of animation on the device under test via adb settings command for API level 26+.

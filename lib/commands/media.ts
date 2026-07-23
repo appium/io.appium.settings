@@ -1,6 +1,6 @@
-import {LOG_PREFIX} from '../logger';
-import {MEDIA_SCAN_ACTION, MEDIA_SCAN_RECEIVER} from '../constants';
-import type {SettingsApp} from '../client';
+import {LOG_PREFIX} from '../logger.js';
+import {MEDIA_SCAN_ACTION, MEDIA_SCAN_RECEIVER} from '../constants.js';
+import type {SettingsApp} from '../client.js';
 
 /**
  * Performs recursive media scan at the given destination.

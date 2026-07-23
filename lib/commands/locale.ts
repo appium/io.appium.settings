@@ -1,12 +1,12 @@
-import {LOG_PREFIX} from '../logger';
+import {LOG_PREFIX} from '../logger.js';
 import {
   LOCALE_SETTING_ACTION,
   LOCALE_SETTING_RECEIVER,
   LOCALES_LIST_SETTING_ACTION,
   LOCALES_LIST_SETTING_RECEIVER,
-} from '../constants';
-import type {SettingsApp} from '../client';
-import type {SupportedLocale} from './types';
+} from '../constants.js';
+import type {SettingsApp} from '../client.js';
+import type {SupportedLocale} from './types.js';
 
 /**
  * Set the locale name of the device under test.

@@ -1,7 +1,10 @@
-const fs = require('node:fs');
-const path = require('node:path');
-const semver = require('semver');
-const {log: appiumLogger} = require('@appium/logger');
+import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import semver from 'semver';
+import {log as appiumLogger} from '@appium/logger';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const logger = global._global_npmlog || appiumLogger;
 const LOG_PREFIX = 'VersionUpdate';

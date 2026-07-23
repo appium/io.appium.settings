@@ -1,6 +1,6 @@
-import {LOG_PREFIX} from '../logger';
-import {CLIPBOARD_RECEIVER, CLIPBOARD_RETRIEVAL_ACTION, APPIUM_IME} from '../constants';
-import type {SettingsApp} from '../client';
+import {LOG_PREFIX} from '../logger.js';
+import {CLIPBOARD_RECEIVER, CLIPBOARD_RETRIEVAL_ACTION, APPIUM_IME} from '../constants.js';
+import type {SettingsApp} from '../client.js';
 
 /**
  * Retrieves the text content of the device's clipboard.

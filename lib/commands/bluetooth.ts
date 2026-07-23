@@ -3,8 +3,8 @@ import {
   BLUETOOTH_SETTING_RECEIVER,
   BLUETOOTH_UNPAIR_ACTION,
   BLUETOOTH_UNPAIR_RECEIVER,
-} from '../constants';
-import type {SettingsApp} from '../client';
+} from '../constants.js';
+import type {SettingsApp} from '../client.js';
 
 /**
  * Change the state of bluetooth on the device under test.

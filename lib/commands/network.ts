@@ -1,5 +1,5 @@
-import {WIFI_CONNECTION_SETTING_ACTION, WIFI_CONNECTION_SETTING_RECEIVER} from '../constants';
-import type {SettingsApp} from '../client';
+import {WIFI_CONNECTION_SETTING_ACTION, WIFI_CONNECTION_SETTING_RECEIVER} from '../constants.js';
+import type {SettingsApp} from '../client.js';
 
 /**
  * Change the state of WiFi on the device under test.

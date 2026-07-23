@@ -1,4 +1,4 @@
-import appiumLogger from '@appium/logger';
+import {log as appiumLogger} from '@appium/logger';
 
 export const LOG_PREFIX = 'SettingsApp';
 

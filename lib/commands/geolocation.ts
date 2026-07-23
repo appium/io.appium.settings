@@ -1,8 +1,8 @@
-import {LOCATION_SERVICE, LOCATION_RECEIVER, LOCATION_RETRIEVAL_ACTION} from '../constants';
+import {LOCATION_SERVICE, LOCATION_RECEIVER, LOCATION_RETRIEVAL_ACTION} from '../constants.js';
 import {SubProcess} from 'teen_process';
-import {LOG_PREFIX} from '../logger';
-import type {SettingsApp} from '../client';
-import type {Location} from './types';
+import {LOG_PREFIX} from '../logger.js';
+import type {SettingsApp} from '../client.js';
+import type {Location} from './types.js';
 
 const DEFAULT_SATELLITES_COUNT = 12;
 const DEFAULT_ALTITUDE = 0.0;

@@ -1,7 +1,7 @@
-import {APPIUM_IME, UNICODE_IME} from '../constants';
-import {imap} from './utf7';
-import {LOG_PREFIX} from '../logger';
-import type {SettingsApp} from '../client';
+import {APPIUM_IME, UNICODE_IME} from '../constants.js';
+import {imap} from './utf7.js';
+import {LOG_PREFIX} from '../logger.js';
+import type {SettingsApp} from '../client.js';
 
 /**
  * Performs the given editor action on the focused input field.

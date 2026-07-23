@@ -4,8 +4,16 @@
   "description": "App for dealing with Android settings",
   "main": "./build/lib/index.js",
   "types": "./build/lib/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./build/lib/index.d.ts",
+      "import": "./build/lib/index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "scripts": {
-    "bump-gradle-version": "node scripts/gradle-version-update.js --package-version=${npm_package_version} && git add app/build.gradle",
+    "bump-gradle-version": "node scripts/gradle-version-update.mjs --package-version=${npm_package_version} && git add app/build.gradle",
     "lint": "./gradlew lint",
     "js:lint": "eslint .",
     "js:lint:fix": "npm run js:lint -- --fix",
@@ -15,8 +23,8 @@
     "prepare": "npm run build",
     "version": "npm run bump-gradle-version && npm run build",
     "clean": "npm run build -- --clean",
-    "js:test": "node --test --test-timeout=60000 \"./build/test/unit/**/*.spec.js\"",
-    "e2e-test": "node --test --test-force-exit --test-concurrency=1 --test-timeout=300000 \"./build/test/e2e/**/*.spec.js\"",
+    "js:test": "node --enable-source-maps --test --test-timeout=60000 \"./build/test/unit/**/*.spec.js\"",
+    "e2e-test": "node --enable-source-maps --test --test-force-exit --test-concurrency=1 --test-timeout=300000 \"./build/test/e2e/**/*.spec.js\"",
     "format": "prettier -w ./lib ./test",
     "format:check": "prettier --check ./lib ./test"
   },

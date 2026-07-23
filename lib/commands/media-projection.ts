@@ -7,10 +7,10 @@ import {
   RECORDING_ACTION_STOP,
   RECORDING_ACTIVITY_NAME,
   RECORDING_SERVICE_NAME,
-} from '../constants';
+} from '../constants.js';
 import type {ADB} from 'appium-adb';
-import type {SettingsApp} from '../client';
-import type {StartMediaProjectionRecordingOpts} from './types';
+import type {SettingsApp} from '../client.js';
+import type {StartMediaProjectionRecordingOpts} from './types.js';
 
 /**
  * Creates a new instance of the MediaProjection-based recorder.

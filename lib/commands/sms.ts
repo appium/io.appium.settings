@@ -1,7 +1,7 @@
-import {LOG_PREFIX} from '../logger';
-import {SMS_LIST_RECEIVER, SMS_LIST_RETRIEVAL_ACTION} from '../constants';
-import type {SettingsApp} from '../client';
-import type {SmsListOptions, SmsListResult} from './types';
+import {LOG_PREFIX} from '../logger.js';
+import {SMS_LIST_RECEIVER, SMS_LIST_RETRIEVAL_ACTION} from '../constants.js';
+import type {SettingsApp} from '../client.js';
+import type {SmsListOptions, SmsListResult} from './types.js';
 
 /**
  * Retrieves the list of the most recent SMS

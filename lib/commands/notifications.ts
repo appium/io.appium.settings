@@ -1,6 +1,9 @@
-import {LOG_PREFIX} from '../logger';
-import {NOTIFICATIONS_RETRIEVAL_ACTION, SETTING_NOTIFICATIONS_LISTENER_SERVICE} from '../constants';
-import type {SettingsApp} from '../client';
+import {LOG_PREFIX} from '../logger.js';
+import {
+  NOTIFICATIONS_RETRIEVAL_ACTION,
+  SETTING_NOTIFICATIONS_LISTENER_SERVICE,
+} from '../constants.js';
+import type {SettingsApp} from '../client.js';
 
 /**
  * Retrieves Android notifications via Appium Settings helper.
