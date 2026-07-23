@@ -71,7 +71,7 @@
     "@types/chai-as-promised": "^8.0.2",
     "@types/node": "^26.0.0",
     "@types/sinon": "^22.0.0",
-    "appium-adb": "^15.0.0",
+    "appium-adb": "^16.0.0",
     "chai": "^6.0.0",
     "chai-as-promised": "^8.0.0",
     "conventional-changelog-conventionalcommits": "^9.3.1",
