@@ -1,6 +1,6 @@
-import {LOG_PREFIX} from '../logger.js';
-import {SMS_LIST_RECEIVER, SMS_LIST_RETRIEVAL_ACTION} from '../constants.js';
 import type {SettingsApp} from '../client.js';
+import {SMS_LIST_RECEIVER, SMS_LIST_RETRIEVAL_ACTION} from '../constants.js';
+import {LOG_PREFIX} from '../logger.js';
 import type {SmsListOptions, SmsListResult} from './types.js';
 
 /**
@@ -45,10 +45,7 @@ import type {SmsListOptions, SmsListResult} from './types.js';
  * @returns The SMS list result
  * @throws {Error} If there was an error while getting the SMS list
  */
-export async function getSmsList(
-  this: SettingsApp,
-  opts: SmsListOptions = {},
-): Promise<SmsListResult> {
+export async function getSmsList(this: SettingsApp, opts: SmsListOptions = {}): Promise<SmsListResult> {
   this.log.debug(LOG_PREFIX, 'Retrieving the recent SMS messages');
   const args: string[] = ['-n', SMS_LIST_RECEIVER, '-a', SMS_LIST_RETRIEVAL_ACTION];
   if (opts.max) {

@@ -1,5 +1,5 @@
-import path from 'node:path';
 import fs from 'node:fs';
+import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 const MODULE_NAME = 'io.appium.settings';
@@ -25,10 +25,7 @@ function getModuleRootSync(): string {
   while (!isAtFsRoot) {
     const manifestPath = path.join(currentDir, 'package.json');
     try {
-      if (
-        fs.existsSync(manifestPath) &&
-        JSON.parse(fs.readFileSync(manifestPath, 'utf8')).name === MODULE_NAME
-      ) {
+      if (fs.existsSync(manifestPath) && JSON.parse(fs.readFileSync(manifestPath, 'utf8')).name === MODULE_NAME) {
         return currentDir;
       }
     } catch {}

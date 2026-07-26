@@ -1,22 +1,20 @@
-import {log, LOG_PREFIX} from './logger.js';
+import type {Logger} from '@appium/logger';
+import type {ADB} from 'appium-adb';
 import {waitForCondition} from 'asyncbox';
-import {SETTINGS_HELPER_ID, SETTINGS_HELPER_MAIN_ACTIVITY} from './constants.js';
+
 import {setAnimationState} from './commands/animation.js';
 import {setBluetoothState, unpairAllBluetoothDevices} from './commands/bluetooth.js';
 import {getClipboard} from './commands/clipboard.js';
 import {setGeoLocation, getGeoLocation, refreshGeoLocationCache} from './commands/geolocation.js';
 import {setDeviceLocale, listSupportedLocales} from './commands/locale.js';
+import {makeMediaProjectionRecorder, adjustMediaProjectionServicePermissions} from './commands/media-projection.js';
 import {scanMedia} from './commands/media.js';
 import {setDataState, setWifiState} from './commands/network.js';
 import {getNotifications, adjustNotificationsPermissions} from './commands/notifications.js';
 import {getSmsList} from './commands/sms.js';
 import {performEditorAction, typeUnicode} from './commands/typing.js';
-import {
-  makeMediaProjectionRecorder,
-  adjustMediaProjectionServicePermissions,
-} from './commands/media-projection.js';
-import type {ADB} from 'appium-adb';
-import type {Logger} from '@appium/logger';
+import {SETTINGS_HELPER_ID, SETTINGS_HELPER_MAIN_ACTIVITY} from './constants.js';
+import {log, LOG_PREFIX} from './logger.js';
 
 export interface SettingsAppOpts {
   adb: ADB;
@@ -173,17 +171,12 @@ export class SettingsApp {
   _parseJsonData(output: string, entityName: string): any {
     if (!/\bresult=-1\b/.test(output) || !/\bdata="/.test(output)) {
       this.log.debug(LOG_PREFIX, output);
-      throw new Error(
-        `Cannot retrieve ${entityName} from the device. ` + 'Check the server log for more details',
-      );
+      throw new Error(`Cannot retrieve ${entityName} from the device. ` + 'Check the server log for more details');
     }
     const match = /\bdata="(.+)",?/.exec(output);
     if (!match) {
       this.log.debug(LOG_PREFIX, output);
-      throw new Error(
-        `Cannot parse ${entityName} from the command output. ` +
-          'Check the server log for more details',
-      );
+      throw new Error(`Cannot parse ${entityName} from the command output. ` + 'Check the server log for more details');
     }
     const jsonStr = match[1].trim();
     try {
@@ -191,8 +184,7 @@ export class SettingsApp {
     } catch {
       this.log.debug(LOG_PREFIX, jsonStr);
       throw new Error(
-        `Cannot parse ${entityName} from the resulting data string. ` +
-          'Check the server log for more details',
+        `Cannot parse ${entityName} from the resulting data string. ` + 'Check the server log for more details',
       );
     }
   }

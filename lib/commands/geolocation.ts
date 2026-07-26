@@ -1,7 +1,8 @@
-import {LOCATION_SERVICE, LOCATION_RECEIVER, LOCATION_RETRIEVAL_ACTION} from '../constants.js';
 import {SubProcess} from 'teen_process';
-import {LOG_PREFIX} from '../logger.js';
+
 import type {SettingsApp} from '../client.js';
+import {LOCATION_SERVICE, LOCATION_RECEIVER, LOCATION_RETRIEVAL_ACTION} from '../constants.js';
+import {LOG_PREFIX} from '../logger.js';
 import type {Location} from './types.js';
 
 const DEFAULT_SATELLITES_COUNT = 12;
@@ -22,11 +23,7 @@ const GPS_COORDINATES_PATTERN = /data="(-?[\d.]+)\s+(-?[\d.]+)\s+(-?[\d.]+)"/;
  * @param isEmulator - Set it to true if the device under test is an emulator rather than a real device
  * @throws {Error} If required location values are missing or invalid
  */
-export async function setGeoLocation(
-  this: SettingsApp,
-  location: Location,
-  isEmulator = false,
-): Promise<void> {
+export async function setGeoLocation(this: SettingsApp, location: Location, isEmulator = false): Promise<void> {
   const formatLocationValue = (valueName: keyof Location, isRequired = true): string | null => {
     const value = location[valueName];
     if (value === null || value === undefined) {
@@ -41,9 +38,7 @@ export async function setGeoLocation(
       return `${Math.ceil(floatValue * 1e5) / 1e5}`;
     }
     if (isRequired) {
-      throw new Error(
-        `${valueName} is expected to be a valid float number. '${value}' is given instead`,
-      );
+      throw new Error(`${valueName} is expected to be a valid float number. '${value}' is given instead`);
     }
     return null;
   };
@@ -79,16 +74,7 @@ export async function setGeoLocation(
     // A workaround for https://code.google.com/p/android/issues/detail?id=206180
     await this.adb.adbExec(['emu', 'geo', 'fix', ...args.map((arg) => arg.replace('.', ','))]);
   } else {
-    const args: string[] = [
-      'am',
-      'start-foreground-service',
-      '-e',
-      'longitude',
-      longitude,
-      '-e',
-      'latitude',
-      latitude,
-    ];
+    const args: string[] = ['am', 'start-foreground-service', '-e', 'longitude', longitude, '-e', 'latitude', latitude];
     if (altitude != null) {
       args.push('-e', 'altitude', altitude);
     }
@@ -212,8 +198,7 @@ export async function refreshGeoLocationCache(this: SettingsApp, timeoutMs = 200
       await monitoringPromise;
       this.log.info(
         LOG_PREFIX,
-        `The GPS cache has been successfully refreshed after ` +
-          `${(performance.now() - startMs).toFixed(0)}ms`,
+        `The GPS cache has been successfully refreshed after ` + `${(performance.now() - startMs).toFixed(0)}ms`,
       );
     } finally {
       if (logcatMonitor.isRunning) {
@@ -221,9 +206,6 @@ export async function refreshGeoLocationCache(this: SettingsApp, timeoutMs = 200
       }
     }
   } else {
-    this.log.info(
-      LOG_PREFIX,
-      'The request to refresh the GPS cache has been sent. Skipping waiting for its result.',
-    );
+    this.log.info(LOG_PREFIX, 'The request to refresh the GPS cache has been sent. Skipping waiting for its result.');
   }
 }

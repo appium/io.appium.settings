@@ -1,10 +1,12 @@
-import {SettingsApp} from '../../lib/client.js';
-import {ADB} from 'appium-adb';
-import {getSettingsApkPath} from '../../lib/utils.js';
 import fs from 'node:fs/promises';
+import {describe, it, before, beforeEach, after, type TestContext} from 'node:test';
+
+import {ADB} from 'appium-adb';
 import {expect, use} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import {describe, it, before, beforeEach, after, type TestContext} from 'node:test';
+
+import {SettingsApp} from '../../lib/client.js';
+import {getSettingsApkPath} from '../../lib/utils.js';
 
 use(chaiAsPromised);
 

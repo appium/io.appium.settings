@@ -1,5 +1,5 @@
-import {WIFI_CONNECTION_SETTING_ACTION, WIFI_CONNECTION_SETTING_RECEIVER} from '../constants.js';
 import type {SettingsApp} from '../client.js';
+import {WIFI_CONNECTION_SETTING_ACTION, WIFI_CONNECTION_SETTING_RECEIVER} from '../constants.js';
 
 /**
  * Change the state of WiFi on the device under test.
@@ -7,11 +7,7 @@ import type {SettingsApp} from '../client.js';
  * @param on - True to enable and false to disable it
  * @param isEmulator - Set it to true if the device under test is an emulator rather than a real device
  */
-export async function setWifiState(
-  this: SettingsApp,
-  on: boolean,
-  isEmulator = false,
-): Promise<void> {
+export async function setWifiState(this: SettingsApp, on: boolean, isEmulator = false): Promise<void> {
   if (isEmulator) {
     // The svc command does not require to be root since API 26
     await this.adb.shell(['svc', 'wifi', on ? 'enable' : 'disable']);
@@ -47,11 +43,7 @@ export async function setWifiState(
  * @param isEmulator - Set it to true if the device under test is an emulator rather than a real device
  * @throws {Error} If the data state cannot be changed
  */
-export async function setDataState(
-  this: SettingsApp,
-  on: boolean,
-  isEmulator = false,
-): Promise<void> {
+export async function setDataState(this: SettingsApp, on: boolean, isEmulator = false): Promise<void> {
   if (isEmulator) {
     // The svc command does not require to be root since API 26
     await this.adb.shell(['svc', 'data', on ? 'enable' : 'disable']);

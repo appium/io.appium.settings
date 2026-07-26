@@ -1,9 +1,11 @@
-import {SettingsApp} from '../../lib/client.js';
+import {describe, it, beforeEach, afterEach} from 'node:test';
+
 import {ADB} from 'appium-adb';
 import {expect, use} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import sinon from 'sinon';
-import {describe, it, beforeEach, afterEach} from 'node:test';
+
+import {SettingsApp} from '../../lib/client.js';
 
 use(chaiAsPromised);
 

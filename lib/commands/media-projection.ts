@@ -1,6 +1,10 @@
-import {waitForCondition} from 'asyncbox';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+
+import type {ADB} from 'appium-adb';
+import {waitForCondition} from 'asyncbox';
+
+import type {SettingsApp} from '../client.js';
 import {
   SETTINGS_HELPER_ID,
   RECORDING_ACTION_START,
@@ -8,8 +12,6 @@ import {
   RECORDING_ACTIVITY_NAME,
   RECORDING_SERVICE_NAME,
 } from '../constants.js';
-import type {ADB} from 'appium-adb';
-import type {SettingsApp} from '../client.js';
 import type {StartMediaProjectionRecordingOpts} from './types.js';
 
 /**
@@ -61,12 +63,7 @@ export class MediaProjectionRecorder {
    * Checks if the recording is currently running.
    */
   async isRunning(): Promise<boolean> {
-    const stdout = await this.adb.shell([
-      'dumpsys',
-      'activity',
-      'services',
-      RECORDING_SERVICE_NAME,
-    ]);
+    const stdout = await this.adb.shell(['dumpsys', 'activity', 'services', RECORDING_SERVICE_NAME]);
     return stdout.includes(RECORDING_SERVICE_NAME);
   }
 
@@ -85,14 +82,7 @@ export class MediaProjectionRecorder {
 
     await this.cleanup();
     const {filename, maxDurationSec, priority, resolution} = opts;
-    const args: string[] = [
-      'am',
-      'start',
-      '-n',
-      RECORDING_ACTIVITY_NAME,
-      '-a',
-      RECORDING_ACTION_START,
-    ];
+    const args: string[] = ['am', 'start', '-n', RECORDING_ACTIVITY_NAME, '-a', RECORDING_ACTION_START];
     if (filename) {
       args.push('--es', 'filename', filename);
     }
@@ -158,14 +148,7 @@ export class MediaProjectionRecorder {
       return false;
     }
 
-    await this.adb.shell([
-      'am',
-      'start',
-      '-n',
-      RECORDING_ACTIVITY_NAME,
-      '-a',
-      RECORDING_ACTION_STOP,
-    ]);
+    await this.adb.shell(['am', 'start', '-n', RECORDING_ACTIVITY_NAME, '-a', RECORDING_ACTION_STOP]);
     try {
       await waitForCondition(async () => !(await this.isRunning()), {
         waitMs: RECORDING_STOP_TIMEOUT_MS,

@@ -1,11 +1,11 @@
-import {LOG_PREFIX} from '../logger.js';
+import type {SettingsApp} from '../client.js';
 import {
   LOCALE_SETTING_ACTION,
   LOCALE_SETTING_RECEIVER,
   LOCALES_LIST_SETTING_ACTION,
   LOCALES_LIST_SETTING_RECEIVER,
 } from '../constants.js';
-import type {SettingsApp} from '../client.js';
+import {LOG_PREFIX} from '../logger.js';
 import type {SupportedLocale} from './types.js';
 
 /**
@@ -59,9 +59,7 @@ export async function listSupportedLocales(this: SettingsApp): Promise<Supported
   const output = await this.checkBroadcast(params, 'list supported locales');
   const match = /result=-1, data="([^"]+)/.exec(output);
   if (!match) {
-    throw new Error(
-      'Cannot retrieve the list of supported device locales. Check the logcat output for more details',
-    );
+    throw new Error('Cannot retrieve the list of supported device locales. Check the logcat output for more details');
   }
   return JSON.parse(Buffer.from(match[1], 'base64').toString()).items;
 }
@@ -102,11 +100,7 @@ async function setDeviceLocaleInternal(
     try {
       await this.checkBroadcast(params, 'set device locale');
     } catch (err: any) {
-      if (
-        retry === 0 &&
-        typeof err?.output === 'string' &&
-        err.output.includes('NoSuchMethodException')
-      ) {
+      if (retry === 0 && typeof err?.output === 'string' && err.output.includes('NoSuchMethodException')) {
         // The above exception may be thrown if hidden API policies have not been picked up by
         // Settings app yet. Restart might fix this issue.
         await this.requireRunning({

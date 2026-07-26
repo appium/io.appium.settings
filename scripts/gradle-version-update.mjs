@@ -1,8 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import semver from 'semver';
+
 import {log as appiumLogger} from '@appium/logger';
+import semver from 'semver';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -12,7 +13,7 @@ const LOG_PREFIX = 'VersionUpdate';
 const VERSION_NAME_PATTERN = /^\s*versionName\s+['"](.+)['"]$/gm;
 const VERSION_CODE_PATTERN = /^\s*versionCode\s+(.+)$/gm;
 
-function parseArgValue (argName) {
+function parseArgValue(argName) {
   const argNamePattern = new RegExp(`^--${argName}\\b`);
   for (let i = 1; i < process.argv.length; ++i) {
     const arg = process.argv[i];
@@ -23,8 +24,7 @@ function parseArgValue (argName) {
   return null;
 }
 
-
-async function gradleVersionUpdate () {
+async function gradleVersionUpdate() {
   const gradleFile = path.resolve(__dirname, '..', 'app', 'build.gradle');
   try {
     await fs.promises.access(gradleFile, fs.constants.W_OK);
@@ -37,9 +37,7 @@ async function gradleVersionUpdate () {
     throw new Error('No package version argument (use `--package-version=xxx`)');
   }
   if (!semver.valid(version)) {
-    throw new Error(
-      `Invalid version specified '${version}'. Version should be in the form '1.2.3'`
-    );
+    throw new Error(`Invalid version specified '${version}'. Version should be in the form '1.2.3'`);
   }
 
   const gradleFilePayload = await fs.promises.readFile(gradleFile, 'utf8');
@@ -57,7 +55,7 @@ async function gradleVersionUpdate () {
   const newCode = parseInt(versionCodeMatch[1], 10) + 1;
   logger.info(
     LOG_PREFIX,
-    `Updating gradle build file '${gradleFile}' to version name '${version}' and version code '${newCode}'`
+    `Updating gradle build file '${gradleFile}' to version name '${version}' and version code '${newCode}'`,
   );
   const newVersionCode = versionCodeMatch[0].replace(/\d+/, `${newCode}`);
   const newPayload = gradleFilePayload
