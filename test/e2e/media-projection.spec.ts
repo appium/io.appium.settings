@@ -1,14 +1,11 @@
+import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import {describe, it, before, beforeEach, after, type TestContext} from 'node:test';
 
 import {ADB} from 'appium-adb';
-import {expect, use} from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 
 import {SettingsApp} from '../../lib/client.js';
 import {getSettingsApkPath} from '../../lib/utils.js';
-
-use(chaiAsPromised);
 
 describe('Media Projection', function () {
   let adb: ADB;
@@ -90,7 +87,7 @@ describe('Media Projection', function () {
       }
 
       // Initially, recording should not be running
-      expect(await recorder.isRunning()).to.be.false;
+      assert.strictEqual(await recorder.isRunning(), false);
 
       // Adjust permissions for API 29+
       await settingsApp.adjustMediaProjectionServicePermissions();
@@ -101,20 +98,20 @@ describe('Media Projection', function () {
         maxDurationSec: 60,
         priority: 'normal',
       });
-      expect(started).to.be.true;
+      assert.strictEqual(started, true);
 
       // Verify recording is running
-      expect(await recorder.isRunning()).to.be.true;
+      assert.strictEqual(await recorder.isRunning(), true);
 
       // Wait a bit to ensure recording is active
       await new Promise<void>((resolve) => setTimeout(resolve, 2000));
 
       // Stop recording
       const stopped = await recorder.stop();
-      expect(stopped).to.be.true;
+      assert.strictEqual(stopped, true);
 
       // Verify recording is stopped
-      expect(await recorder.isRunning()).to.be.false;
+      assert.strictEqual(await recorder.isRunning(), false);
     });
 
     it('should handle multiple start calls gracefully', async function (ctx: TestContext) {
@@ -130,13 +127,13 @@ describe('Media Projection', function () {
       const started1 = await recorder.start({
         filename: 'test-recording-2.mp4',
       });
-      expect(started1).to.be.true;
+      assert.strictEqual(started1, true);
 
       // Try to start again - should return false since already running
       const started2 = await recorder.start({
         filename: 'test-recording-3.mp4',
       });
-      expect(started2).to.be.false;
+      assert.strictEqual(started2, false);
 
       // Clean up
       await recorder.stop();
@@ -168,8 +165,8 @@ describe('Media Projection', function () {
         if (recordingPath) {
           // Verify file exists
           const stats = await fs.stat(recordingPath);
-          expect(stats.isFile()).to.be.true;
-          expect(stats.size).to.be.greaterThan(0);
+          assert.strictEqual(stats.isFile(), true);
+          assert.ok(stats.size > 0);
         }
       } finally {
         // Clean up the pulled file
@@ -189,7 +186,7 @@ describe('Media Projection', function () {
       await settingsApp.adjustMediaProjectionServicePermissions();
 
       // Cleanup should not throw
-      await expect(recorder.cleanup()).to.be.fulfilled;
+      await assert.doesNotReject(() => recorder.cleanup());
 
       // Start and stop a recording
       await recorder.start({
@@ -199,7 +196,7 @@ describe('Media Projection', function () {
       await recorder.stop();
 
       // Cleanup again should not throw
-      await expect(recorder.cleanup()).to.be.fulfilled;
+      await assert.doesNotReject(() => recorder.cleanup());
     });
   });
 });

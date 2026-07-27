@@ -1,13 +1,10 @@
+import assert from 'node:assert/strict';
 import {describe, it, beforeEach, afterEach} from 'node:test';
 
 import {ADB} from 'appium-adb';
-import {expect, use} from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 import sinon from 'sinon';
 
 import {SettingsApp} from '../../lib/client.js';
-
-use(chaiAsPromised);
 
 describe('client', function () {
   let sandbox: sinon.SinonSandbox;
@@ -84,7 +81,7 @@ describe('client', function () {
         .stub(adb, 'shell')
         .withArgs(['dumpsys', 'activity', 'services', 'io.appium.settings'])
         .resolves(getActivityServiceOutput);
-      await expect(client.isRunningInForeground()).to.eventually.be.true;
+      assert.strictEqual(await client.isRunningInForeground(), true);
     });
     it('should return false if the output does not include isForeground=true', async function () {
       // this case is when 'io.appium.settings/.NLService' was started but
@@ -132,7 +129,7 @@ describe('client', function () {
         .stub(adb, 'shell')
         .withArgs(['dumpsys', 'activity', 'services', 'io.appium.settings'])
         .resolves(getActivityServiceOutput);
-      await expect(client.isRunningInForeground()).to.eventually.be.false;
+      assert.strictEqual(await client.isRunningInForeground(), false);
     });
   });
 });
