@@ -34,9 +34,8 @@ import com.google.android.gms.location.LocationServices;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
@@ -58,9 +57,17 @@ public class LocationService extends Service {
     // recurring mock location IPC calls do not compete for CPU with time-sensitive
     // foreground work (e.g. camera/video encoding) running on the device under test.
     // https://github.com/appium/io.appium.settings/issues/208
-    private final ScheduledExecutorService locationUpdatesExecutor =
-            Executors.newSingleThreadScheduledExecutor(new BackgroundThreadFactory());
+    private final ScheduledThreadPoolExecutor locationUpdatesExecutor = createLocationUpdatesExecutor();
     private ScheduledFuture<?> locationUpdateFuture;
+
+    private static ScheduledThreadPoolExecutor createLocationUpdatesExecutor() {
+        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1, new BackgroundThreadFactory());
+        // Without this, a cancelled task stays in the executor's queue until its
+        // delay elapses, so repeated setGeoLocation() calls could otherwise pile up
+        // stale entries there.
+        executor.setRemoveOnCancelPolicy(true);
+        return executor;
+    }
 
     @Override
     public IBinder onBind(Intent intent) {
