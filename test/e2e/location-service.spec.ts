@@ -36,6 +36,23 @@ function toFloat(value: string | number | null | undefined): number {
   return typeof value === 'string' ? parseFloat(value) : Number(value ?? NaN);
 }
 
+// getGeoLocation() throws until the service has pushed at least one location update,
+// so a transient failure here just means "not ready yet" rather than a real error.
+async function locationMatches(settingsApp: SettingsApp, expected: Location, checkAltitude = true): Promise<boolean> {
+  let actual: Location;
+  try {
+    actual = await settingsApp.getGeoLocation();
+  } catch {
+    return false;
+  }
+  const latMatches = Math.abs(toFloat(actual.latitude) - toFloat(expected.latitude)) < 0.0001;
+  const lonMatches = Math.abs(toFloat(actual.longitude) - toFloat(expected.longitude)) < 0.0001;
+  if (!checkAltitude) {
+    return latMatches && lonMatches;
+  }
+  return latMatches && lonMatches && Math.abs(toFloat(actual.altitude) - toFloat(expected.altitude)) < 0.1;
+}
+
 describe('Location Service', function () {
   let adb: ADB;
   let settingsApp: SettingsApp;
@@ -83,17 +100,10 @@ describe('Location Service', function () {
     const location: Location = {longitude: -122.4194, latitude: 37.7749, altitude: 10.0};
     await settingsApp.setGeoLocation(location);
 
-    await waitForCondition(
-      async () => {
-        const actual = await settingsApp.getGeoLocation();
-        return (
-          Math.abs(toFloat(actual.latitude) - toFloat(location.latitude)) < 0.0001 &&
-          Math.abs(toFloat(actual.longitude) - toFloat(location.longitude)) < 0.0001 &&
-          Math.abs(toFloat(actual.altitude) - toFloat(location.altitude)) < 0.1
-        );
-      },
-      {waitMs: LOCATION_UPDATE_TIMEOUT_MS, intervalMs: 500},
-    );
+    await waitForCondition(() => locationMatches(settingsApp, location), {
+      waitMs: LOCATION_UPDATE_TIMEOUT_MS,
+      intervalMs: 500,
+    });
   });
 
   it('should switch to a new location without restarting the service', async function () {
@@ -106,16 +116,10 @@ describe('Location Service', function () {
     const nextLocation: Location = {longitude: -74.006, latitude: 40.7128};
     await settingsApp.setGeoLocation(nextLocation);
 
-    await waitForCondition(
-      async () => {
-        const actual = await settingsApp.getGeoLocation();
-        return (
-          Math.abs(toFloat(actual.latitude) - toFloat(nextLocation.latitude)) < 0.0001 &&
-          Math.abs(toFloat(actual.longitude) - toFloat(nextLocation.longitude)) < 0.0001
-        );
-      },
-      {waitMs: LOCATION_UPDATE_TIMEOUT_MS, intervalMs: 500},
-    );
+    await waitForCondition(() => locationMatches(settingsApp, nextLocation, false), {
+      waitMs: LOCATION_UPDATE_TIMEOUT_MS,
+      intervalMs: 500,
+    });
     assert.strictEqual(await isLocationServiceRunning(adb), true);
   });
 
