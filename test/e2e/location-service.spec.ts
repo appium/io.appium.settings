@@ -123,7 +123,7 @@ describe('Location Service', function () {
     assert.strictEqual(await isLocationServiceRunning(adb), true);
   });
 
-  it('should stop the service and disable mock providers when stopped via adb', async function () {
+  it('should stop the service when stopped via adb', async function () {
     await settingsApp.setGeoLocation({longitude: -122.4194, latitude: 37.7749});
     await waitForCondition(async () => isLocationServiceRunning(adb), {
       waitMs: SERVICE_STARTUP_TIMEOUT_MS,
