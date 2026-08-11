@@ -26,6 +26,7 @@ import android.location.LocationProvider;
 import android.location.provider.ProviderProperties;
 import android.os.Build;
 import android.os.IBinder;
+import android.os.Process;
 import android.util.Log;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -33,8 +34,11 @@ import com.google.android.gms.location.LocationServices;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 import androidx.annotation.Nullable;
 import io.appium.settings.helpers.NotificationHelpers;
@@ -50,8 +54,13 @@ public class LocationService extends Service {
     private static final long UPDATE_INTERVAL_MS = 2000L;
 
     private final List<MockLocationProvider> mockLocationProviders = new LinkedList<>();
-    private final Timer locationUpdatesTimer = new Timer();
-    private TimerTask locationUpdateTask;
+    // Runs location updates on a single, low-priority background thread so that the
+    // recurring mock location IPC calls do not compete for CPU with time-sensitive
+    // foreground work (e.g. camera/video encoding) running on the device under test.
+    // https://github.com/appium/io.appium.settings/issues/208
+    private final ScheduledExecutorService locationUpdatesExecutor =
+            Executors.newSingleThreadScheduledExecutor(new BackgroundThreadFactory());
+    private ScheduledFuture<?> locationUpdateFuture;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -95,7 +104,7 @@ public class LocationService extends Service {
     @Override
     public void onDestroy() {
         Log.i(TAG, "Shutting down MockLocationService");
-        locationUpdatesTimer.cancel();
+        locationUpdatesExecutor.shutdownNow();
         disableLocationProviders();
         stopForeground(true);
         super.onDestroy();
@@ -145,27 +154,39 @@ public class LocationService extends Service {
         Log.i(TAG, "Scheduling mock location updates");
 
         // If we run 'startservice' again we should schedule an update right away to avoid a delay
-        if (locationUpdateTask != null) {
-            locationUpdateTask.cancel();
+        if (locationUpdateFuture != null) {
+            locationUpdateFuture.cancel(false);
         }
 
-        locationUpdateTask = new TimerTask() {
-            @Override
-            public void run() {
-                for (MockLocationProvider mockLocationProvider : mockLocationProviders) {
-                    Location location = LocationBuilder.buildFromIntent(intent, mockLocationProvider.getProviderName());
-                    Log.d(TAG, String.format("Setting location of '%s' to '%s'", mockLocationProvider.getProviderName(), location));
-                    try {
-                        mockLocationProvider.setLocation(location);
-                    } catch (Exception e) {
-                        Log.e(TAG, String.format("Could not set location for '%s'",
-                                mockLocationProvider.getProviderName()), e);
-                    }
+        Runnable locationUpdateTask = () -> {
+            for (MockLocationProvider mockLocationProvider : mockLocationProviders) {
+                Location location = LocationBuilder.buildFromIntent(intent, mockLocationProvider.getProviderName());
+                Log.d(TAG, String.format("Setting location of '%s' to '%s'", mockLocationProvider.getProviderName(), location));
+                try {
+                    mockLocationProvider.setLocation(location);
+                } catch (Exception e) {
+                    Log.e(TAG, String.format("Could not set location for '%s'",
+                            mockLocationProvider.getProviderName()), e);
                 }
             }
         };
 
-        locationUpdatesTimer.schedule(locationUpdateTask, 0, UPDATE_INTERVAL_MS);
+        locationUpdateFuture = locationUpdatesExecutor.scheduleWithFixedDelay(
+                locationUpdateTask, 0, UPDATE_INTERVAL_MS, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * Runs its threads at background priority so periodic mock location updates
+     * do not contend for CPU with time-sensitive foreground work on the device.
+     */
+    private static class BackgroundThreadFactory implements ThreadFactory {
+        @Override
+        public Thread newThread(Runnable r) {
+            return new Thread(() -> {
+                Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+                r.run();
+            }, "LocationUpdateThread");
+        }
     }
 
     private List<MockLocationProvider> createMockProviders(LocationManager locationManager) {
