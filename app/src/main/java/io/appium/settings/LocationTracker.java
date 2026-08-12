@@ -118,7 +118,7 @@ public class LocationTracker implements LocationListener {
             try {
                 initializePlayServices(context);
                 playServicesConnected = isFusedLocationProviderInitialized();
-            } catch (Exception e) {
+            } catch (Exception | LinkageError e) {
                 Log.e(TAG, "Could not initialize the Google Play Services location provider", e);
             }
         }
@@ -158,7 +158,7 @@ public class LocationTracker implements LocationListener {
             return;
         } catch (SecurityException e) {
             Log.e(TAG, "Appium Settings has no access to location permission", e);
-        } catch (Exception e) {
+        } catch (Exception | LinkageError e) {
             Log.e(TAG, "Cannot connect to Google location service", e);
         }
         stopLocationUpdatesWithPlayServices();
@@ -278,7 +278,7 @@ public class LocationTracker implements LocationListener {
                         });
             } catch (SecurityException e) {
                 Log.e(TAG, "Appium Settings has no access to location permission", e);
-            } catch (Exception e) {
+            } catch (Exception | LinkageError e) {
                 Log.e(TAG, "Failed to request the current location from Play Services", e);
             }
         } else if (isLocationManagerConnected() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {

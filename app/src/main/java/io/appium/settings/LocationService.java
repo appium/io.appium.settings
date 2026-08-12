@@ -155,9 +155,11 @@ public class LocationService extends Service {
                 Log.d(TAG, "Adding FusedLocationProvider");
                 mockLocationProviders.add(createFusedLocationProvider());
             }
-        } catch (Exception e) {
+        } catch (Exception | LinkageError e) {
             // Google Play Services is optional; never let a failure here prevent
             // the plain Android LocationManager-based providers above from working.
+            // LinkageError (e.g. NoSuchMethodError/NoClassDefFoundError) can surface
+            // from a broken or mismatched Play Services runtime, not just Exception.
             Log.e(TAG, "Could not add FusedLocationProvider", e);
         }
         Log.d(TAG, String.format("Created mock providers: %s", mockLocationProviders.toString()));
