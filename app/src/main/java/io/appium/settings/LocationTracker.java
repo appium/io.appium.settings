@@ -45,6 +45,11 @@ public class LocationTracker implements LocationListener {
     private static final String TAG = LocationTracker.class.getSimpleName();
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1; // 1 meter
     private static final long LOCATION_UPDATES_INTERVAL_MS = 1000 * 60; // 1 minute
+    // Also used as the minTime for the plain LocationManager fallback's requestLocationUpdates().
+    // Android does not exempt mock/test-provider locations from a listener's requested minTime,
+    // so with only LOCATION_UPDATES_INTERVAL_MS a caller could wait up to a minute for
+    // getGeoLocation() to reflect a location just set via setGeoLocation() on devices without
+    // Google Play Services (see https://github.com/appium/appium/issues/20223).
     private static final long FAST_INTERVAL_MS = 5000;
 
     private volatile LocationManager mLocationManager;
@@ -108,9 +113,16 @@ public class LocationTracker implements LocationListener {
         }
         setIsRunning(true);
 
+        boolean playServicesConnected = false;
         if (PlayServicesHelpers.isAvailable(context)) {
-            initializePlayServices(context);
-        } else {
+            try {
+                initializePlayServices(context);
+                playServicesConnected = isFusedLocationProviderInitialized();
+            } catch (Exception e) {
+                Log.e(TAG, "Could not initialize the Google Play Services location provider", e);
+            }
+        }
+        if (!playServicesConnected) {
             initializeLocationManager(context);
         }
     }
@@ -134,12 +146,12 @@ public class LocationTracker implements LocationListener {
         }
 
         Log.d(TAG, "Configuring location provider for Google Play Services");
-        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context);
-        LocationRequest locationRequest = LocationRequest.create()
-                .setPriority(LocationRequest.PRIORITY_LOW_POWER)
-                .setInterval(LOCATION_UPDATES_INTERVAL_MS)
-                .setFastestInterval(FAST_INTERVAL_MS);
         try {
+            mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context);
+            LocationRequest locationRequest = LocationRequest.create()
+                    .setPriority(LocationRequest.PRIORITY_LOW_POWER)
+                    .setInterval(LOCATION_UPDATES_INTERVAL_MS)
+                    .setFastestInterval(FAST_INTERVAL_MS);
             mFusedLocationProviderClient.requestLocationUpdates(
                     locationRequest, locationCallback, Looper.getMainLooper());
             Log.d(TAG, "Google Play Services location provider is connected");
@@ -195,7 +207,7 @@ public class LocationTracker implements LocationListener {
             try {
                 mLocationManager.requestLocationUpdates(
                         LocationManager.GPS_PROVIDER,
-                        LOCATION_UPDATES_INTERVAL_MS,
+                        FAST_INTERVAL_MS,
                         MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
                 mLocationProvider = LocationManager.GPS_PROVIDER;
                 Log.d(TAG, "GPS location provider is enabled. Getting FINE location");
@@ -207,7 +219,7 @@ public class LocationTracker implements LocationListener {
         try {
             mLocationManager.requestLocationUpdates(
                     LocationManager.NETWORK_PROVIDER,
-                    LOCATION_UPDATES_INTERVAL_MS,
+                    FAST_INTERVAL_MS,
                     MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
             mLocationProvider = LocationManager.NETWORK_PROVIDER;
             Log.d(TAG, "NETWORK location provider is enabled. Getting COARSE location");
@@ -266,6 +278,8 @@ public class LocationTracker implements LocationListener {
                         });
             } catch (SecurityException e) {
                 Log.e(TAG, "Appium Settings has no access to location permission", e);
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to request the current location from Play Services", e);
             }
         } else if (isLocationManagerConnected() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             try {
@@ -277,6 +291,8 @@ public class LocationTracker implements LocationListener {
                         });
             } catch (SecurityException e) {
                 Log.e(TAG, "Appium Settings has no access to location permission", e);
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to request the current location from Location Manager", e);
             }
         }
     }
@@ -304,6 +320,8 @@ public class LocationTracker implements LocationListener {
             }
         } catch (SecurityException e) {
             Log.e(TAG, "Appium Settings has no access to location permission", e);
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to initialize the Android location manager", e);
         }
         return isLocationManagerConnected() ? getCachedLocation() : null;
     }

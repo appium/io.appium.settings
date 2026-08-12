@@ -17,14 +17,25 @@
 package io.appium.settings.helpers;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 
 public class PlayServicesHelpers {
+    private static final String TAG = PlayServicesHelpers.class.getSimpleName();
+
     public static boolean isAvailable(Context context) {
-        GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
-        int resultCode = apiAvailability.isGooglePlayServicesAvailable(context);
-        return resultCode == ConnectionResult.SUCCESS;
+        try {
+            GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
+            int resultCode = apiAvailability.isGooglePlayServicesAvailable(context);
+            return resultCode == ConnectionResult.SUCCESS;
+        } catch (Exception | LinkageError e) {
+            // Do not let a broken/missing Google Play Services installation take down
+            // the caller; treat it the same as "not available" so callers fall back
+            // to the plain Android LocationManager-based providers.
+            Log.w(TAG, "Could not determine Google Play Services availability", e);
+            return false;
+        }
     }
 }

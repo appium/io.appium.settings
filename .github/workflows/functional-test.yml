@@ -19,6 +19,10 @@ jobs:
           apiLevel: 32
           emuTag: google_apis
           arch: x86_64
+        - platformVersion: "10.0"
+          apiLevel: 29
+          emuTag: default
+          arch: x86_64
         - platformVersion: "8.0"
           apiLevel: 26
           emuTag: google_apis

@@ -150,9 +150,15 @@ public class LocationService extends Service {
 
         mockLocationProviders.clear();
         mockLocationProviders.addAll(createMockProviders(locationManager));
-        if (PlayServicesHelpers.isAvailable(this)) {
-            Log.d(TAG, "Adding FusedLocationProvider");
-            mockLocationProviders.add(createFusedLocationProvider());
+        try {
+            if (PlayServicesHelpers.isAvailable(this)) {
+                Log.d(TAG, "Adding FusedLocationProvider");
+                mockLocationProviders.add(createFusedLocationProvider());
+            }
+        } catch (Exception e) {
+            // Google Play Services is optional; never let a failure here prevent
+            // the plain Android LocationManager-based providers above from working.
+            Log.e(TAG, "Could not add FusedLocationProvider", e);
         }
         Log.d(TAG, String.format("Created mock providers: %s", mockLocationProviders.toString()));
     }
