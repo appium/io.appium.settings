@@ -52,7 +52,7 @@
     "format:check": "oxfmt -c oxfmt.config.mjs --check ."
   },
   "dependencies": {
-    "@appium/logger": "^2.0.0-rc.1",
+    "@appium/logger": "^3.0.0-beta.0",
     "asyncbox": "^6.0.1",
     "semver": "^7.5.4",
     "teen_process": "^4.0.4"
