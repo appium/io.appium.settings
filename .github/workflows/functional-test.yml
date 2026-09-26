@@ -72,12 +72,14 @@ jobs:
         emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
         arch: ${{ matrix.arch }}
         disable-animations: true
-    - run: nohup adb logcat > logcat.log &
-      name: Capture logcat
     - uses: reactivecircus/android-emulator-runner@v2
       name: Run end-to-end tests
       with:
-        script: npm install && npm run e2e-test
+        # adb logcat is started here, not in an earlier step, because it must attach to
+        # this emulator instance specifically - one started in an earlier step (e.g. the
+        # AVD snapshot generation above) shuts down before this one boots, which kills an
+        # already-running `adb logcat` process and leaves it capturing nothing useful.
+        script: nohup adb logcat > logcat.log & npm install && npm run e2e-test
         avd-name: $ANDROID_AVD
         force-avd-creation: false
         api-level: ${{ matrix.apiLevel }}

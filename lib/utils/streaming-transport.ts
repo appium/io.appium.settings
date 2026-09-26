@@ -9,6 +9,10 @@ import {createParserState, parseFrames, type StreamFrame} from './streaming-prot
 const DEFAULT_QUEUE_CAPACITY = 60;
 const CONNECT_TIMEOUT_MS = 5000;
 const CONNECT_RETRY_INTERVAL_MS = 200;
+// adb forward's host-side TCP listener accepts a connection immediately, independent of
+// whether the on-device local socket is bound yet; if it isn't, adb tears the connection
+// down right away with no data. Wait this long past 'connect' before trusting the socket.
+const CONNECT_VERIFY_GRACE_MS = 150;
 
 /**
  * A bounded async-iterable queue that drops the oldest buffered item once its
@@ -196,10 +200,42 @@ export async function resolveLocalPort(opts: LocalPortOpts): Promise<number> {
 async function connectOnce(port: number): Promise<net.Socket> {
   return new Promise<net.Socket>((resolve, reject) => {
     const socket = net.connect(port, '127.0.0.1');
-    socket.once('connect', () => resolve(socket));
-    socket.once('error', (err) => {
+    let settled = false;
+    let verifyTimer: NodeJS.Timeout | undefined;
+
+    const cleanup = () => {
+      socket.removeListener('error', onError);
+      socket.removeListener('close', onClose);
+      clearTimeout(verifyTimer);
+    };
+    const onError = (err: Error) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      cleanup();
       socket.destroy();
       reject(err);
+    };
+    const onClose = () => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      cleanup();
+      reject(new Error('Connection was closed before the on-device stream became ready'));
+    };
+    socket.once('error', onError);
+    socket.once('close', onClose);
+    socket.once('connect', () => {
+      verifyTimer = setTimeout(() => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        cleanup();
+        resolve(socket);
+      }, CONNECT_VERIFY_GRACE_MS);
     });
   });
 }
