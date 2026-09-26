@@ -70,6 +70,12 @@ public class JpegStreamService extends Service {
             return START_STICKY;
         }
 
+        // Since Android 14 (API 34), MediaProjectionManager.getMediaProjection() throws
+        // SecurityException unless this service is already a MEDIA_PROJECTION-typed
+        // foreground service, so startForeground() must run before it, not after.
+        startForeground(NotificationHelpers.APPIUM_JPEG_STREAM_NOTIFICATION_ID,
+                NotificationHelpers.getNotification(this, "Appium JPEG screen streaming"));
+
         MediaProjectionManager manager =
                 (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
         if (manager == null) {
@@ -92,9 +98,6 @@ public class JpegStreamService extends Service {
             stopSession();
             return START_NOT_STICKY;
         }
-
-        startForeground(NotificationHelpers.APPIUM_JPEG_STREAM_NOTIFICATION_ID,
-                NotificationHelpers.getNotification(this, "Appium JPEG screen streaming"));
 
         int fps = StreamingUtil.getIntExtra(intent, StreamingConstant.EXTRA_FPS,
                 StreamingConstant.JPEG_FPS_DEFAULT, 1, 60);

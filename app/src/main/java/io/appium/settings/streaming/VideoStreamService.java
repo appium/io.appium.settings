@@ -25,13 +25,11 @@ import android.os.Build;
 import android.os.IBinder;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.util.Size;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import io.appium.settings.helpers.NotificationHelpers;
-import io.appium.settings.recorder.RecorderUtil;
 
 public class VideoStreamService extends Service {
     private static final String TAG = "VideoStreamService";
@@ -72,6 +70,12 @@ public class VideoStreamService extends Service {
             return START_STICKY;
         }
 
+        // Since Android 14 (API 34), MediaProjectionManager.getMediaProjection() throws
+        // SecurityException unless this service is already a MEDIA_PROJECTION-typed
+        // foreground service, so startForeground() must run before it, not after.
+        startForeground(NotificationHelpers.APPIUM_VIDEO_STREAM_NOTIFICATION_ID,
+                NotificationHelpers.getNotification(this, "Appium video screen streaming"));
+
         MediaProjectionManager manager =
                 (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
         if (manager == null) {
@@ -96,10 +100,6 @@ public class VideoStreamService extends Service {
         }
 
         boolean audioEnabled = StreamingUtil.getBooleanExtra(intent, StreamingConstant.EXTRA_AUDIO, false);
-
-        startForeground(NotificationHelpers.APPIUM_VIDEO_STREAM_NOTIFICATION_ID,
-                NotificationHelpers.getNotification(this, "Appium video screen streaming"));
-
         String codecMime = StreamingUtil.getVideoCodecMime(intent);
         int fps = StreamingUtil.getIntExtra(intent, StreamingConstant.EXTRA_FPS,
                 StreamingConstant.VIDEO_FPS_DEFAULT, 1, 60);
@@ -108,21 +108,14 @@ public class VideoStreamService extends Service {
                 StreamingConstant.VIDEO_BITRATE_MIN, StreamingConstant.VIDEO_BITRATE_MAX);
 
         DisplayMetrics metrics = getResources().getDisplayMetrics();
-        int rawWidth = metrics.widthPixels;
-        int rawHeight = metrics.heightPixels;
-
         String resolutionMode = intent.getStringExtra(StreamingConstant.EXTRA_RESOLUTION);
-        Size recordingResolution = RecorderUtil.getRecordingResolution(resolutionMode);
-        int resolutionWidth = recordingResolution.getWidth();
-        int resolutionHeight = recordingResolution.getHeight();
-        // MediaCodec's tested supported resolutions default to landscape, flip for portrait devices
-        if (rawWidth < rawHeight) {
-            resolutionWidth = recordingResolution.getHeight();
-            resolutionHeight = recordingResolution.getWidth();
-        }
 
+        // Resolution is deliberately NOT resolved here: RecorderUtil.getRecordingResolution()
+        // creates a throwaway encoder to probe capabilities, which is slow enough to delay
+        // startSession() (and thus the LocalServerSocket bind) and race the client's
+        // connection attempt. VideoStreamSession resolves it lazily on its own thread instead.
         session = new VideoStreamSession(projection, socketName,
-                resolutionWidth, resolutionHeight, metrics.densityDpi,
+                metrics.widthPixels, metrics.heightPixels, resolutionMode, metrics.densityDpi,
                 codecMime, fps, bitrate, audioEnabled);
         session.startSession();
         return START_STICKY;

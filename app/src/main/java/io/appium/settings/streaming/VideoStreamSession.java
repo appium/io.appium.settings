@@ -27,6 +27,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.util.Size;
 import android.view.Surface;
 
 import java.nio.ByteBuffer;
@@ -35,6 +36,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import androidx.annotation.RequiresApi;
 
 import io.appium.settings.media.MediaCodecFactory;
+import io.appium.settings.recorder.RecorderUtil;
 
 // Live H.264/HEVC video streaming session, with an optional interleaved AAC audio track.
 // Video is captured via a MediaProjection-backed VirtualDisplay feeding a MediaCodec
@@ -45,8 +47,9 @@ public class VideoStreamSession extends StreamingSession {
     private static final String TAG = "VideoStreamSession";
 
     private final MediaProjection mediaProjection;
-    private final int width;
-    private final int height;
+    private final int rawWidth;
+    private final int rawHeight;
+    private final String resolutionMode;
     private final int dpi;
     private final String codecMime;
     private final int fps;
@@ -61,12 +64,13 @@ public class VideoStreamSession extends StreamingSession {
     private MediaProjection.Callback mediaProjectionCallback;
 
     public VideoStreamSession(MediaProjection mediaProjection, String socketName,
-                               int width, int height, int dpi,
+                               int rawWidth, int rawHeight, String resolutionMode, int dpi,
                                String codecMime, int fps, int bitrate, boolean audioEnabled) {
         super(socketName);
         this.mediaProjection = mediaProjection;
-        this.width = width;
-        this.height = height;
+        this.rawWidth = rawWidth;
+        this.rawHeight = rawHeight;
+        this.resolutionMode = resolutionMode;
         this.dpi = dpi;
         this.codecMime = codecMime;
         this.fps = fps;
@@ -82,6 +86,19 @@ public class VideoStreamSession extends StreamingSession {
     @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
     protected void configureAndCapture() throws Exception {
+        // Deliberately resolved here (on this session's own background thread, after the
+        // LocalServerSocket is already bound/accepting) rather than on the Service's main
+        // thread before startSession() - RecorderUtil.getRecordingResolution() creates a
+        // throwaway encoder to probe capabilities, which is slow enough to otherwise delay
+        // the socket bind and race the client's connection attempt.
+        Size recordingResolution = RecorderUtil.getRecordingResolution(resolutionMode);
+        int width = recordingResolution.getWidth();
+        int height = recordingResolution.getHeight();
+        if (rawWidth < rawHeight) {
+            width = recordingResolution.getHeight();
+            height = recordingResolution.getWidth();
+        }
+
         MediaCodecInfo.VideoCapabilities capabilities;
         MediaCodec capabilitiesProbe = MediaCodec.createEncoderByType(codecMime);
         try {
