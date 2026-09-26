@@ -13,7 +13,7 @@ import {LOG_PREFIX} from '../logger.js';
 export async function scanMedia(this: SettingsApp, destination: string): Promise<void> {
   this.log.debug(LOG_PREFIX, `Scanning '${destination}' for media files`);
   await this.checkBroadcast(
-    ['-n', MEDIA_SCAN_RECEIVER, '-a', MEDIA_SCAN_ACTION, '--es', 'path', destination],
+    ['-n', MEDIA_SCAN_RECEIVER, '-a', MEDIA_SCAN_ACTION, '--es', 'path', `'${destination.replace(/'/g, `'"'"'`)}'`],
     'scan media',
   );
 }
