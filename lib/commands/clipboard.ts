@@ -33,6 +33,7 @@ export async function getClipboard(this: SettingsApp): Promise<string> {
       `Cannot retrieve the current clipboard content from the device. ` +
         `Make sure the Appium Settings application is up to date. ` +
         `Original error: ${err.message}`,
+      {cause: err},
     );
   }
 
