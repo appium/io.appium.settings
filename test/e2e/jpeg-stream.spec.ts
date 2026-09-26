@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
-import {describe, it, before, beforeEach, after, type TestContext} from 'node:test';
+import {describe, it, before, beforeEach, afterEach, type TestContext} from 'node:test';
 
 import {ADB} from 'appium-adb';
 
@@ -50,7 +50,9 @@ describe('JPEG Streaming', function () {
     session = settingsApp.makeJpegStreamSession();
   });
 
-  after(async function () {
+  // Runs after every test (pass or fail), not just at suite end, so a failed assertion
+  // mid-test can't leave a stream (and its socket/adb forward) running into the next test.
+  afterEach(async function () {
     if (shouldSkip || !session) {
       return;
     }
