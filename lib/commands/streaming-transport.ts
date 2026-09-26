@@ -1,6 +1,7 @@
 import net from 'node:net';
 
 import type {ADB} from 'appium-adb';
+import {retryInterval} from 'asyncbox';
 
 import {createParserState, parseFrames, type StreamFrame} from './streaming-protocol.js';
 
@@ -103,28 +104,33 @@ async function pickFreePort(): Promise<number> {
   });
 }
 
+async function connectOnce(port: number): Promise<net.Socket> {
+  return new Promise<net.Socket>((resolve, reject) => {
+    const socket = net.connect(port, '127.0.0.1');
+    socket.once('connect', () => resolve(socket));
+    socket.once('error', (err) => {
+      socket.destroy();
+      reject(err);
+    });
+  });
+}
+
 async function connectWithRetry(port: number, timeoutMs: number, intervalMs: number): Promise<net.Socket> {
-  const deadline = Date.now() + timeoutMs;
-  let lastError: unknown;
-  while (Date.now() < deadline) {
-    try {
-      return await new Promise<net.Socket>((resolve, reject) => {
-        const socket = net.connect(port, '127.0.0.1');
-        socket.once('connect', () => resolve(socket));
-        socket.once('error', (err) => {
-          socket.destroy();
-          reject(err);
-        });
-      });
-    } catch (e) {
-      lastError = e;
-      await new Promise((resolve) => setTimeout(resolve, intervalMs));
-    }
+  const times = Math.max(1, Math.ceil(timeoutMs / intervalMs));
+  let socket: net.Socket | null;
+  try {
+    socket = await retryInterval(times, intervalMs, connectOnce, port);
+  } catch (e) {
+    throw new Error(
+      `Could not connect to the local streaming socket on port ${port} after ${times} attempts. ` +
+        `Last error: ${e instanceof Error ? e.message : e}`,
+      {cause: e},
+    );
   }
-  throw new Error(
-    `Could not connect to the local streaming socket on port ${port} within ${timeoutMs}ms. ` +
-      `Last error: ${lastError instanceof Error ? lastError.message : lastError}`,
-  );
+  if (!socket) {
+    throw new Error(`Could not connect to the local streaming socket on port ${port}`);
+  }
+  return socket;
 }
 
 /**
