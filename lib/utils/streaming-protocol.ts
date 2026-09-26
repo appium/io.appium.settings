@@ -35,6 +35,11 @@ export interface FrameParserState {
   buf: Buffer;
 }
 
+/**
+ * Creates a fresh, empty parser state for use with {@link parseFrames}.
+ *
+ * @returns A new, empty FrameParserState
+ */
 export function createParserState(): FrameParserState {
   return {buf: Buffer.alloc(0)};
 }

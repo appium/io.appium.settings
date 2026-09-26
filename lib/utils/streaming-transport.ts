@@ -23,6 +23,13 @@ export class BoundedFrameQueue<T> {
 
   constructor(private readonly capacity: number = DEFAULT_QUEUE_CAPACITY) {}
 
+  /**
+   * Enqueues an item. If a consumer is already awaiting the next item, it is
+   * delivered directly; otherwise it is buffered, dropping the oldest buffered
+   * item first if `capacity` would be exceeded.
+   *
+   * @param item - The item to enqueue
+   */
   push(item: T): void {
     if (this.ended) {
       return;
@@ -39,6 +46,13 @@ export class BoundedFrameQueue<T> {
     }
   }
 
+  /**
+   * Ends the queue. Any already-buffered items are still delivered first; once
+   * drained, the async iterator completes, rejecting with `error` if one is given.
+   * A no-op if the queue has already ended.
+   *
+   * @param error - Optional error to surface to the consumer once buffered items are drained
+   */
   end(error?: Error): void {
     if (this.ended) {
       return;
@@ -72,6 +86,9 @@ export class BoundedFrameQueue<T> {
     });
   }
 
+  /**
+   * Async-iterates the queue, yielding items as they are pushed until {@link end} is called.
+   */
   async *[Symbol.asyncIterator](): AsyncGenerator<T> {
     for (;;) {
       const result = await this.next();
@@ -83,6 +100,12 @@ export class BoundedFrameQueue<T> {
   }
 }
 
+/**
+ * Validates local-port selection options for a live stream session.
+ *
+ * @param opts - Options containing an optional localPort and/or localPortRange
+ * @throws {TypeError} If both localPort and localPortRange are provided, or either is malformed
+ */
 export function validateLocalPortOpts(opts: LocalPortOpts): void {
   const {localPort, localPortRange} = opts;
   if (localPort !== undefined && localPortRange !== undefined) {
@@ -131,6 +154,15 @@ async function tryBindPort(port: number): Promise<number | null> {
   });
 }
 
+/**
+ * Resolves the local TCP port to use for the `adb forward` bridge: the exact
+ * `localPort` if given, the first free port in `localPortRange` if given, or an
+ * OS-assigned ephemeral port otherwise.
+ *
+ * @param opts - Port selection options; see {@link validateLocalPortOpts}
+ * @returns The bound, free local TCP port
+ * @throws {Error} If the requested port is busy, or no free port exists in the requested range
+ */
 export async function resolveLocalPort(opts: LocalPortOpts): Promise<number> {
   const {localPort, localPortRange} = opts;
 
@@ -206,6 +238,17 @@ export class StreamTransport {
     private readonly socket: net.Socket,
   ) {}
 
+  /**
+   * Resolves a local port, forwards it to the on-device local abstract socket via
+   * `adb forward`, and connects to it (retrying until the on-device session accepts).
+   * On failure, any port forward that was already set up is best-effort removed.
+   *
+   * @param adb - ADB instance for device communication
+   * @param socketName - Name of the on-device local abstract socket to forward
+   * @param portOpts - Optional local port selection options
+   * @returns A connected StreamTransport instance
+   * @throws {Error} If the local port cannot be resolved, or the connection fails
+   */
   static async connect(adb: ADB, socketName: string, portOpts: LocalPortOpts = {}): Promise<StreamTransport> {
     const localPort = await resolveLocalPort(portOpts);
     await adb.forwardAbstractPort(localPort, socketName);
@@ -236,10 +279,18 @@ export class StreamTransport {
     this.socket.on('error', (err) => this.queue.end(err));
   }
 
+  /**
+   * Returns an async generator yielding parsed frames as they arrive on the socket,
+   * until the connection closes or errors.
+   */
   frames(): AsyncGenerator<StreamFrame> {
     return this.queue[Symbol.asyncIterator]();
   }
 
+  /**
+   * Destroys the client socket and best-effort removes the `adb forward` port
+   * mapping. Safe to call more than once.
+   */
   async close(): Promise<void> {
     if (this.closed) {
       return;
