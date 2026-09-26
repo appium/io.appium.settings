@@ -152,11 +152,13 @@ export class VideoStreamSession {
    * @throws {Error} If the stream fails to stop within the timeout period
    */
   async stop(): Promise<boolean> {
-    if (!(await this.isRunning())) {
-      return false;
-    }
-
     try {
+      if (!(await this.isRunning())) {
+        // The on-device service may have already stopped itself (e.g. the client
+        // disconnected), leaving a local transport/adb-forward that still needs closing.
+        return false;
+      }
+
       await this.adb.shell(['am', 'start', '-n', STREAMING_ACTIVITY_NAME, '-a', VIDEO_STREAM_ACTION_STOP]);
       try {
         await waitForCondition(async () => !(await this.isRunning()), {
@@ -166,12 +168,12 @@ export class VideoStreamSession {
       } catch {
         throw new Error(`The attempt to stop the current video stream timed out after ${STREAM_STOP_TIMEOUT_MS}ms`);
       }
+      return true;
     } finally {
       if (this.transport) {
         await this.transport.close();
         this.transport = null;
       }
     }
-    return true;
   }
 }

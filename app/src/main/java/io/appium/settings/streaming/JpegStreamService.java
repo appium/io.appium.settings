@@ -22,7 +22,9 @@ import android.content.Intent;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
@@ -111,7 +113,9 @@ public class JpegStreamService extends Service {
         session = new JpegStreamSession(projection, socketName,
                 metrics.widthPixels, metrics.heightPixels, metrics.densityDpi,
                 fps, quality, scale);
-        session.startSession();
+        JpegStreamSession startedSession = session;
+        startedSession.setListener(() -> onSessionEnded(startedSession));
+        startedSession.startSession();
         return START_STICKY;
     }
 
@@ -122,5 +126,19 @@ public class JpegStreamService extends Service {
         }
         stopForeground(true);
         stopSelf();
+    }
+
+    // Invoked from the session's own background thread once it exits on its own (client
+    // disconnect, capture error, accept timeout). stopSession() above only covers an
+    // explicit ACTION_STOP; without this, the service - and isRunning() - would keep
+    // reporting as active even though capture already ended.
+    private void onSessionEnded(JpegStreamSession endedSession) {
+        new Handler(Looper.getMainLooper()).post(() -> {
+            if (session == endedSession) {
+                session = null;
+                stopForeground(true);
+                stopSelf();
+            }
+        });
     }
 }

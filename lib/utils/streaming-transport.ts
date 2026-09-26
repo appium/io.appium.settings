@@ -17,6 +17,8 @@ const CONNECT_VERIFY_GRACE_MS = 150;
 /**
  * A bounded async-iterable queue that drops the oldest buffered item once its
  * capacity is exceeded, so a slow consumer never causes unbounded memory growth.
+ * An optional `isProtected` predicate can shield items (e.g. video CONFIG frames)
+ * from eviction as long as any non-protected item remains to drop instead.
  */
 export class BoundedFrameQueue<T> {
   private readonly items: T[] = [];
@@ -25,12 +27,15 @@ export class BoundedFrameQueue<T> {
   private ended = false;
   private endError: Error | undefined;
 
-  constructor(private readonly capacity: number = DEFAULT_QUEUE_CAPACITY) {}
+  constructor(
+    private readonly capacity: number = DEFAULT_QUEUE_CAPACITY,
+    private readonly isProtected?: (item: T) => boolean,
+  ) {}
 
   /**
    * Enqueues an item. If a consumer is already awaiting the next item, it is
-   * delivered directly; otherwise it is buffered, dropping the oldest buffered
-   * item first if `capacity` would be exceeded.
+   * delivered directly; otherwise it is buffered, dropping the oldest droppable
+   * (non-protected) buffered item first if `capacity` would be exceeded.
    *
    * @param item - The item to enqueue
    */
@@ -46,8 +51,31 @@ export class BoundedFrameQueue<T> {
     }
     this.items.push(item);
     while (this.items.length > this.capacity) {
-      this.items.shift();
+      if (!this.evictOldestDroppable()) {
+        // Every buffered item is protected (should not happen in practice) - drop the
+        // true oldest one anyway rather than growing unbounded.
+        this.items.shift();
+      }
     }
+  }
+
+  /**
+   * Removes the oldest non-protected buffered item, if any.
+   *
+   * @returns False if every buffered item is protected, and nothing was removed
+   */
+  private evictOldestDroppable(): boolean {
+    const isProtected = this.isProtected;
+    if (!isProtected) {
+      this.items.shift();
+      return true;
+    }
+    const index = this.items.findIndex((item) => !isProtected(item));
+    if (index === -1) {
+      return false;
+    }
+    this.items.splice(index, 1);
+    return true;
   }
 
   /**
@@ -264,7 +292,9 @@ async function connectWithRetry(port: number, timeoutMs: number, intervalMs: num
  * async-iterable frame queue.
  */
 export class StreamTransport {
-  private readonly queue = new BoundedFrameQueue<StreamFrame>();
+  // Config frames (e.g. video SPS/PPS) carry decoder state a consumer needs to make sense
+  // of everything that follows, so protect them from the bounded queue's drop-oldest policy.
+  private readonly queue = new BoundedFrameQueue<StreamFrame>(DEFAULT_QUEUE_CAPACITY, (frame) => frame.isConfig);
   private readonly parserState = createParserState();
   private closed = false;
 

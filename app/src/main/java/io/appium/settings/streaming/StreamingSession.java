@@ -39,9 +39,29 @@ public abstract class StreamingSession implements Runnable {
     private LocalServerSocket serverSocket;
     private LocalSocket clientSocket;
     private Thread writerThread;
+    private volatile Listener listener;
+
+    /**
+     * Notified once this session's background thread has fully exited, whether stopped
+     * explicitly or ended on its own (client disconnect, capture error, accept timeout).
+     */
+    public interface Listener {
+        void onSessionEnded();
+    }
 
     protected StreamingSession(String socketName) {
         this.socketName = socketName;
+    }
+
+    /**
+     * Registers a callback fired exactly once, after this session's background thread has
+     * exited for any reason. The owning Service uses this to stop itself when a session ends
+     * on its own, since stopSession() alone does not cover that case.
+     *
+     * @param listener The listener to notify; replaces any previously set listener
+     */
+    public void setListener(Listener listener) {
+        this.listener = listener;
     }
 
     public void startSession() {
@@ -120,6 +140,9 @@ public abstract class StreamingSession implements Runnable {
             }
             closeQuietly(clientSocket);
             closeQuietly(serverSocket);
+            if (listener != null) {
+                listener.onSessionEnded();
+            }
         }
     }
 

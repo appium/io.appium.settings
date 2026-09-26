@@ -131,6 +131,31 @@ describe('streaming sessions', function () {
       const [, , portOpts] = connectStub.getCall(0).args;
       assert.deepStrictEqual(portOpts, {localPort: 54321, localPortRange: undefined});
     });
+
+    it('should still close the transport when the service already stopped itself', async function () {
+      // Reproduces a real scenario: the on-device service can stop on its own (client
+      // disconnect, capture error) between start() and stop() - the local transport/adb
+      // forward must still be torn down even though there is nothing left to "am stop".
+      let dumpsysCalls = 0;
+      sandbox.stub(adb, 'shell').callsFake(async (args: unknown) => {
+        const argv = args as string[];
+        if (argv[0] === 'dumpsys') {
+          dumpsysCalls++;
+          // Running during start(), gone by the time stop() checks.
+          return dumpsysCalls === 1 ? '' : dumpsysCalls === 2 ? `ServiceRecord{x u0 ${JPEG_STREAM_SERVICE_NAME}}` : '';
+        }
+        return '';
+      });
+      const close = sandbox.stub().resolves();
+      sandbox.stub(StreamTransport, 'connect').resolves({close} as unknown as StreamTransport);
+
+      const session = new JpegStreamSession(adb);
+      assert.strictEqual(await session.start(), true);
+
+      const stopped = await session.stop();
+      assert.strictEqual(stopped, false);
+      assert.strictEqual(close.callCount, 1);
+    });
   });
 
   describe('VideoStreamSession', function () {
@@ -213,6 +238,28 @@ describe('streaming sessions', function () {
         ANDROID_VALID_SOCKET_NAME,
         'socket_name must match the on-device validator or the stream will never start',
       );
+    });
+
+    it('should still close the transport when the service already stopped itself', async function () {
+      let dumpsysCalls = 0;
+      sandbox.stub(adb, 'shell').callsFake(async (args: unknown) => {
+        const argv = args as string[];
+        if (argv[0] === 'dumpsys') {
+          dumpsysCalls++;
+          // Running during start(), gone by the time stop() checks.
+          return dumpsysCalls === 1 ? '' : dumpsysCalls === 2 ? `ServiceRecord{x u0 ${VIDEO_STREAM_SERVICE_NAME}}` : '';
+        }
+        return '';
+      });
+      const close = sandbox.stub().resolves();
+      sandbox.stub(StreamTransport, 'connect').resolves({close} as unknown as StreamTransport);
+
+      const session = new VideoStreamSession(adb);
+      assert.strictEqual(await session.start(), true);
+
+      const stopped = await session.stop();
+      assert.strictEqual(stopped, false);
+      assert.strictEqual(close.callCount, 1);
     });
   });
 });

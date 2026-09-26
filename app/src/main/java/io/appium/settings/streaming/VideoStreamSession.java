@@ -169,6 +169,14 @@ public class VideoStreamSession extends StreamingSession {
         return (System.nanoTime() - sessionStartNanos) / 1000;
     }
 
+    // The video encoder's input Surface is fed by SurfaceFlinger/VirtualDisplay, which
+    // stamps buffers using the same CLOCK_MONOTONIC-based clock as System.nanoTime() - but
+    // as an absolute time, not one relative to sessionStartNanos like audio's
+    // getPresentationTimeUs(). Rebase it here so both tracks share the same origin.
+    private long toSessionRelativeUs(long presentationTimeUs) {
+        return presentationTimeUs - sessionStartNanos / 1000;
+    }
+
     private void drainVideo() {
         MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
         AtomicLong sequence = new AtomicLong(0);
@@ -206,7 +214,7 @@ public class VideoStreamSession extends StreamingSession {
                         flags |= Frame.FLAG_EOS;
                     }
                     queue.offer(new Frame(Frame.Track.VIDEO, flags, sequence.getAndIncrement(),
-                            info.presentationTimeUs, payload));
+                            toSessionRelativeUs(info.presentationTimeUs), payload));
                 }
                 videoEncoder.releaseOutputBuffer(status, false);
                 if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {

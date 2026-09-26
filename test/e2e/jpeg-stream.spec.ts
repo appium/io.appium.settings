@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import {describe, it, before, beforeEach, afterEach, type TestContext} from 'node:test';
 
 import {ADB} from 'appium-adb';
+import {waitForCondition} from 'asyncbox';
 
 import {SettingsApp} from '../../lib/client.js';
 import {getSettingsApkPath} from '../../lib/utils/index.js';
@@ -117,5 +118,30 @@ describe('JPEG Streaming', function () {
     assert.strictEqual(started2, false);
 
     await session.stop();
+  });
+
+  it('should stop the on-device service on its own after the client disconnects', async function (ctx: TestContext) {
+    if (shouldSkip) {
+      ctx.skip();
+      return;
+    }
+
+    const started = await session.start({fps: 10});
+    assert.strictEqual(started, true);
+
+    for await (const _frame of session.frames()) {
+      break;
+    }
+
+    // Disconnect the client transport directly (bypassing stop()/ACTION_STOP) to simulate
+    // a client crash/disconnect. This reaches into a private field deliberately, since
+    // there is no public API for "disconnect without stopping" - the on-device service is
+    // expected to notice on its own and stop itself/its foreground notification.
+    const transport = (session as unknown as {transport: {close(): Promise<void>}}).transport;
+    assert.ok(transport, 'expected an internal transport after start()');
+    await transport.close();
+
+    await waitForCondition(async () => !(await session.isRunning()), {waitMs: 10000, intervalMs: 300});
+    assert.strictEqual(await session.isRunning(), false);
   });
 });

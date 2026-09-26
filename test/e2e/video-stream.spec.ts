@@ -113,12 +113,16 @@ describe('Video Streaming', function () {
 
     let sawVideo = false;
     let sawAudio = false;
+    let firstVideoTimestampMicros: number | undefined;
+    let firstAudioTimestampMicros: number | undefined;
     const deadline = Date.now() + 15000;
     for await (const unit of session.accessUnits()) {
       if (unit.track === 'video') {
         sawVideo = true;
+        firstVideoTimestampMicros ??= unit.timestampMicros;
       } else if (unit.track === 'audio') {
         sawAudio = true;
+        firstAudioTimestampMicros ??= unit.timestampMicros;
         // ADTS sync word: 0xFF Fx
         assert.strictEqual(unit.data[0], 0xff);
         assert.strictEqual(unit.data[1] & 0xf0, 0xf0);
@@ -130,6 +134,16 @@ describe('Video Streaming', function () {
 
     assert.ok(sawVideo, 'expected at least one video access unit');
     assert.ok(sawAudio, 'expected at least one audio access unit');
+
+    // Both tracks are documented as session-relative timestamps; if video were left on its
+    // encoder's absolute clock instead, this delta would be off by the session's uptime
+    // (many seconds to hours), not by mere capture-startup jitter between the two tracks.
+    assert.ok(firstVideoTimestampMicros !== undefined && firstAudioTimestampMicros !== undefined);
+    const timestampDeltaMicros = Math.abs(firstVideoTimestampMicros - firstAudioTimestampMicros);
+    assert.ok(
+      timestampDeltaMicros < 10_000_000,
+      `expected video/audio timestamps to share a session-relative origin, got a ${timestampDeltaMicros}us delta`,
+    );
 
     await session.stop();
   });
