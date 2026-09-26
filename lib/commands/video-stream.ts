@@ -46,7 +46,6 @@ function validateVideoStreamOpts(opts: StartVideoStreamOpts): void {
  * optional interleaved AAC audio track.
  */
 export class VideoStreamSession {
-  private readonly adb: ADB;
   private transport: StreamTransport | null = null;
 
   /**
@@ -54,9 +53,7 @@ export class VideoStreamSession {
    *
    * @param adb - ADB instance for device communication
    */
-  constructor(adb: ADB) {
-    this.adb = adb;
-  }
+  constructor(private readonly adb: ADB) {}
 
   /**
    * Checks if the video stream is currently running.

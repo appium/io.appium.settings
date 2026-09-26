@@ -47,7 +47,6 @@ function validateJpegStreamOpts(opts: StartJpegStreamOpts): void {
  * sequence of JPEG-encoded frames over a local socket (API 29+).
  */
 export class JpegStreamSession {
-  private readonly adb: ADB;
   private transport: StreamTransport | null = null;
 
   /**
@@ -55,9 +54,7 @@ export class JpegStreamSession {
    *
    * @param adb - ADB instance for device communication
    */
-  constructor(adb: ADB) {
-    this.adb = adb;
-  }
+  constructor(private readonly adb: ADB) {}
 
   /**
    * Checks if the JPEG stream is currently running.

@@ -15,16 +15,13 @@ const CONNECT_RETRY_INTERVAL_MS = 200;
  * capacity is exceeded, so a slow consumer never causes unbounded memory growth.
  */
 export class BoundedFrameQueue<T> {
-  private readonly capacity: number;
   private readonly items: T[] = [];
   private readonly waiters: Array<(result: IteratorResult<T>) => void> = [];
   private readonly errorWaiters: Array<(err: Error) => void> = [];
   private ended = false;
   private endError: Error | undefined;
 
-  constructor(capacity: number = DEFAULT_QUEUE_CAPACITY) {
-    this.capacity = capacity;
-  }
+  constructor(private readonly capacity: number = DEFAULT_QUEUE_CAPACITY) {}
 
   push(item: T): void {
     if (this.ended) {
@@ -199,18 +196,15 @@ async function connectWithRetry(port: number, timeoutMs: number, intervalMs: num
  * async-iterable frame queue.
  */
 export class StreamTransport {
-  private readonly adb: ADB;
-  private readonly localPort: number;
-  private readonly socket: net.Socket;
   private readonly queue = new BoundedFrameQueue<StreamFrame>();
   private readonly parserState = createParserState();
   private closed = false;
 
-  private constructor(adb: ADB, localPort: number, socket: net.Socket) {
-    this.adb = adb;
-    this.localPort = localPort;
-    this.socket = socket;
-  }
+  private constructor(
+    private readonly adb: ADB,
+    private readonly localPort: number,
+    private readonly socket: net.Socket,
+  ) {}
 
   static async connect(adb: ADB, socketName: string, portOpts: LocalPortOpts = {}): Promise<StreamTransport> {
     const localPort = await resolveLocalPort(portOpts);
