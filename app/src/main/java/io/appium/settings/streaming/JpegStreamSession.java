@@ -17,7 +17,10 @@
 package io.appium.settings.streaming;
 
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.PixelFormat;
+import android.graphics.Rect;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
 import android.media.Image;
@@ -54,6 +57,16 @@ public class JpegStreamSession extends StreamingSession {
     private VirtualDisplay virtualDisplay;
     private ImageReader imageReader;
     private MediaProjection.Callback mediaProjectionCallback;
+
+    // Reused across frames (all touched only from the capture handler thread) to avoid
+    // allocating fresh Bitmaps/buffers on every encode.
+    private Bitmap captureBitmap;
+    private Bitmap croppedBitmap;
+    private Canvas croppedCanvas;
+    private Bitmap scaledBitmap;
+    private Canvas scaledCanvas;
+    private Paint scalePaint;
+    private final ByteArrayOutputStream jpegBuffer = new ByteArrayOutputStream();
 
     public JpegStreamSession(MediaProjection mediaProjection, String socketName,
                               int width, int height, int dpi,
@@ -96,7 +109,7 @@ public class JpegStreamSession extends StreamingSession {
                 if (now - lastEmittedNanos[0] < frameIntervalNanos) {
                     return;
                 }
-                byte[] jpeg = encodeToJpeg(image, width, height, quality, scale);
+                byte[] jpeg = encodeToJpeg(image);
                 lastEmittedNanos[0] = now;
                 long timestampMicros = (now - sessionStartNanos) / 1000;
                 queue.offer(new Frame(Frame.Track.JPEG, (byte) 0, sequence.getAndIncrement(),
@@ -146,40 +159,70 @@ public class JpegStreamSession extends StreamingSession {
             handlerThread = null;
         }
         mediaProjection.stop();
+
+        if (captureBitmap != null) {
+            captureBitmap.recycle();
+            captureBitmap = null;
+        }
+        if (croppedBitmap != null) {
+            croppedBitmap.recycle();
+            croppedBitmap = null;
+            croppedCanvas = null;
+        }
+        if (scaledBitmap != null) {
+            scaledBitmap.recycle();
+            scaledBitmap = null;
+            scaledCanvas = null;
+        }
     }
 
-    private static byte[] encodeToJpeg(Image image, int width, int height, int quality,
-                                        int scalePercent) {
+    // Only ever called from the capture handler thread (the ImageReader listener), so the
+    // reused Bitmap/Canvas/stream fields need no synchronization.
+    private byte[] encodeToJpeg(Image image) {
         Image.Plane plane = image.getPlanes()[0];
         ByteBuffer buffer = plane.getBuffer();
         int pixelStride = plane.getPixelStride();
         int rowStride = plane.getRowStride();
-        int rowPadding = rowStride - pixelStride * width;
+        int strideWidth = width + (rowStride - pixelStride * width) / pixelStride;
 
-        Bitmap raw = Bitmap.createBitmap(width + rowPadding / pixelStride, height,
-                Bitmap.Config.ARGB_8888);
-        raw.copyPixelsFromBuffer(buffer);
+        if (captureBitmap == null || captureBitmap.getWidth() != strideWidth
+                || captureBitmap.getHeight() != height) {
+            captureBitmap = Bitmap.createBitmap(strideWidth, height, Bitmap.Config.ARGB_8888);
+        }
+        captureBitmap.copyPixelsFromBuffer(buffer);
 
-        Bitmap cropped = rowPadding == 0 ? raw : Bitmap.createBitmap(raw, 0, 0, width, height);
-        if (cropped != raw) {
-            raw.recycle();
+        Bitmap cropped;
+        if (strideWidth == width) {
+            cropped = captureBitmap;
+        } else {
+            if (croppedBitmap == null || croppedBitmap.getWidth() != width
+                    || croppedBitmap.getHeight() != height) {
+                croppedBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+                croppedCanvas = new Canvas(croppedBitmap);
+            }
+            // The canvas is bounded to width x height, so this naturally drops the
+            // right-hand row-stride padding columns from captureBitmap.
+            croppedCanvas.drawBitmap(captureBitmap, 0, 0, null);
+            cropped = croppedBitmap;
         }
 
         Bitmap toEncode = cropped;
-        if (scalePercent != 100) {
-            int scaledWidth = Math.max(1, width * scalePercent / 100);
-            int scaledHeight = Math.max(1, height * scalePercent / 100);
-            toEncode = Bitmap.createScaledBitmap(cropped, scaledWidth, scaledHeight, true);
+        if (scale != 100) {
+            int scaledWidth = Math.max(1, width * scale / 100);
+            int scaledHeight = Math.max(1, height * scale / 100);
+            if (scaledBitmap == null || scaledBitmap.getWidth() != scaledWidth
+                    || scaledBitmap.getHeight() != scaledHeight) {
+                scaledBitmap = Bitmap.createBitmap(scaledWidth, scaledHeight, Bitmap.Config.ARGB_8888);
+                scaledCanvas = new Canvas(scaledBitmap);
+                scalePaint = new Paint(Paint.FILTER_BITMAP_FLAG);
+            }
+            scaledCanvas.drawBitmap(cropped, new Rect(0, 0, width, height),
+                    new Rect(0, 0, scaledWidth, scaledHeight), scalePaint);
+            toEncode = scaledBitmap;
         }
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        toEncode.compress(Bitmap.CompressFormat.JPEG, quality, baos);
-
-        if (toEncode != cropped) {
-            toEncode.recycle();
-        }
-        cropped.recycle();
-
-        return baos.toByteArray();
+        jpegBuffer.reset();
+        toEncode.compress(Bitmap.CompressFormat.JPEG, quality, jpegBuffer);
+        return jpegBuffer.toByteArray();
     }
 }
