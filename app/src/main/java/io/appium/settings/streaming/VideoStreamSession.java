@@ -120,19 +120,31 @@ public class VideoStreamSession extends StreamingSession {
         videoDrainThread.start();
 
         Thread audioDrainThread = null;
-        if (audioEnabled) {
-            audioEncoder = MediaCodecFactory.createAacEncoder(StreamingConstant.AUDIO_SAMPLE_RATE_HZ,
-                    StreamingConstant.AUDIO_CHANNEL_COUNT, StreamingConstant.AUDIO_BITRATE_DEFAULT);
-            audioEncoder.start();
-            audioRecord = MediaCodecFactory.createPlaybackCaptureAudioRecord(mediaProjection,
-                    StreamingConstant.AUDIO_SAMPLE_RATE_HZ);
-            audioDrainThread = new Thread(this::captureAndDrainAudio, "audio-stream-drain");
-            audioDrainThread.start();
-        }
+        try {
+            if (audioEnabled) {
+                audioEncoder = MediaCodecFactory.createAacEncoder(StreamingConstant.AUDIO_SAMPLE_RATE_HZ,
+                        StreamingConstant.AUDIO_CHANNEL_COUNT, StreamingConstant.AUDIO_BITRATE_DEFAULT);
+                audioEncoder.start();
+                audioRecord = MediaCodecFactory.createPlaybackCaptureAudioRecord(mediaProjection,
+                        StreamingConstant.AUDIO_SAMPLE_RATE_HZ);
+                audioDrainThread = new Thread(this::captureAndDrainAudio, "audio-stream-drain");
+                audioDrainThread.start();
+            }
 
-        videoDrainThread.join();
-        if (audioDrainThread != null) {
-            audioDrainThread.join();
+            videoDrainThread.join();
+            if (audioDrainThread != null) {
+                audioDrainThread.join();
+            }
+        } catch (Exception e) {
+            // Setup failed (or join() was interrupted) - releaseCaptureResources() is about to
+            // stop/release the encoders, so make sure neither drain thread is still touching
+            // them before this method returns.
+            stopped = true;
+            videoDrainThread.join();
+            if (audioDrainThread != null) {
+                audioDrainThread.join();
+            }
+            throw e;
         }
     }
 
@@ -210,8 +222,14 @@ public class VideoStreamSession extends StreamingSession {
                     if (inputBuffer != null) {
                         inputBuffer.clear();
                         int read = audioRecord.read(inputBuffer, inputBuffer.capacity());
-                        audioEncoder.queueInputBuffer(inputIndex, 0, Math.max(read, 0),
-                                getPresentationTimeUs(), 0);
+                        if (read < 0) {
+                            // Negative return is an AudioRecord error code (e.g. ERROR_DEAD_OBJECT),
+                            // not "nothing available yet" - stop rather than loop on empty audio forever.
+                            Log.e(TAG, "AudioRecord.read() failed with error code " + read);
+                            hasAsyncError = true;
+                            break;
+                        }
+                        audioEncoder.queueInputBuffer(inputIndex, 0, read, getPresentationTimeUs(), 0);
                     }
                 }
 

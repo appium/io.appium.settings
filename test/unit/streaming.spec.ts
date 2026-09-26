@@ -9,6 +9,15 @@ import {StreamTransport} from '../../lib/commands/streaming-transport.js';
 import {VideoStreamSession} from '../../lib/commands/video-stream.js';
 import {JPEG_STREAM_SERVICE_NAME, VIDEO_STREAM_SERVICE_NAME} from '../../lib/constants.js';
 
+// Mirrors StreamingUtil.VALID_SOCKET_NAME on the Android side - a socket_name that doesn't
+// match this is silently rejected on-device and the stream never starts.
+const ANDROID_VALID_SOCKET_NAME = /^[a-zA-Z0-9._-]{1,200}$/;
+
+function extractEsValue(argv: string[], key: string): string | undefined {
+  const index = argv.indexOf(key);
+  return index >= 0 ? argv[index + 1] : undefined;
+}
+
 describe('streaming sessions', function () {
   let sandbox: sinon.SinonSandbox;
   let adb: ADB;
@@ -88,6 +97,14 @@ describe('streaming sessions', function () {
       assert.match(argsStr, /--es fps 10/);
       assert.match(argsStr, /--es quality 60/);
       assert.match(argsStr, /--es scale 50/);
+
+      const socketName = extractEsValue(amStartCall!, 'socket_name');
+      assert.ok(socketName, 'expected a socket_name extra');
+      assert.match(
+        socketName!,
+        ANDROID_VALID_SOCKET_NAME,
+        'socket_name must match the on-device validator or the stream will never start',
+      );
     });
   });
 
@@ -158,6 +175,14 @@ describe('streaming sessions', function () {
       assert.match(argsStr, /--es fps 15/);
       assert.match(argsStr, /--es bitrate 1000000/);
       assert.match(argsStr, /--es audio true/);
+
+      const socketName = extractEsValue(amStartCall!, 'socket_name');
+      assert.ok(socketName, 'expected a socket_name extra');
+      assert.match(
+        socketName!,
+        ANDROID_VALID_SOCKET_NAME,
+        'socket_name must match the on-device validator or the stream will never start',
+      );
     });
   });
 });

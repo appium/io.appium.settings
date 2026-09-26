@@ -8,6 +8,7 @@ import {
   JPEG_STREAM_ACTION_START,
   JPEG_STREAM_ACTION_STOP,
   JPEG_STREAM_SERVICE_NAME,
+  SETTINGS_HELPER_ID,
   STREAMING_ACTIVITY_NAME,
 } from '../constants.js';
 import {StreamTransport} from './streaming-transport.js';
@@ -80,7 +81,9 @@ export class JpegStreamSession {
     }
 
     const {fps, quality, scale} = opts;
-    const socketName = `${JPEG_STREAM_SERVICE_NAME}.${randomUUID()}`;
+    // Socket names are validated on-device against ^[a-zA-Z0-9._-]{1,200}$, so this
+    // must not contain a "/" - unlike JPEG_STREAM_SERVICE_NAME.
+    const socketName = `${SETTINGS_HELPER_ID}.jpegstream.${randomUUID()}`;
     const args = [
       'am',
       'start',

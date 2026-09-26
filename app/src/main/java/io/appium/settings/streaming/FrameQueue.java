@@ -16,27 +16,49 @@
 
 package io.appium.settings.streaming;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.Iterator;
 
 /**
  * Bounded frame queue that drops the oldest buffered frame instead of blocking
  * the producer when full, so a slow consumer never stalls screen capture.
+ * FLAG_CONFIG frames (e.g. H.264/HEVC SPS/PPS) are protected from eviction where
+ * possible, since losing one can make the rest of the session undecodable.
  */
 public class FrameQueue {
-    private final BlockingQueue<Frame> queue;
+    private final int capacity;
+    private final Deque<Frame> queue = new ArrayDeque<>();
 
     public FrameQueue(int capacity) {
-        this.queue = new ArrayBlockingQueue<>(capacity);
+        this.capacity = capacity;
     }
 
-    public void offer(Frame frame) {
-        while (!queue.offer(frame)) {
-            queue.poll();
+    public synchronized void offer(Frame frame) {
+        queue.addLast(frame);
+        while (queue.size() > capacity && !evictOldestDroppable()) {
+            // Every buffered frame is a CONFIG frame (should not happen in practice) -
+            // drop the true oldest one anyway rather than growing unbounded.
+            queue.pollFirst();
         }
+        notify();
     }
 
-    public Frame take() throws InterruptedException {
-        return queue.take();
+    private boolean evictOldestDroppable() {
+        Iterator<Frame> it = queue.iterator();
+        while (it.hasNext()) {
+            if ((it.next().flags & Frame.FLAG_CONFIG) == 0) {
+                it.remove();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public synchronized Frame take() throws InterruptedException {
+        while (queue.isEmpty()) {
+            wait();
+        }
+        return queue.pollFirst();
     }
 }

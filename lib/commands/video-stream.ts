@@ -5,6 +5,7 @@ import {waitForCondition} from 'asyncbox';
 
 import type {SettingsApp} from '../client.js';
 import {
+  SETTINGS_HELPER_ID,
   STREAMING_ACTIVITY_NAME,
   VIDEO_STREAM_ACTION_START,
   VIDEO_STREAM_ACTION_STOP,
@@ -80,7 +81,9 @@ export class VideoStreamSession {
     }
 
     const {codec, fps, bitrate, resolution, audio} = opts;
-    const socketName = `${VIDEO_STREAM_SERVICE_NAME}.${randomUUID()}`;
+    // Socket names are validated on-device against ^[a-zA-Z0-9._-]{1,200}$, so this
+    // must not contain a "/" - unlike VIDEO_STREAM_SERVICE_NAME.
+    const socketName = `${SETTINGS_HELPER_ID}.videostream.${randomUUID()}`;
     const args = [
       'am',
       'start',
