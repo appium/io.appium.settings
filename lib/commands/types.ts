@@ -38,9 +38,21 @@ export interface StartMediaProjectionRecordingOpts {
 }
 
 /**
+ * Options for choosing the local TCP port used to bridge a live stream's
+ * on-device socket to the host via `adb forward`. At most one of these may be
+ * provided; if neither is given, an OS-assigned ephemeral port is used.
+ */
+export interface LocalPortOpts {
+  /** Use this exact local TCP port. Throws if it's already in use. */
+  localPort?: number;
+  /** Pick the first free local TCP port from this inclusive [min, max] range. */
+  localPortRange?: [number, number];
+}
+
+/**
  * Options for starting a live JPEG frame streaming session.
  */
-export interface StartJpegStreamOpts {
+export interface StartJpegStreamOpts extends LocalPortOpts {
   /** Frames per second requested; actual rate may be lower on constrained devices. Default 60. */
   fps?: number;
   /** JPEG quality, 1-100. Default 80. */
@@ -52,7 +64,7 @@ export interface StartJpegStreamOpts {
 /**
  * Options for starting a live H.264/HEVC video streaming session.
  */
-export interface StartVideoStreamOpts {
+export interface StartVideoStreamOpts extends LocalPortOpts {
   /** Default 'h264'. */
   codec?: 'h264' | 'hevc';
   /** Default 30. */

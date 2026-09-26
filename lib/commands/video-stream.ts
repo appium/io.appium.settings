@@ -12,7 +12,7 @@ import {
   VIDEO_STREAM_SERVICE_NAME,
 } from '../constants.js';
 import {StreamTrack} from './streaming-protocol.js';
-import {StreamTransport} from './streaming-transport.js';
+import {StreamTransport, validateLocalPortOpts} from './streaming-transport.js';
 import type {AccessUnit, StartVideoStreamOpts} from './types.js';
 
 const STREAM_STARTUP_TIMEOUT_MS = 3 * 1000;
@@ -39,6 +39,7 @@ function validateVideoStreamOpts(opts: StartVideoStreamOpts): void {
   if (bitrate !== undefined && (!Number.isInteger(bitrate) || bitrate <= 0)) {
     throw new TypeError(`bitrate must be a positive integer, got ${bitrate}`);
   }
+  validateLocalPortOpts(opts);
 }
 
 /**
@@ -70,7 +71,7 @@ export class VideoStreamSession {
    * Starts the live video stream.
    * If a stream is already running, this method returns false without starting a new one.
    *
-   * @param opts Streaming options including codec, fps, bitrate, resolution and audio
+   * @param opts Streaming options including codec, fps, bitrate, resolution, audio, and the local port to use
    * @returns True if the stream was started successfully, false if already running
    * @throws {Error} If the stream fails to start within the timeout period
    */
@@ -80,7 +81,7 @@ export class VideoStreamSession {
       return false;
     }
 
-    const {codec, fps, bitrate, resolution, audio} = opts;
+    const {codec, fps, bitrate, resolution, audio, localPort, localPortRange} = opts;
     // Socket names are validated on-device against ^[a-zA-Z0-9._-]{1,200}$, so this
     // must not contain a "/" - unlike VIDEO_STREAM_SERVICE_NAME.
     const socketName = `${SETTINGS_HELPER_ID}.videostream.${randomUUID()}`;
@@ -124,7 +125,7 @@ export class VideoStreamSession {
       );
     }
 
-    this.transport = await StreamTransport.connect(this.adb, socketName);
+    this.transport = await StreamTransport.connect(this.adb, socketName, {localPort, localPortRange});
     return true;
   }
 

@@ -42,6 +42,11 @@ describe('streaming sessions', function () {
       await assert.rejects(() => session.start({quality: 101}), TypeError);
     });
 
+    it('should reject conflicting localPort and localPortRange', async function () {
+      const session = new JpegStreamSession(adb);
+      await assert.rejects(() => session.start({localPort: 12345, localPortRange: [12000, 12010]}), TypeError);
+    });
+
     it('should reject an invalid scale value', async function () {
       const session = new JpegStreamSession(adb);
       await assert.rejects(() => session.start({scale: 0}), TypeError);
@@ -106,6 +111,26 @@ describe('streaming sessions', function () {
         'socket_name must match the on-device validator or the stream will never start',
       );
     });
+
+    it('should forward localPort/localPortRange to StreamTransport.connect', async function () {
+      let dumpsysCalls = 0;
+      sandbox.stub(adb, 'shell').callsFake(async (args: unknown) => {
+        const argv = args as string[];
+        if (argv[0] === 'dumpsys') {
+          dumpsysCalls++;
+          return dumpsysCalls === 1 ? '' : `ServiceRecord{x u0 ${JPEG_STREAM_SERVICE_NAME}}`;
+        }
+        return '';
+      });
+      const connectStub = sandbox.stub(StreamTransport, 'connect').resolves({} as unknown as StreamTransport);
+
+      const session = new JpegStreamSession(adb);
+      await session.start({localPort: 54321});
+
+      assert.strictEqual(connectStub.callCount, 1);
+      const [, , portOpts] = connectStub.getCall(0).args;
+      assert.deepStrictEqual(portOpts, {localPort: 54321, localPortRange: undefined});
+    });
   });
 
   describe('VideoStreamSession', function () {
@@ -122,6 +147,11 @@ describe('streaming sessions', function () {
     it('should reject an invalid bitrate value', async function () {
       const session = new VideoStreamSession(adb);
       await assert.rejects(() => session.start({bitrate: 0}), TypeError);
+    });
+
+    it('should reject conflicting localPort and localPortRange', async function () {
+      const session = new VideoStreamSession(adb);
+      await assert.rejects(() => session.start({localPort: 12345, localPortRange: [12000, 12010]}), TypeError);
     });
 
     it('should report isRunning() based on dumpsys output', async function () {

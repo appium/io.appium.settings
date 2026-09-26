@@ -473,6 +473,22 @@ async function main() {
 main();
 ```
 
+By default the Node wrapper picks an OS-assigned ephemeral port for the `adb forward` bridge
+between the device's local socket and the host. Both `makeJpegStreamSession().start()` and
+`makeVideoStreamSession().start()` also accept:
+
+- `localPort` (Optional) - Use this exact local TCP port instead. Throws if it's already in use.
+- `localPortRange` (Optional) - A `[min, max]` tuple; the first free port in this inclusive range is used. Throws if none are free.
+
+Only one of `localPort`/`localPortRange` may be provided at a time. This is useful if you need a
+predictable port (e.g. for a firewall rule or a proxy in front of the stream):
+
+```js
+await session.start({codec: 'h264', localPort: 8000});
+// or
+await session.start({codec: 'h264', localPortRange: [8000, 8010]});
+```
+
 _Note_
 
 JPEG streaming throughput is CPU-bound (each frame is compressed on-device via

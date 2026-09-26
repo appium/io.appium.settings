@@ -4,6 +4,7 @@ import type {ADB} from 'appium-adb';
 import {retryInterval} from 'asyncbox';
 
 import {createParserState, parseFrames, type StreamFrame} from './streaming-protocol.js';
+import type {LocalPortOpts} from './types.js';
 
 const DEFAULT_QUEUE_CAPACITY = 60;
 const CONNECT_TIMEOUT_MS = 5000;
@@ -85,23 +86,82 @@ export class BoundedFrameQueue<T> {
   }
 }
 
-async function pickFreePort(): Promise<number> {
+export function validateLocalPortOpts(opts: LocalPortOpts): void {
+  const {localPort, localPortRange} = opts;
+  if (localPort !== undefined && localPortRange !== undefined) {
+    throw new TypeError('Only one of localPort or localPortRange may be provided');
+  }
+  if (localPort !== undefined && (!Number.isInteger(localPort) || localPort < 1 || localPort > 65535)) {
+    throw new TypeError(`localPort must be an integer between 1 and 65535, got ${localPort}`);
+  }
+  if (localPortRange !== undefined) {
+    const [min, max] = localPortRange;
+    if (!Number.isInteger(min) || !Number.isInteger(max) || min < 1 || max > 65535 || min > max) {
+      throw new TypeError(
+        `localPortRange must be a [min, max] tuple with 1 <= min <= max <= 65535, got [${min}, ${max}]`,
+      );
+    }
+  }
+}
+
+/**
+ * Tries to bind a local TCP server to `port` (0 lets the OS pick an ephemeral one),
+ * immediately closes it, and returns the bound port - or `null` if `port` is already
+ * in use (EADDRINUSE/EACCES), so the caller can try another candidate.
+ */
+async function tryBindPort(port: number): Promise<number | null> {
   return new Promise((resolve, reject) => {
     const server = net.createServer();
     server.unref();
-    server.on('error', reject);
-    server.listen(0, '127.0.0.1', () => {
+    server.once('error', (err: NodeJS.ErrnoException) => {
+      if (err.code === 'EADDRINUSE' || err.code === 'EACCES') {
+        resolve(null);
+      } else {
+        reject(err);
+      }
+    });
+    server.listen(port, '127.0.0.1', () => {
       const address = server.address();
-      const port = address && typeof address === 'object' ? address.port : null;
+      const boundPort = address && typeof address === 'object' ? address.port : null;
       server.close(() => {
-        if (port) {
-          resolve(port);
+        if (boundPort) {
+          resolve(boundPort);
         } else {
           reject(new Error('Unable to determine a free local port'));
         }
       });
     });
   });
+}
+
+export async function resolveLocalPort(opts: LocalPortOpts): Promise<number> {
+  const {localPort, localPortRange} = opts;
+
+  if (localPort !== undefined) {
+    const bound = await tryBindPort(localPort);
+    if (bound === null) {
+      throw new Error(`Local port ${localPort} is already in use`);
+    }
+    return bound;
+  }
+
+  if (localPortRange) {
+    const [min, max] = localPortRange;
+    for (let port = min; port <= max; port++) {
+      const bound = await tryBindPort(port);
+      if (bound !== null) {
+        return bound;
+      }
+    }
+    throw new Error(`No free local port found in range ${min}-${max}`);
+  }
+
+  // No preference given - let the OS assign an ephemeral port.
+  const bound = await tryBindPort(0);
+  if (bound === null) {
+    throw new Error('Unable to determine a free local port');
+  }
+  return bound;
 }
 
 async function connectOnce(port: number): Promise<net.Socket> {
@@ -152,8 +212,8 @@ export class StreamTransport {
     this.socket = socket;
   }
 
-  static async connect(adb: ADB, socketName: string): Promise<StreamTransport> {
-    const localPort = await pickFreePort();
+  static async connect(adb: ADB, socketName: string, portOpts: LocalPortOpts = {}): Promise<StreamTransport> {
+    const localPort = await resolveLocalPort(portOpts);
     await adb.forwardAbstractPort(localPort, socketName);
     let socket: net.Socket;
     try {

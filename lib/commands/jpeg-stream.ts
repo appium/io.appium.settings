@@ -11,7 +11,7 @@ import {
   SETTINGS_HELPER_ID,
   STREAMING_ACTIVITY_NAME,
 } from '../constants.js';
-import {StreamTransport} from './streaming-transport.js';
+import {StreamTransport, validateLocalPortOpts} from './streaming-transport.js';
 import type {JpegFrame, StartJpegStreamOpts} from './types.js';
 
 const STREAM_STARTUP_TIMEOUT_MS = 3 * 1000;
@@ -38,6 +38,7 @@ function validateJpegStreamOpts(opts: StartJpegStreamOpts): void {
   if (scale !== undefined && (!Number.isInteger(scale) || scale < 1 || scale > 100)) {
     throw new TypeError(`scale must be an integer between 1 and 100, got ${scale}`);
   }
+  validateLocalPortOpts(opts);
 }
 
 /**
@@ -70,7 +71,7 @@ export class JpegStreamSession {
    * Starts the live JPEG frame stream.
    * If a stream is already running, this method returns false without starting a new one.
    *
-   * @param opts Streaming options including fps, quality and scale
+   * @param opts Streaming options including fps, quality, scale, and the local port to use
    * @returns True if the stream was started successfully, false if already running
    * @throws {Error} If the stream fails to start within the timeout period
    */
@@ -80,7 +81,7 @@ export class JpegStreamSession {
       return false;
     }
 
-    const {fps, quality, scale} = opts;
+    const {fps, quality, scale, localPort, localPortRange} = opts;
     // Socket names are validated on-device against ^[a-zA-Z0-9._-]{1,200}$, so this
     // must not contain a "/" - unlike JPEG_STREAM_SERVICE_NAME.
     const socketName = `${SETTINGS_HELPER_ID}.jpegstream.${randomUUID()}`;
@@ -118,7 +119,7 @@ export class JpegStreamSession {
       );
     }
 
-    this.transport = await StreamTransport.connect(this.adb, socketName);
+    this.transport = await StreamTransport.connect(this.adb, socketName, {localPort, localPortRange});
     return true;
   }
 
