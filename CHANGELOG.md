@@ -1,3 +1,9 @@
+## [8.0.10](https://github.com/appium/io.appium.settings/compare/v8.0.9...v8.0.10) (2026-09-26)
+
+### Bug Fixes
+
+* quote media scan destination paths ([#321](https://github.com/appium/io.appium.settings/issues/321)) ([71c90d0](https://github.com/appium/io.appium.settings/commit/71c90d09fb3e0cae33b20749217df593eb630d57))
+
 ## [8.0.9](https://github.com/appium/io.appium.settings/compare/v8.0.8...v8.0.9) (2026-08-25)
 
 ### Miscellaneous Chores
