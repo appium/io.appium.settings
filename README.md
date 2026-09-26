@@ -9,6 +9,26 @@ Toggle settings in Android device or emulator.
 
 A small and simple Android application that deals with the system settings. Then the application shuts down.
 
+## Trusted test environment
+
+Appium Settings is intended for dedicated test devices and emulators with trusted
+applications. Its exported broadcast receivers support ADB and external automation
+tools; they do not authenticate callers or provide isolation from malicious apps
+installed on the same device.
+
+In particular, granting Appium Settings `READ_SMS` allows other installed apps to
+request SMS data through its SMS receiver without holding `READ_SMS` themselves.
+When notification access is enabled and the service that registers the notification
+receiver is running, other installed apps can request buffered notification data
+without having notification access themselves. These requests happen on the device;
+network isolation alone does not prevent them.
+
+Use test data and avoid devices containing personal or confidential SMS messages or
+notifications. Grant only the permissions needed for your tests. When the helper is
+no longer needed, revoke its SMS permission and notification access, or uninstall it.
+Ending an Appium session should not be treated as revoking those grants or removing
+the helper.
+
 ## Requirements
 
 * [Android SDK](http://developer.android.com)
@@ -255,6 +275,11 @@ adb shell ime set com.google.android.inputmethod.latin/com.android.inputmethod.l
 
 ## Notifications
 
+**Trust requirement:** While notification access is enabled and the notification
+receiver is registered, other apps on the device can retrieve buffered notifications
+through this helper. See [Trusted test environment](#trusted-test-environment) before
+enabling this feature.
+
 Since version 2.16.0 Appium Settings supports retrieval of system notifications.
 You need to manually switch the corresponding security switcher next to `Appium Settings`
 application name in `Settings->Notification Access` (the path to this page under Settings
@@ -305,6 +330,10 @@ for more information on available notification properties and their values.
 
 
 ## SMS
+
+**Trust requirement:** Once this helper has `READ_SMS`, other apps on the device can
+request SMS data through its exported receiver without that permission themselves.
+See [Trusted test environment](#trusted-test-environment) before granting access.
 
 Since version 3.1 Appium Settings supports retrieval of SMS messages.
 Make sure the corresponding permission has been granted to the app
