@@ -1,0 +1,284 @@
+/*
+  Copyright 2012-present Appium Committers
+  <p>
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+  <p>
+  http://www.apache.org/licenses/LICENSE-2.0
+  <p>
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+ */
+
+package io.appium.settings.streaming;
+
+import android.hardware.display.DisplayManager;
+import android.hardware.display.VirtualDisplay;
+import android.media.AudioRecord;
+import android.media.MediaCodec;
+import android.media.MediaCodecInfo;
+import android.media.MediaFormat;
+import android.media.projection.MediaProjection;
+import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
+import android.view.Surface;
+
+import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicLong;
+
+import androidx.annotation.RequiresApi;
+
+import io.appium.settings.media.MediaCodecFactory;
+
+// Live H.264/HEVC video streaming session, with an optional interleaved AAC audio track.
+// Video is captured via a MediaProjection-backed VirtualDisplay feeding a MediaCodec
+// encoder's input Surface; audio (if enabled) mirrors RecorderThread's AudioRecord capture
+// approach but pushes encoded access units onto the session's frame queue instead of
+// muxing to a file.
+public class VideoStreamSession extends StreamingSession {
+    private static final String TAG = "VideoStreamSession";
+
+    private final MediaProjection mediaProjection;
+    private final int width;
+    private final int height;
+    private final int dpi;
+    private final String codecMime;
+    private final int fps;
+    private final int bitrate;
+    private final boolean audioEnabled;
+    private final long sessionStartNanos = System.nanoTime();
+
+    private VirtualDisplay virtualDisplay;
+    private MediaCodec videoEncoder;
+    private MediaCodec audioEncoder;
+    private AudioRecord audioRecord;
+    private MediaProjection.Callback mediaProjectionCallback;
+
+    public VideoStreamSession(MediaProjection mediaProjection, String socketName,
+                               int width, int height, int dpi,
+                               String codecMime, int fps, int bitrate, boolean audioEnabled) {
+        super(socketName);
+        this.mediaProjection = mediaProjection;
+        this.width = width;
+        this.height = height;
+        this.dpi = dpi;
+        this.codecMime = codecMime;
+        this.fps = fps;
+        this.bitrate = bitrate;
+        this.audioEnabled = audioEnabled;
+    }
+
+    @Override
+    protected String getSessionThreadName() {
+        return "video-stream-session";
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    @Override
+    protected void configureAndCapture() throws Exception {
+        MediaCodecInfo.VideoCapabilities capabilities;
+        MediaCodec capabilitiesProbe = MediaCodec.createEncoderByType(codecMime);
+        try {
+            capabilities = capabilitiesProbe.getCodecInfo()
+                    .getCapabilitiesForType(codecMime).getVideoCapabilities();
+        } finally {
+            capabilitiesProbe.release();
+        }
+
+        int clampedFps = Math.min(fps, capabilities.getSupportedFrameRates().getUpper());
+        int clampedBitrate = capabilities.getBitrateRange().clamp(bitrate);
+
+        MediaFormat format = MediaCodecFactory.createVideoEncoderFormat(codecMime, width, height,
+                clampedBitrate, clampedFps);
+        videoEncoder = MediaCodecFactory.createConfiguredVideoEncoder(codecMime, format);
+        Surface surface = videoEncoder.createInputSurface();
+        videoEncoder.start();
+
+        Handler handler = new Handler(Looper.getMainLooper());
+        mediaProjectionCallback = new MediaProjection.Callback() {
+            @Override
+            public void onStop() {
+                super.onStop();
+                if (!stopped) {
+                    hasAsyncError = true;
+                }
+            }
+        };
+        mediaProjection.registerCallback(mediaProjectionCallback, handler);
+
+        virtualDisplay = mediaProjection.createVirtualDisplay("Appium Video Stream",
+                width, height, dpi, DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
+                surface, null, handler);
+
+        Thread videoDrainThread = new Thread(this::drainVideo, "video-stream-drain");
+        videoDrainThread.start();
+
+        Thread audioDrainThread = null;
+        if (audioEnabled) {
+            audioEncoder = MediaCodecFactory.createAacEncoder(StreamingConstant.AUDIO_SAMPLE_RATE_HZ,
+                    StreamingConstant.AUDIO_CHANNEL_COUNT, StreamingConstant.AUDIO_BITRATE_DEFAULT);
+            audioEncoder.start();
+            audioRecord = MediaCodecFactory.createPlaybackCaptureAudioRecord(mediaProjection,
+                    StreamingConstant.AUDIO_SAMPLE_RATE_HZ);
+            audioDrainThread = new Thread(this::captureAndDrainAudio, "audio-stream-drain");
+            audioDrainThread.start();
+        }
+
+        videoDrainThread.join();
+        if (audioDrainThread != null) {
+            audioDrainThread.join();
+        }
+    }
+
+    private long getPresentationTimeUs() {
+        return (System.nanoTime() - sessionStartNanos) / 1000;
+    }
+
+    private void drainVideo() {
+        MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
+        AtomicLong sequence = new AtomicLong(0);
+        try {
+            while (!stopped && !hasAsyncError) {
+                int status = videoEncoder.dequeueOutputBuffer(info, StreamingConstant.DRAIN_TIMEOUT_US);
+                if (status == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+                    MediaFormat outputFormat = videoEncoder.getOutputFormat();
+                    byte[] csd0 = toBytes(outputFormat.getByteBuffer("csd-0"));
+                    byte[] csd1 = outputFormat.containsKey("csd-1")
+                            ? toBytes(outputFormat.getByteBuffer("csd-1")) : new byte[0];
+                    byte[] configPayload = new byte[csd0.length + csd1.length];
+                    System.arraycopy(csd0, 0, configPayload, 0, csd0.length);
+                    System.arraycopy(csd1, 0, configPayload, csd0.length, csd1.length);
+                    queue.offer(new Frame(Frame.Track.VIDEO, Frame.FLAG_CONFIG,
+                            sequence.getAndIncrement(), getPresentationTimeUs(), configPayload));
+                    continue;
+                }
+                if (status < 0) {
+                    continue;
+                }
+                ByteBuffer outputBuffer = videoEncoder.getOutputBuffer(status);
+                if (outputBuffer != null && info.size > 0
+                        && (info.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) == 0) {
+                    outputBuffer.position(info.offset);
+                    outputBuffer.limit(info.offset + info.size);
+                    byte[] payload = new byte[info.size];
+                    outputBuffer.get(payload);
+
+                    byte flags = 0;
+                    if ((info.flags & MediaCodec.BUFFER_FLAG_KEY_FRAME) != 0) {
+                        flags |= Frame.FLAG_KEYFRAME;
+                    }
+                    if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+                        flags |= Frame.FLAG_EOS;
+                    }
+                    queue.offer(new Frame(Frame.Track.VIDEO, flags, sequence.getAndIncrement(),
+                            info.presentationTimeUs, payload));
+                }
+                videoEncoder.releaseOutputBuffer(status, false);
+                if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            if (!stopped) {
+                Log.e(TAG, "Video drain thread error", e);
+                hasAsyncError = true;
+            }
+        }
+    }
+
+    private void captureAndDrainAudio() {
+        AtomicLong sequence = new AtomicLong(0);
+        try {
+            audioRecord.startRecording();
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to start audio recording", e);
+            hasAsyncError = true;
+            return;
+        }
+        MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
+        try {
+            while (!stopped && !hasAsyncError) {
+                int inputIndex = audioEncoder.dequeueInputBuffer(StreamingConstant.DRAIN_TIMEOUT_US);
+                if (inputIndex >= 0) {
+                    ByteBuffer inputBuffer = audioEncoder.getInputBuffer(inputIndex);
+                    if (inputBuffer != null) {
+                        inputBuffer.clear();
+                        int read = audioRecord.read(inputBuffer, inputBuffer.capacity());
+                        audioEncoder.queueInputBuffer(inputIndex, 0, Math.max(read, 0),
+                                getPresentationTimeUs(), 0);
+                    }
+                }
+
+                int outputIndex = audioEncoder.dequeueOutputBuffer(info, 0);
+                if (outputIndex >= 0) {
+                    ByteBuffer outputBuffer = audioEncoder.getOutputBuffer(outputIndex);
+                    if (outputBuffer != null && info.size > 0
+                            && (info.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) == 0) {
+                        outputBuffer.position(info.offset);
+                        outputBuffer.limit(info.offset + info.size);
+                        byte[] raw = new byte[info.size];
+                        outputBuffer.get(raw);
+                        byte[] withAdts = AdtsHelper.addAdtsHeader(raw,
+                                StreamingConstant.AUDIO_SAMPLE_RATE_HZ,
+                                StreamingConstant.AUDIO_CHANNEL_COUNT);
+                        queue.offer(new Frame(Frame.Track.AUDIO, (byte) 0, sequence.getAndIncrement(),
+                                info.presentationTimeUs, withAdts));
+                    }
+                    audioEncoder.releaseOutputBuffer(outputIndex, false);
+                }
+            }
+        } catch (Exception e) {
+            if (!stopped) {
+                Log.e(TAG, "Audio drain thread error", e);
+                hasAsyncError = true;
+            }
+        }
+    }
+
+    private static byte[] toBytes(ByteBuffer buffer) {
+        if (buffer == null) {
+            return new byte[0];
+        }
+        ByteBuffer duplicate = buffer.duplicate();
+        byte[] bytes = new byte[duplicate.remaining()];
+        duplicate.get(bytes);
+        return bytes;
+    }
+
+    @Override
+    protected void releaseCaptureResources() {
+        if (virtualDisplay != null) {
+            virtualDisplay.release();
+            virtualDisplay = null;
+        }
+        if (mediaProjectionCallback != null) {
+            mediaProjection.unregisterCallback(mediaProjectionCallback);
+            mediaProjectionCallback = null;
+        }
+        if (audioRecord != null) {
+            try {
+                audioRecord.stop();
+            } catch (IllegalStateException ignored) {
+            }
+            audioRecord.release();
+            audioRecord = null;
+        }
+        if (audioEncoder != null) {
+            audioEncoder.stop();
+            audioEncoder.release();
+            audioEncoder = null;
+        }
+        if (videoEncoder != null) {
+            videoEncoder.stop();
+            videoEncoder.release();
+            videoEncoder = null;
+        }
+        mediaProjection.stop();
+    }
+}

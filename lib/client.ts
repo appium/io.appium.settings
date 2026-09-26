@@ -6,6 +6,7 @@ import {setAnimationState} from './commands/animation.js';
 import {setBluetoothState, unpairAllBluetoothDevices} from './commands/bluetooth.js';
 import {getClipboard} from './commands/clipboard.js';
 import {setGeoLocation, getGeoLocation, refreshGeoLocationCache} from './commands/geolocation.js';
+import {makeJpegStreamSession} from './commands/jpeg-stream.js';
 import {setDeviceLocale, listSupportedLocales} from './commands/locale.js';
 import {makeMediaProjectionRecorder, adjustMediaProjectionServicePermissions} from './commands/media-projection.js';
 import {scanMedia} from './commands/media.js';
@@ -13,6 +14,7 @@ import {setDataState, setWifiState} from './commands/network.js';
 import {getNotifications, adjustNotificationsPermissions} from './commands/notifications.js';
 import {getSmsList} from './commands/sms.js';
 import {performEditorAction, typeUnicode} from './commands/typing.js';
+import {makeVideoStreamSession} from './commands/video-stream.js';
 import {SETTINGS_HELPER_ID, SETTINGS_HELPER_MAIN_ACTIVITY} from './constants.js';
 import {log, LOG_PREFIX} from './logger.js';
 
@@ -61,6 +63,9 @@ export class SettingsApp {
 
   makeMediaProjectionRecorder = makeMediaProjectionRecorder;
   adjustMediaProjectionServicePermissions = adjustMediaProjectionServicePermissions;
+
+  makeJpegStreamSession = makeJpegStreamSession;
+  makeVideoStreamSession = makeVideoStreamSession;
 
   constructor(opts: SettingsAppOpts) {
     this.adb = opts.adb;

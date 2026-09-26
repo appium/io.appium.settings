@@ -30,6 +30,8 @@ import androidx.core.app.NotificationCompat;
 
 public class NotificationHelpers {
     public static final int APPIUM_NOTIFICATION_IDENTIFIER = 1;
+    public static final int APPIUM_JPEG_STREAM_NOTIFICATION_ID = 2;
+    public static final int APPIUM_VIDEO_STREAM_NOTIFICATION_ID = 3;
     private static final String CHANNEL_ID = "main_channel";
     private static final String CHANNEL_NAME = "Appium Settings";
     private static final String CHANNEL_DESCRIPTION = "Keep this service running, " +
@@ -48,10 +50,14 @@ public class NotificationHelpers {
     }
 
     public static Notification getNotification(Context context) {
+        return getNotification(context, CHANNEL_DESCRIPTION);
+    }
+
+    public static Notification getNotification(Context context, String contentText) {
         createChannel(context);
         NotificationCompat.BigTextStyle bigTextStyle = new NotificationCompat.BigTextStyle();
         bigTextStyle.setBigContentTitle(CHANNEL_NAME);
-        bigTextStyle.bigText(CHANNEL_DESCRIPTION);
+        bigTextStyle.bigText(contentText);
         return new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setStyle(bigTextStyle)
                 .setWhen(System.currentTimeMillis())
