@@ -5,9 +5,9 @@ import {ADB} from 'appium-adb';
 import sinon from 'sinon';
 
 import {JpegStreamSession} from '../../lib/commands/jpeg-stream.js';
-import {StreamTransport} from '../../lib/commands/streaming-transport.js';
 import {VideoStreamSession} from '../../lib/commands/video-stream.js';
 import {JPEG_STREAM_SERVICE_NAME, VIDEO_STREAM_SERVICE_NAME} from '../../lib/constants.js';
+import {StreamTransport} from '../../lib/utils/index.js';
 
 // Mirrors StreamingUtil.VALID_SOCKET_NAME on the Android side - a socket_name that doesn't
 // match this is silently rejected on-device and the stream never starts.

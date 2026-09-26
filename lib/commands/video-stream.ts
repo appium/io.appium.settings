@@ -11,8 +11,7 @@ import {
   VIDEO_STREAM_ACTION_STOP,
   VIDEO_STREAM_SERVICE_NAME,
 } from '../constants.js';
-import {StreamTrack} from './streaming-protocol.js';
-import {StreamTransport, validateLocalPortOpts} from './streaming-transport.js';
+import {StreamTrack, StreamTransport, validateLocalPortOpts} from '../utils/index.js';
 import type {AccessUnit, StartVideoStreamOpts} from './types.js';
 
 const STREAM_STARTUP_TIMEOUT_MS = 3 * 1000;

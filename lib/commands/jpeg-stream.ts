@@ -11,7 +11,7 @@ import {
   SETTINGS_HELPER_ID,
   STREAMING_ACTIVITY_NAME,
 } from '../constants.js';
-import {StreamTransport, validateLocalPortOpts} from './streaming-transport.js';
+import {StreamTransport, validateLocalPortOpts} from '../utils/index.js';
 import type {JpegFrame, StartJpegStreamOpts} from './types.js';
 
 const STREAM_STARTUP_TIMEOUT_MS = 3 * 1000;

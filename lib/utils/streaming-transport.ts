@@ -3,8 +3,8 @@ import net from 'node:net';
 import type {ADB} from 'appium-adb';
 import {retryInterval} from 'asyncbox';
 
+import type {LocalPortOpts} from '../commands/types.js';
 import {createParserState, parseFrames, type StreamFrame} from './streaming-protocol.js';
-import type {LocalPortOpts} from './types.js';
 
 const DEFAULT_QUEUE_CAPACITY = 60;
 const CONNECT_TIMEOUT_MS = 5000;

@@ -1,4 +1,4 @@
-import {getSettingsApkPath} from './utils.js';
+import {getSettingsApkPath} from './utils/index.js';
 
 export const path = getSettingsApkPath();
 export * from './constants.js';

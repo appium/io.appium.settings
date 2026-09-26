@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import net from 'node:net';
 import {describe, it} from 'node:test';
 
-import {resolveLocalPort, validateLocalPortOpts} from '../../lib/commands/streaming-transport.js';
+import {resolveLocalPort, validateLocalPortOpts} from '../../lib/utils/index.js';
 
 async function listenOn(port: number): Promise<net.Server> {
   return new Promise((resolve, reject) => {

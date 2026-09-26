@@ -5,7 +5,7 @@ import {describe, it, before, beforeEach, afterEach, type TestContext} from 'nod
 import {ADB} from 'appium-adb';
 
 import {SettingsApp} from '../../lib/client.js';
-import {getSettingsApkPath} from '../../lib/utils.js';
+import {getSettingsApkPath} from '../../lib/utils/index.js';
 
 describe('JPEG Streaming', function () {
   let adb: ADB;

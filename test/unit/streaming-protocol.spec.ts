@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {describe, it} from 'node:test';
 
-import {createParserState, parseFrames, StreamTrack, type StreamFrame} from '../../lib/commands/streaming-protocol.js';
+import {createParserState, parseFrames, StreamTrack, type StreamFrame} from '../../lib/utils/index.js';
 
 function buildFrameBuffer(
   track: number,

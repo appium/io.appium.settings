@@ -6,7 +6,7 @@ import {ADB} from 'appium-adb';
 
 import {SettingsApp} from '../../lib/client.js';
 import type {AccessUnit} from '../../lib/commands/types.js';
-import {getSettingsApkPath} from '../../lib/utils.js';
+import {getSettingsApkPath} from '../../lib/utils/index.js';
 
 describe('Video Streaming', function () {
   let adb: ADB;
