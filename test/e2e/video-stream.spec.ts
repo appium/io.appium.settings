@@ -8,6 +8,22 @@ import {SettingsApp} from '../../lib/client.js';
 import type {AccessUnit} from '../../lib/commands/types.js';
 import {getSettingsApkPath} from '../../lib/utils/index.js';
 
+// `fixed-to-user-rotation` (API 30+) overrides the foreground app's own orientation request
+// (e.g. a launcher's portrait lock); best-effort since it doesn't exist below that - `lock`
+// is the actual trigger, so its own failure means this platform can't force a rotation at all.
+async function tryLockRotation(adb: ADB, rotation: number): Promise<boolean> {
+  await adb.shell(['cmd', 'window', 'fixed-to-user-rotation', 'enabled']).catch(() => {});
+  return adb
+    .shell(['cmd', 'window', 'user-rotation', 'lock', `${rotation}`])
+    .then(() => true)
+    .catch(() => false);
+}
+
+async function restoreRotation(adb: ADB): Promise<void> {
+  await adb.shell(['cmd', 'window', 'user-rotation', 'lock', '0']).catch(() => {});
+  await adb.shell(['cmd', 'window', 'fixed-to-user-rotation', 'default']).catch(() => {});
+}
+
 describe('Video Streaming', function () {
   let adb: ADB;
   let settingsApp: SettingsApp;
@@ -156,17 +172,17 @@ describe('Video Streaming', function () {
       ctx.skip();
       return;
     }
+    if (!(await tryLockRotation(adb, 0))) {
+      // Platform can't force a rotation via adb shell (e.g. no fixed-to-user-rotation and
+      // something in the foreground holds its own orientation lock) - nothing to test here.
+      ctx.skip();
+      return;
+    }
 
     const started = await session.start({codec: 'h264', fps: 15, bitrate: 1000000});
     assert.strictEqual(started, true);
 
     try {
-      // fixed-to-user-rotation overrides the foreground app's own orientation request (e.g.
-      // the launcher's portrait lock), which otherwise makes a plain `settings put system
-      // user_rotation` silently no-op with nothing visibly requesting a rotation change.
-      await adb.shell(['cmd', 'window', 'fixed-to-user-rotation', 'enabled']);
-      await adb.shell(['cmd', 'window', 'user-rotation', 'lock', '0']);
-
       // Video and audio sequence numbers are independent per-track counters, so only the
       // video track's own sequence is checked for monotonicity across the rotation.
       let lastVideoSequence = -1;
@@ -224,8 +240,7 @@ describe('Video Streaming', function () {
       );
       assert.ok(sawKeyframeAfterConfig, 'expected a keyframe to follow the post-rotation CONFIG unit');
     } finally {
-      await adb.shell(['cmd', 'window', 'user-rotation', 'lock', '0']).catch(() => {});
-      await adb.shell(['cmd', 'window', 'fixed-to-user-rotation', 'default']).catch(() => {});
+      await restoreRotation(adb);
     }
 
     await session.stop();
