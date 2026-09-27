@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
 import fs from 'node:fs/promises';
 import {describe, it, before, beforeEach, afterEach, type TestContext} from 'node:test';
 
@@ -6,6 +7,7 @@ import {ADB} from 'appium-adb';
 import {waitForCondition} from 'asyncbox';
 
 import {SettingsApp} from '../../lib/client.js';
+import {JPEG_STREAM_ACTION_START, JPEG_STREAM_ACTION_STOP, STREAMING_ACTIVITY_NAME} from '../../lib/constants.js';
 import {getSettingsApkPath} from '../../lib/utils/index.js';
 
 describe('JPEG Streaming', function () {
@@ -142,6 +144,63 @@ describe('JPEG Streaming', function () {
     await transport.close();
 
     await waitForCondition(async () => !(await session.isRunning()), {waitMs: 10000, intervalMs: 300});
+    assert.strictEqual(await session.isRunning(), false);
+  });
+
+  it('should stop the on-device service on its own if no client connects within the accept timeout', async function (ctx: TestContext) {
+    if (shouldSkip) {
+      ctx.skip();
+      return;
+    }
+
+    // Starts the service directly (bypassing session.start()) so no adb forward/client
+    // ever connects - the on-device accept-timeout watchdog must stop the session, the
+    // service and its media projection on its own.
+    const socketName = `io.appium.settings.jpegstream.${randomUUID()}`;
+    await adb.shell([
+      'am',
+      'start',
+      '-n',
+      STREAMING_ACTIVITY_NAME,
+      '-a',
+      JPEG_STREAM_ACTION_START,
+      '--es',
+      'socket_name',
+      socketName,
+    ]);
+    try {
+      await waitForCondition(async () => await session.isRunning(), {waitMs: 3000, intervalMs: 300});
+      await waitForCondition(async () => !(await session.isRunning()), {waitMs: 15000, intervalMs: 500});
+      assert.strictEqual(await session.isRunning(), false);
+    } finally {
+      await adb.shell(['am', 'start', '-n', STREAMING_ACTIVITY_NAME, '-a', JPEG_STREAM_ACTION_STOP]).catch(() => {});
+    }
+  });
+
+  it('should stop the on-device service if stopped before any client connects', async function (ctx: TestContext) {
+    if (shouldSkip) {
+      ctx.skip();
+      return;
+    }
+
+    const socketName = `io.appium.settings.jpegstream.${randomUUID()}`;
+    await adb.shell([
+      'am',
+      'start',
+      '-n',
+      STREAMING_ACTIVITY_NAME,
+      '-a',
+      JPEG_STREAM_ACTION_START,
+      '--es',
+      'socket_name',
+      socketName,
+    ]);
+    await waitForCondition(async () => await session.isRunning(), {waitMs: 3000, intervalMs: 300});
+
+    // Stops while accept() is still blocked (no client ever connected) - this must not
+    // leave the session thread, listening socket or media projection alive.
+    await adb.shell(['am', 'start', '-n', STREAMING_ACTIVITY_NAME, '-a', JPEG_STREAM_ACTION_STOP]);
+    await waitForCondition(async () => !(await session.isRunning()), {waitMs: 5000, intervalMs: 300});
     assert.strictEqual(await session.isRunning(), false);
   });
 });

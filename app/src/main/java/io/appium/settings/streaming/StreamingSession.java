@@ -18,6 +18,7 @@ package io.appium.settings.streaming;
 
 import android.net.LocalServerSocket;
 import android.net.LocalSocket;
+import android.net.LocalSocketAddress;
 import android.util.Log;
 
 import java.io.Closeable;
@@ -71,8 +72,24 @@ public abstract class StreamingSession implements Runnable {
 
     public void stopSession() {
         stopped = true;
-        closeQuietly(serverSocket);
+        unblockAccept();
         closeQuietly(clientSocket);
+    }
+
+    // LocalServerSocket#close() does not reliably interrupt a thread already parked in
+    // accept() on Android (unlike java.net.ServerSocket). Connect a throwaway client first
+    // so a pending accept() completes and returns - run() discards it once it observes
+    // `stopped`. Only then close the server socket; must be this order, since closing it
+    // first unbinds the socket name and the connect() below would just fail instead.
+    private void unblockAccept() {
+        try {
+            LocalSocket unblocker = new LocalSocket();
+            unblocker.connect(new LocalSocketAddress(socketName));
+            closeQuietly(unblocker);
+        } catch (IOException ignored) {
+            // Nothing was blocked in accept() (already accepted, or never bound).
+        }
+        closeQuietly(serverSocket);
     }
 
     public boolean isSessionRunning() {
@@ -105,7 +122,7 @@ public abstract class StreamingSession implements Runnable {
                 }
                 if (clientSocket == null) {
                     Log.w(TAG, "No client connected within timeout, closing streaming session");
-                    closeQuietly(serverSocket);
+                    stopSession();
                 }
             }, "streaming-accept-watchdog");
             watchdog.start();
@@ -113,7 +130,29 @@ public abstract class StreamingSession implements Runnable {
             clientSocket = serverSocket.accept();
             watchdog.interrupt();
 
+            if (stopped) {
+                // stopSession() (explicitly, or via the watchdog above) had to connect a
+                // throwaway client to unblock accept() - there is no real client to serve.
+                closeQuietly(clientSocket);
+                return;
+            }
+
             final OutputStream out = clientSocket.getOutputStream();
+
+            // Detect the client going away even when nothing is being written (e.g. a JPEG
+            // stream on an unchanged screen): the client never sends data, so a blocking read
+            // here only returns once the peer closes the connection.
+            Thread disconnectWatcher = new Thread(() -> {
+                try {
+                    clientSocket.getInputStream().read();
+                } catch (IOException ignored) {
+                    // Local socket closed already, by stopSession() or a writer error.
+                }
+                stopSession();
+            }, "streaming-disconnect-watcher");
+            disconnectWatcher.setDaemon(true);
+            disconnectWatcher.start();
+
             writerThread = new Thread(() -> {
                 try {
                     while (!stopped) {
