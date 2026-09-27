@@ -116,7 +116,7 @@ public class VideoStreamService extends Service {
         // creates a throwaway encoder to probe capabilities, which is slow enough to delay
         // startSession() (and thus the LocalServerSocket bind) and race the client's
         // connection attempt. VideoStreamSession resolves it lazily on its own thread instead.
-        session = new VideoStreamSession(projection, socketName,
+        session = new VideoStreamSession(getApplicationContext(), projection, socketName,
                 metrics.widthPixels, metrics.heightPixels, resolutionMode, metrics.densityDpi,
                 codecMime, fps, bitrate, audioEnabled);
         VideoStreamSession startedSession = session;

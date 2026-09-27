@@ -10,6 +10,30 @@ import {SettingsApp} from '../../lib/client.js';
 import {JPEG_STREAM_ACTION_START, JPEG_STREAM_ACTION_STOP, STREAMING_ACTIVITY_NAME} from '../../lib/constants.js';
 import {getSettingsApkPath} from '../../lib/utils/index.js';
 
+// Scans JPEG markers for a Start Of Frame segment (baseline SOF0 or progressive SOF2 -
+// both encode height/width the same way, right after a 1-byte sample precision field), so a
+// frame's own dimensions can be checked without a full JPEG decode.
+function parseJpegDimensions(data: Buffer): {width: number; height: number} {
+  let offset = 2; // Skip the SOI marker (FF D8).
+  while (offset + 4 <= data.length) {
+    if (data[offset] !== 0xff) {
+      throw new Error(`Expected a JPEG marker byte at offset ${offset}, got 0x${data[offset].toString(16)}`);
+    }
+    const marker = data[offset + 1];
+    if (marker === 0xd8 || marker === 0xd9) {
+      offset += 2;
+      continue;
+    }
+    const segmentLength = data.readUInt16BE(offset + 2);
+    const isSofMarker = marker >= 0xc0 && marker <= 0xcf && marker !== 0xc4 && marker !== 0xc8 && marker !== 0xcc;
+    if (isSofMarker) {
+      return {height: data.readUInt16BE(offset + 5), width: data.readUInt16BE(offset + 7)};
+    }
+    offset += 2 + segmentLength;
+  }
+  throw new Error('No SOF marker found in JPEG data');
+}
+
 describe('JPEG Streaming', function () {
   let adb: ADB;
   let settingsApp: SettingsApp;
@@ -202,5 +226,59 @@ describe('JPEG Streaming', function () {
     await adb.shell(['am', 'start', '-n', STREAMING_ACTIVITY_NAME, '-a', JPEG_STREAM_ACTION_STOP]);
     await waitForCondition(async () => !(await session.isRunning()), {waitMs: 5000, intervalMs: 300});
     assert.strictEqual(await session.isRunning(), false);
+  });
+
+  it('should adapt frame dimensions to a device rotation without interrupting the stream', async function (ctx: TestContext) {
+    if (shouldSkip) {
+      ctx.skip();
+      return;
+    }
+
+    const started = await session.start({fps: 10});
+    assert.strictEqual(started, true);
+
+    try {
+      // fixed-to-user-rotation overrides the foreground app's own orientation request (e.g.
+      // the launcher's portrait lock), which otherwise makes a plain `settings put system
+      // user_rotation` silently no-op with nothing visibly requesting a rotation change.
+      await adb.shell(['cmd', 'window', 'fixed-to-user-rotation', 'enabled']);
+      await adb.shell(['cmd', 'window', 'user-rotation', 'lock', '0']);
+
+      let lastSequence = -1;
+      let firstDimensions: {width: number; height: number} | undefined;
+      for await (const frame of session.frames()) {
+        lastSequence = frame.sequence;
+        firstDimensions = parseJpegDimensions(frame.data);
+        break;
+      }
+      assert.ok(firstDimensions, 'expected at least one frame before rotating');
+
+      // 1 = ROTATION_90, guaranteed to flip portrait<->landscape from ROTATION_0 above.
+      await adb.shell(['cmd', 'window', 'user-rotation', 'lock', '1']);
+
+      let rotatedDimensions: {width: number; height: number} | undefined;
+      const afterRotationDeadline = Date.now() + 15000;
+      for await (const frame of session.frames()) {
+        assert.ok(frame.sequence > lastSequence, 'expected sequence numbers to keep increasing across the rotation');
+        lastSequence = frame.sequence;
+        const dimensions = parseJpegDimensions(frame.data);
+        if (dimensions.width !== firstDimensions!.width || dimensions.height !== firstDimensions!.height) {
+          rotatedDimensions = dimensions;
+          break;
+        }
+        if (Date.now() > afterRotationDeadline) {
+          break;
+        }
+      }
+
+      assert.ok(rotatedDimensions, 'expected a later frame with different dimensions after rotating');
+      assert.strictEqual(rotatedDimensions!.width, firstDimensions!.height);
+      assert.strictEqual(rotatedDimensions!.height, firstDimensions!.width);
+    } finally {
+      await adb.shell(['cmd', 'window', 'user-rotation', 'lock', '0']).catch(() => {});
+      await adb.shell(['cmd', 'window', 'fixed-to-user-rotation', 'default']).catch(() => {});
+    }
+
+    await session.stop();
   });
 });

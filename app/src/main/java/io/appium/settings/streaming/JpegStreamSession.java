@@ -16,6 +16,7 @@
 
 package io.appium.settings.streaming;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -46,17 +47,26 @@ public class JpegStreamSession extends StreamingSession {
     private static final String TAG = "JpegStreamSession";
 
     private final MediaProjection mediaProjection;
-    private final int width;
-    private final int height;
+    // Mutable: reassigned by onCapturedSizeChanged() on a device rotation. Only ever
+    // read/written from the capture handler thread, so no synchronization is needed.
+    private int width;
+    private int height;
     private final int dpi;
     private final int fps;
     private final int quality;
     private final int scale;
 
     private HandlerThread handlerThread;
+    private Handler captureHandler;
     private VirtualDisplay virtualDisplay;
     private ImageReader imageReader;
     private MediaProjection.Callback mediaProjectionCallback;
+    private StreamingSession.SizeChangeMonitor sizeChangeMonitor;
+
+    private long frameIntervalNanos;
+    private long sessionStartNanos;
+    private long lastEmittedNanos;
+    private final AtomicLong sequence = new AtomicLong(0);
 
     // Reused across frames (all touched only from the capture handler thread) to avoid
     // allocating fresh Bitmaps/buffers on every encode.
@@ -68,10 +78,10 @@ public class JpegStreamSession extends StreamingSession {
     private Paint scalePaint;
     private final ByteArrayOutputStream jpegBuffer = new ByteArrayOutputStream();
 
-    public JpegStreamSession(MediaProjection mediaProjection, String socketName,
+    public JpegStreamSession(Context context, MediaProjection mediaProjection, String socketName,
                               int width, int height, int dpi,
                               int fps, int quality, int scale) {
-        super(socketName);
+        super(context, socketName);
         this.mediaProjection = mediaProjection;
         this.width = width;
         this.height = height;
@@ -91,34 +101,17 @@ public class JpegStreamSession extends StreamingSession {
     protected void configureAndCapture() throws Exception {
         handlerThread = new HandlerThread("jpeg-stream-capture");
         handlerThread.start();
-        Handler handler = new Handler(handlerThread.getLooper());
+        captureHandler = new Handler(handlerThread.getLooper());
 
         imageReader = ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 2);
+        imageReader.setOnImageAvailableListener(this::onImageAvailable, captureHandler);
 
-        long frameIntervalNanos = 1_000_000_000L / Math.max(1, fps);
-        long[] lastEmittedNanos = {0};
-        AtomicLong sequence = new AtomicLong(0);
-        long sessionStartNanos = System.nanoTime();
+        frameIntervalNanos = 1_000_000_000L / Math.max(1, fps);
+        sessionStartNanos = System.nanoTime();
 
-        imageReader.setOnImageAvailableListener(reader -> {
-            long now = System.nanoTime();
-            try (Image image = reader.acquireLatestImage()) {
-                if (image == null) {
-                    return;
-                }
-                if (now - lastEmittedNanos[0] < frameIntervalNanos) {
-                    return;
-                }
-                byte[] jpeg = encodeToJpeg(image);
-                lastEmittedNanos[0] = now;
-                long timestampMicros = (now - sessionStartNanos) / 1000;
-                queue.offer(new Frame(Frame.Track.JPEG, (byte) 0, sequence.getAndIncrement(),
-                        timestampMicros, jpeg));
-            } catch (Exception e) {
-                Log.e(TAG, "Failed to encode JPEG frame", e);
-                hasAsyncError = true;
-            }
-        }, handler);
+        sizeChangeMonitor = new SizeChangeMonitor(appContext, captureHandler, width, height,
+                this::onCapturedSizeChanged);
+        sizeChangeMonitor.start();
 
         mediaProjectionCallback = new MediaProjection.Callback() {
             @Override
@@ -128,20 +121,85 @@ public class JpegStreamSession extends StreamingSession {
                     hasAsyncError = true;
                 }
             }
+
+            @Override
+            public void onCapturedContentResize(int width, int height) {
+                super.onCapturedContentResize(width, height);
+                sizeChangeMonitor.onCapturedContentResize(width, height);
+            }
         };
-        mediaProjection.registerCallback(mediaProjectionCallback, handler);
+        mediaProjection.registerCallback(mediaProjectionCallback, captureHandler);
 
         virtualDisplay = mediaProjection.createVirtualDisplay("Appium Jpeg Stream",
                 width, height, dpi, DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
-                imageReader.getSurface(), null, handler);
+                imageReader.getSurface(), null, captureHandler);
 
         while (!stopped && !hasAsyncError) {
             Thread.sleep(200);
         }
     }
 
+    // Runs on the capture handler thread, same as onImageAvailable() below - so swapping
+    // imageReader/virtualDisplay's surface here can't race an in-flight callback.
+    private void onCapturedSizeChanged(int newWidth, int newHeight) {
+        if (stopped) {
+            // Queued right as the session is tearing down - fields may already be released.
+            return;
+        }
+        try {
+            Log.i(TAG, "Captured content resized to " + newWidth + "x" + newHeight
+                    + ", reconfiguring JPEG capture");
+            ImageReader oldReader = imageReader;
+            ImageReader newReader = ImageReader.newInstance(newWidth, newHeight, PixelFormat.RGBA_8888, 2);
+            newReader.setOnImageAvailableListener(this::onImageAvailable, captureHandler);
+
+            virtualDisplay.resize(newWidth, newHeight, dpi);
+            virtualDisplay.setSurface(newReader.getSurface());
+
+            imageReader = newReader;
+            width = newWidth;
+            height = newHeight;
+            oldReader.close();
+        } catch (Exception e) {
+            // Can race a concurrent stopSession() releasing virtualDisplay/imageReader.
+            if (!stopped) {
+                Log.e(TAG, "Failed to reconfigure JPEG capture after resize", e);
+                hasAsyncError = true;
+            }
+        }
+    }
+
+    // Delivered on the capture handler thread. Reads dimensions off `image`, not the
+    // width/height fields, so a straggler callback for an already-replaced reader still works.
+    private void onImageAvailable(ImageReader reader) {
+        long now = System.nanoTime();
+        try (Image image = reader.acquireLatestImage()) {
+            if (image == null) {
+                return;
+            }
+            if (now - lastEmittedNanos < frameIntervalNanos) {
+                return;
+            }
+            byte[] jpeg = encodeToJpeg(image);
+            lastEmittedNanos = now;
+            long timestampMicros = (now - sessionStartNanos) / 1000;
+            queue.offer(new Frame(Frame.Track.JPEG, (byte) 0, sequence.getAndIncrement(),
+                    timestampMicros, jpeg));
+        } catch (Exception e) {
+            // Can race releaseCaptureResources() closing imageReader/virtualDisplay concurrently.
+            if (!stopped) {
+                Log.e(TAG, "Failed to encode JPEG frame", e);
+                hasAsyncError = true;
+            }
+        }
+    }
+
     @Override
     protected void releaseCaptureResources() {
+        if (sizeChangeMonitor != null) {
+            sizeChangeMonitor.stop();
+            sizeChangeMonitor = null;
+        }
         if (virtualDisplay != null) {
             virtualDisplay.release();
             virtualDisplay = null;
@@ -176,47 +234,58 @@ public class JpegStreamSession extends StreamingSession {
         }
     }
 
-    // Only ever called from the capture handler thread (the ImageReader listener), so the
-    // reused Bitmap/Canvas/stream fields need no synchronization.
+    // Only ever called from the capture handler thread, so the reused Bitmap/Canvas fields
+    // need no synchronization. Sizes come from `image`, not the width/height fields, so a
+    // straggler callback for an already-replaced ImageReader still encodes correctly.
     private byte[] encodeToJpeg(Image image) {
+        int imageWidth = image.getWidth();
+        int imageHeight = image.getHeight();
         Image.Plane plane = image.getPlanes()[0];
         ByteBuffer buffer = plane.getBuffer();
         int pixelStride = plane.getPixelStride();
         int rowStride = plane.getRowStride();
-        int strideWidth = width + (rowStride - pixelStride * width) / pixelStride;
+        int strideWidth = imageWidth + (rowStride - pixelStride * imageWidth) / pixelStride;
 
         if (captureBitmap == null || captureBitmap.getWidth() != strideWidth
-                || captureBitmap.getHeight() != height) {
-            captureBitmap = Bitmap.createBitmap(strideWidth, height, Bitmap.Config.ARGB_8888);
+                || captureBitmap.getHeight() != imageHeight) {
+            if (captureBitmap != null) {
+                captureBitmap.recycle();
+            }
+            captureBitmap = Bitmap.createBitmap(strideWidth, imageHeight, Bitmap.Config.ARGB_8888);
         }
         captureBitmap.copyPixelsFromBuffer(buffer);
 
         Bitmap cropped;
-        if (strideWidth == width) {
+        if (strideWidth == imageWidth) {
             cropped = captureBitmap;
         } else {
-            if (croppedBitmap == null || croppedBitmap.getWidth() != width
-                    || croppedBitmap.getHeight() != height) {
-                croppedBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            if (croppedBitmap == null || croppedBitmap.getWidth() != imageWidth
+                    || croppedBitmap.getHeight() != imageHeight) {
+                if (croppedBitmap != null) {
+                    croppedBitmap.recycle();
+                }
+                croppedBitmap = Bitmap.createBitmap(imageWidth, imageHeight, Bitmap.Config.ARGB_8888);
                 croppedCanvas = new Canvas(croppedBitmap);
             }
-            // The canvas is bounded to width x height, so this naturally drops the
-            // right-hand row-stride padding columns from captureBitmap.
+            // Canvas is bounded to imageWidth x imageHeight, dropping the row-stride padding.
             croppedCanvas.drawBitmap(captureBitmap, 0, 0, null);
             cropped = croppedBitmap;
         }
 
         Bitmap toEncode = cropped;
         if (scale != 100) {
-            int scaledWidth = Math.max(1, width * scale / 100);
-            int scaledHeight = Math.max(1, height * scale / 100);
+            int scaledWidth = Math.max(1, imageWidth * scale / 100);
+            int scaledHeight = Math.max(1, imageHeight * scale / 100);
             if (scaledBitmap == null || scaledBitmap.getWidth() != scaledWidth
                     || scaledBitmap.getHeight() != scaledHeight) {
+                if (scaledBitmap != null) {
+                    scaledBitmap.recycle();
+                }
                 scaledBitmap = Bitmap.createBitmap(scaledWidth, scaledHeight, Bitmap.Config.ARGB_8888);
                 scaledCanvas = new Canvas(scaledBitmap);
                 scalePaint = new Paint(Paint.FILTER_BITMAP_FLAG);
             }
-            scaledCanvas.drawBitmap(cropped, new Rect(0, 0, width, height),
+            scaledCanvas.drawBitmap(cropped, new Rect(0, 0, imageWidth, imageHeight),
                     new Rect(0, 0, scaledWidth, scaledHeight), scalePaint);
             toEncode = scaledBitmap;
         }

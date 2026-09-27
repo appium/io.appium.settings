@@ -150,4 +150,84 @@ describe('Video Streaming', function () {
 
     await session.stop();
   });
+
+  it('should reconfigure the encoder with a fresh CONFIG unit after a device rotation', async function (ctx: TestContext) {
+    if (shouldSkip) {
+      ctx.skip();
+      return;
+    }
+
+    const started = await session.start({codec: 'h264', fps: 15, bitrate: 1000000});
+    assert.strictEqual(started, true);
+
+    try {
+      // fixed-to-user-rotation overrides the foreground app's own orientation request (e.g.
+      // the launcher's portrait lock), which otherwise makes a plain `settings put system
+      // user_rotation` silently no-op with nothing visibly requesting a rotation change.
+      await adb.shell(['cmd', 'window', 'fixed-to-user-rotation', 'enabled']);
+      await adb.shell(['cmd', 'window', 'user-rotation', 'lock', '0']);
+
+      // Video and audio sequence numbers are independent per-track counters, so only the
+      // video track's own sequence is checked for monotonicity across the rotation.
+      let lastVideoSequence = -1;
+      let firstConfig: AccessUnit | undefined;
+      const beforeRotationDeadline = Date.now() + 15000;
+      for await (const unit of session.accessUnits()) {
+        if (unit.track !== 'video') {
+          continue;
+        }
+        assert.ok(unit.sequence > lastVideoSequence, 'expected strictly increasing video sequence numbers');
+        lastVideoSequence = unit.sequence;
+        if (unit.isConfig) {
+          firstConfig = unit;
+          break;
+        }
+        if (Date.now() > beforeRotationDeadline) {
+          break;
+        }
+      }
+      assert.ok(firstConfig, 'expected an initial CONFIG unit');
+
+      // 1 = ROTATION_90, guaranteed to flip portrait<->landscape from ROTATION_0 above.
+      await adb.shell(['cmd', 'window', 'user-rotation', 'lock', '1']);
+
+      let secondConfig: AccessUnit | undefined;
+      let sawKeyframeAfterConfig = false;
+      const afterRotationDeadline = Date.now() + 15000;
+      for await (const unit of session.accessUnits()) {
+        if (unit.track !== 'video') {
+          continue;
+        }
+        assert.ok(
+          unit.sequence > lastVideoSequence,
+          'expected video sequence numbers to keep increasing (not reset) across the rotation',
+        );
+        lastVideoSequence = unit.sequence;
+        if (!secondConfig) {
+          if (unit.isConfig) {
+            secondConfig = unit;
+          }
+        } else if (unit.isKeyFrame) {
+          sawKeyframeAfterConfig = true;
+          break;
+        }
+        if (Date.now() > afterRotationDeadline) {
+          break;
+        }
+      }
+
+      assert.ok(secondConfig, 'expected a second CONFIG unit after rotating');
+      assert.notDeepStrictEqual(
+        secondConfig!.data,
+        firstConfig!.data,
+        'expected the post-rotation CONFIG (SPS/PPS) bytes to differ from the original',
+      );
+      assert.ok(sawKeyframeAfterConfig, 'expected a keyframe to follow the post-rotation CONFIG unit');
+    } finally {
+      await adb.shell(['cmd', 'window', 'user-rotation', 'lock', '0']).catch(() => {});
+      await adb.shell(['cmd', 'window', 'fixed-to-user-rotation', 'default']).catch(() => {});
+    }
+
+    await session.stop();
+  });
 });

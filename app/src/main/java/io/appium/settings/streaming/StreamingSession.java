@@ -16,9 +16,14 @@
 
 package io.appium.settings.streaming;
 
+import android.content.Context;
+import android.hardware.display.DisplayManager;
 import android.net.LocalServerSocket;
 import android.net.LocalSocket;
 import android.net.LocalSocketAddress;
+import android.os.Build;
+import android.os.Handler;
+import android.util.DisplayMetrics;
 import android.util.Log;
 
 import java.io.Closeable;
@@ -31,6 +36,7 @@ import java.io.OutputStream;
 public abstract class StreamingSession implements Runnable {
     private static final String TAG = "StreamingSession";
 
+    protected final Context appContext;
     protected final String socketName;
     protected final FrameQueue queue = new FrameQueue(StreamingConstant.MAX_BUFFERED_FRAMES);
 
@@ -43,6 +49,88 @@ public abstract class StreamingSession implements Runnable {
     private volatile Listener listener;
 
     /**
+     * Notified when the captured content's dimensions change - a device rotation, most
+     * commonly. Always delivered on the Handler thread passed to SizeChangeMonitor.
+     */
+    protected interface SizeChangeListener {
+        void onCapturedSizeChanged(int newWidth, int newHeight);
+    }
+
+    // API 34+: caller forwards MediaProjection.Callback#onCapturedContentResize() in here.
+    // Below that: DisplayManager.DisplayListener fallback, diffing dimensions since it also fires for unrelated events.
+    protected static final class SizeChangeMonitor {
+        private final Context appContext;
+        private final Handler handler;
+        private final SizeChangeListener listener;
+        private int lastWidth;
+        private int lastHeight;
+        private DisplayManager.DisplayListener displayListener;
+
+        SizeChangeMonitor(Context appContext, Handler handler, int initialWidth, int initialHeight,
+                           SizeChangeListener listener) {
+            this.appContext = appContext;
+            this.handler = handler;
+            this.listener = listener;
+            this.lastWidth = initialWidth;
+            this.lastHeight = initialHeight;
+        }
+
+        void onCapturedContentResize(int width, int height) {
+            notifyIfChanged(width, height);
+        }
+
+        void start() {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                // The caller forwards MediaProjection.Callback#onCapturedContentResize into
+                // onCapturedContentResize() above instead - no fallback needed on API 34+.
+                return;
+            }
+            DisplayManager displayManager =
+                    (DisplayManager) appContext.getSystemService(Context.DISPLAY_SERVICE);
+            if (displayManager == null) {
+                return;
+            }
+            displayListener = new DisplayManager.DisplayListener() {
+                @Override
+                public void onDisplayAdded(int displayId) {
+                }
+
+                @Override
+                public void onDisplayRemoved(int displayId) {
+                }
+
+                @Override
+                public void onDisplayChanged(int displayId) {
+                    DisplayMetrics metrics = appContext.getResources().getDisplayMetrics();
+                    notifyIfChanged(metrics.widthPixels, metrics.heightPixels);
+                }
+            };
+            displayManager.registerDisplayListener(displayListener, handler);
+        }
+
+        void stop() {
+            if (displayListener == null) {
+                return;
+            }
+            DisplayManager displayManager =
+                    (DisplayManager) appContext.getSystemService(Context.DISPLAY_SERVICE);
+            if (displayManager != null) {
+                displayManager.unregisterDisplayListener(displayListener);
+            }
+            displayListener = null;
+        }
+
+        private void notifyIfChanged(int width, int height) {
+            if (width == lastWidth && height == lastHeight) {
+                return;
+            }
+            lastWidth = width;
+            lastHeight = height;
+            listener.onCapturedSizeChanged(width, height);
+        }
+    }
+
+    /**
      * Notified once this session's background thread has fully exited, whether stopped
      * explicitly or ended on its own (client disconnect, capture error, accept timeout).
      */
@@ -50,7 +138,8 @@ public abstract class StreamingSession implements Runnable {
         void onSessionEnded();
     }
 
-    protected StreamingSession(String socketName) {
+    protected StreamingSession(Context context, String socketName) {
+        this.appContext = context.getApplicationContext();
         this.socketName = socketName;
     }
 

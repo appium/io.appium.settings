@@ -123,6 +123,10 @@ export class JpegStreamSession {
   /**
    * Yields JPEG frames as they arrive from the device.
    * `start()` must be called before iterating.
+   *
+   * A device rotation reconfigures the capture pipeline to the new dimensions, so a
+   * later frame's width/height (decoded from its own JPEG header) may differ from
+   * the first frame's - consumers should not assume a fixed size across the stream.
    */
   async *frames(): AsyncGenerator<JpegFrame> {
     if (!this.transport) {
