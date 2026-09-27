@@ -160,5 +160,34 @@ describe('BoundedFrameQueue', function () {
         ['config', 'audio1', 'key2'],
       );
     });
+
+    it('should suppress dependent frames after an externally-reported gap, even without any local eviction', async function () {
+      // Reproduces upstream loss (e.g. the on-device queue dropping a keyframe under
+      // backpressure before it ever reaches this queue) rather than local eviction -
+      // the queue never overflows here, so nothing would trigger evictOnce() on its own.
+      const queue = new BoundedFrameQueue<Item>(60, (item) => Boolean(item.isConfig), {isChainMember, isSyncPoint});
+
+      queue.push({id: 'config', track: 'video', isConfig: true});
+      // The producer detected a sequence gap (a keyframe was dropped upstream) before
+      // pushing the next frame it actually received.
+      queue.notifyGap();
+      queue.push({id: 'dep', track: 'video'});
+      queue.push({id: 'audio1', track: 'audio'});
+      queue.push({id: 'key', track: 'video', isKeyFrame: true});
+
+      const items: Item[] = [];
+      for await (const item of queue) {
+        items.push(item);
+        if (items.length >= 3) {
+          break;
+        }
+      }
+
+      assert.deepStrictEqual(
+        items.map((item) => item.id),
+        ['config', 'audio1', 'key'],
+        'expected the dependent frame after the gap to be discarded, resuming only at the next keyframe',
+      );
+    });
   });
 });

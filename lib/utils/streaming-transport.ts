@@ -86,6 +86,19 @@ export class BoundedFrameQueue<T> {
   }
 
   /**
+   * Marks the dependency chain (if configured) as broken by something outside this
+   * queue's own eviction - e.g. a producer detecting a sequence gap in items it never
+   * even offered here. The next chain-member item pushed is discarded unless it is
+   * itself a sync point, exactly as if a local eviction had cascaded off the end of
+   * the buffer. A no-op if no `dependencyChain` was configured.
+   */
+  notifyGap(): void {
+    if (this.dependencyChain) {
+      this.awaitingSyncPoint = true;
+    }
+  }
+
+  /**
    * Evicts one item to bring the queue back under capacity: the oldest non-protected
    * item, or (if every buffered item is protected, which should not happen in
    * practice) the true oldest one regardless. If the evicted item was a
@@ -355,6 +368,11 @@ export class StreamTransport {
   });
   private readonly parserState = createParserState();
   private closed = false;
+  // Tracks the video track's shared sequence counter (CONFIG and data frames both draw
+  // from it) so a gap - meaning the on-device FrameQueue dropped a frame under
+  // backpressure before we ever saw it - can be detected on receipt, not just when our
+  // own queue evicts something locally.
+  private lastVideoSequence: bigint | undefined;
 
   private constructor(
     private readonly adb: ADB,
@@ -392,6 +410,12 @@ export class StreamTransport {
     this.socket.on('data', (chunk: Buffer) => {
       try {
         for (const frame of parseFrames(this.parserState, chunk)) {
+          if (frame.track === StreamTrack.Video) {
+            if (this.lastVideoSequence !== undefined && frame.sequence !== this.lastVideoSequence + 1n) {
+              this.queue.notifyGap();
+            }
+            this.lastVideoSequence = frame.sequence;
+          }
           this.queue.push(frame);
         }
       } catch (e) {
