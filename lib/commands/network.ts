@@ -51,7 +51,7 @@ export async function setDataState(this: SettingsApp, on: boolean, isEmulator = 
     try {
       await this.adb.shell(['cmd', 'phone', 'data', on ? 'enable' : 'disable']);
     } catch (e: any) {
-      throw new Error(`Cannot change the data state. Original error: ${e.stderr || e.message}`);
+      throw new Error(`Cannot change the data state. Original error: ${e.stderr || e.message}`, {cause: e});
     }
   }
 }

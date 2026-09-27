@@ -427,6 +427,103 @@ Obtain Recording Output File:
 adb pull /storage/emulated/0/Android/data/io.appium.settings/files/abc.mp4 abc.mp4
 ```
 
+## Live Screen Streaming (JPEG / H.264 / HEVC)
+
+In addition to file-based recording above, Appium Settings can stream the screen live as
+either a sequence of JPEG frames or an H.264/HEVC video (with an optional interleaved AAC
+audio track), instead of writing a file. This is a **raw local-socket protocol**, not an
+HTTP/MJPEG server: the app opens a local abstract socket on-device, and the consumer is
+expected to `adb forward` it to a host TCP port and parse the (simple, length-prefixed)
+frame protocol itself. The [SettingsApp](./lib/client.js) wrapper (`makeJpegStreamSession()` /
+`makeVideoStreamSession()`) already does this for you and is the recommended way to consume
+either stream; talking to the socket directly is only needed for other languages/tools.
+
+Required steps to activate streaming (same as recording; `RECORD_AUDIO` is only needed if you
+enable the video stream's `audio` option):
+
+```bash
+adb shell pm grant io.appium.settings android.permission.RECORD_AUDIO
+adb shell appops set io.appium.settings PROJECT_MEDIA allow
+```
+
+### JPEG streaming
+
+Start:
+```bash
+adb shell am start -n "io.appium.settings/io.appium.settings.Settings" -a io.appium.settings.streaming.jpeg.ACTION_START --es socket_name my-jpeg-stream --es fps 30 --es quality 80 --es scale 100
+```
+
+- `socket_name` (Mandatory) - Name of the local abstract socket the app should listen on; forward it with `adb forward tcp:<port> localabstract:<socket_name>`
+- `fps` (Optional) - Default value: 60
+- `quality` (Optional) - JPEG quality, 1-100. Default value: 80
+- `scale` (Optional) - Percentage (1-100) to scale the captured frame to before encoding. Default value: 100
+
+Stop:
+```bash
+adb shell am start -n "io.appium.settings/io.appium.settings.Settings" -a io.appium.settings.streaming.jpeg.ACTION_STOP
+```
+
+### Video streaming
+
+Start:
+```bash
+adb shell am start -n "io.appium.settings/io.appium.settings.Settings" -a io.appium.settings.streaming.video.ACTION_START --es socket_name my-video-stream --es codec h264 --es fps 30 --es bitrate 4000000 --es resolution 1920x1080 --es audio false
+```
+
+- `socket_name` (Mandatory) - Same meaning as for JPEG streaming above
+- `codec` (Optional) - `h264` or `hevc`. Default value: `h264`
+- `fps` (Optional) - Default value: 30
+- `bitrate` (Optional) - In bits per second. Default value: 4000000 (4 Mbps)
+- `resolution` (Optional) - Same syntax/allowed values as the recording `resolution` argument above
+- `audio` (Optional) - `true` to interleave an AAC audio track captured via `AudioPlaybackCaptureConfiguration`. Default value: `false`
+
+Stop:
+```bash
+adb shell am start -n "io.appium.settings/io.appium.settings.Settings" -a io.appium.settings.streaming.video.ACTION_STOP
+```
+
+### Node usage example
+
+```js
+import ADB from 'appium-adb'
+import { SettingsApp } from 'io.appium.settings';
+
+async function main() {
+  const app = new SettingsApp({adb: await ADB.createADB()});
+  await app.adjustMediaProjectionServicePermissions();
+
+  const session = app.makeVideoStreamSession();
+  await session.start({codec: 'h264', fps: 30, audio: true});
+  for await (const unit of session.accessUnits()) {
+    console.log(unit.track, unit.data.length, unit.isKeyFrame);
+  }
+}
+
+main();
+```
+
+By default the Node wrapper picks an OS-assigned ephemeral port for the `adb forward` bridge
+between the device's local socket and the host. Both `makeJpegStreamSession().start()` and
+`makeVideoStreamSession().start()` also accept:
+
+- `localPort` (Optional) - Use this exact local TCP port instead. Throws if it's already in use.
+- `localPortRange` (Optional) - A `[min, max]` tuple; the first free port in this inclusive range is used. Throws if none are free.
+
+Only one of `localPort`/`localPortRange` may be provided at a time. This is useful if you need a
+predictable port (e.g. for a firewall rule or a proxy in front of the stream):
+
+```js
+await session.start({codec: 'h264', localPort: 8000});
+// or
+await session.start({codec: 'h264', localPortRange: [8000, 8010]});
+```
+
+_Note_
+
+JPEG streaming throughput is CPU-bound (each frame is compressed on-device via
+`Bitmap.compress`), so on lower-end devices or emulators you may need to reduce `fps`,
+`quality` and/or `scale` from their defaults to keep up with real-time capture.
+
 
 ## Notes:
 

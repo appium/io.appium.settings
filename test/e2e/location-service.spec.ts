@@ -8,7 +8,7 @@ import {waitForCondition} from 'asyncbox';
 import {SettingsApp} from '../../lib/client.js';
 import type {Location} from '../../lib/commands/types.js';
 import {LOCATION_SERVICE} from '../../lib/constants.js';
-import {getSettingsApkPath} from '../../lib/utils.js';
+import {getSettingsApkPath} from '../../lib/utils/index.js';
 
 const SERVICE_STARTUP_TIMEOUT_MS = 10000;
 // LocationService pushes updates every 2s (see app/src/main/java/io/appium/settings/LocationService.java),

@@ -276,9 +276,9 @@ public class RecorderUtil {
     }
 
     public static Size getSupportedMaxResolution() {
+        MediaCodec videoEncoder = null;
         try {
-            MediaCodec videoEncoder =
-                    MediaCodec.createEncoderByType(RECORDING_DEFAULT_VIDEO_MIME_TYPE);
+            videoEncoder = MediaCodec.createEncoderByType(RECORDING_DEFAULT_VIDEO_MIME_TYPE);
             MediaCodecInfo.VideoCapabilities videoEncoderCapabilities = videoEncoder
                     .getCodecInfo().getCapabilitiesForType(RECORDING_DEFAULT_VIDEO_MIME_TYPE)
                     .getVideoCapabilities();
@@ -291,6 +291,10 @@ public class RecorderUtil {
             }
         } catch (IOException e) {
             Log.e(TAG, "Exception while retrieving default supported recording resolution", e);
+        } finally {
+            if (videoEncoder != null) {
+                videoEncoder.release();
+            }
         }
 
         return RECORDING_RESOLUTION_DEFAULT;

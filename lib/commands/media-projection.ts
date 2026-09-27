@@ -48,16 +48,12 @@ const RECORDINGS_ROOT = `/storage/emulated/0/Android/data/${SETTINGS_HELPER_ID}/
  * using Android's MediaProjection API (API 29+).
  */
 export class MediaProjectionRecorder {
-  private readonly adb: ADB;
-
   /**
    * Creates a new MediaProjectionRecorder instance.
    *
    * @param adb - ADB instance for device communication
    */
-  constructor(adb: ADB) {
-    this.adb = adb;
-  }
+  constructor(private readonly adb: ADB) {}
 
   /**
    * Checks if the recording is currently running.

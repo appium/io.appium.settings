@@ -38,6 +38,76 @@ export interface StartMediaProjectionRecordingOpts {
 }
 
 /**
+ * Options for choosing the local TCP port used to bridge a live stream's
+ * on-device socket to the host via `adb forward`. At most one of these may be
+ * provided; if neither is given, an OS-assigned ephemeral port is used.
+ */
+export interface LocalPortOpts {
+  /** Use this exact local TCP port. Throws if it's already in use. */
+  localPort?: number;
+  /** Pick the first free local TCP port from this inclusive [min, max] range. */
+  localPortRange?: [number, number];
+}
+
+/**
+ * Options for starting a live JPEG frame streaming session.
+ */
+export interface StartJpegStreamOpts extends LocalPortOpts {
+  /** Frames per second requested; actual rate may be lower on constrained devices. Default 60. */
+  fps?: number;
+  /** JPEG quality, 1-100. Default 80. */
+  quality?: number;
+  /** Percentage (1-100) to scale the captured frame to before JPEG encoding. Default 100. */
+  scale?: number;
+}
+
+/**
+ * Options for starting a live H.264/HEVC video streaming session.
+ */
+export interface StartVideoStreamOpts extends LocalPortOpts {
+  /** Default 'h264'. */
+  codec?: 'h264' | 'hevc';
+  /** Default 30. */
+  fps?: number;
+  /** Default 4000000 (4 Mbps). */
+  bitrate?: number;
+  /** Same "WxH" syntax/allowed values as StartMediaProjectionRecordingOpts.resolution. */
+  resolution?: string;
+  /** Interleave an AAC audio track captured via AudioPlaybackCaptureConfiguration. Default false. */
+  audio?: boolean;
+}
+
+/**
+ * A single JPEG-encoded frame of the device screen.
+ */
+export interface JpegFrame {
+  /** The raw JPEG-encoded image bytes. */
+  data: Buffer;
+  /** Monotonically increasing frame sequence number. */
+  sequence: number;
+  /** Frame timestamp, in microseconds since the stream session started. */
+  timestampMicros: number;
+}
+
+/**
+ * A single encoded access unit from a live video stream: either a video NAL
+ * unit (Annex-B, H.264/HEVC) or an AAC audio unit (ADTS-framed).
+ */
+export interface AccessUnit {
+  track: 'video' | 'audio';
+  /** The raw access unit bytes. */
+  data: Buffer;
+  /** Monotonically increasing sequence number, per track. */
+  sequence: number;
+  /** Presentation timestamp, in microseconds since the stream session started. */
+  timestampMicros: number;
+  /** Whether this is a video keyframe (always false for audio units). */
+  isKeyFrame: boolean;
+  /** Whether this unit carries codec configuration data (e.g. SPS/PPS) rather than actual samples. */
+  isConfig: boolean;
+}
+
+/**
  * Supported locale information.
  */
 export interface SupportedLocale {

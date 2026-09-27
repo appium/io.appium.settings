@@ -5,7 +5,7 @@ import {describe, it, before, beforeEach, after, type TestContext} from 'node:te
 import {ADB} from 'appium-adb';
 
 import {SettingsApp} from '../../lib/client.js';
-import {getSettingsApkPath} from '../../lib/utils.js';
+import {getSettingsApkPath} from '../../lib/utils/index.js';
 
 describe('Media Projection', function () {
   let adb: ADB;

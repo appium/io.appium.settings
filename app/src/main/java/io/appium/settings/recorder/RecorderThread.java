@@ -16,12 +16,8 @@
 
 package io.appium.settings.recorder;
 
-import android.annotation.SuppressLint;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
-import android.media.AudioAttributes;
-import android.media.AudioFormat;
-import android.media.AudioPlaybackCaptureConfiguration;
 import android.media.AudioRecord;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
@@ -34,10 +30,11 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.Surface;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import androidx.annotation.RequiresApi;
+
+import io.appium.settings.media.MediaCodecFactory;
 
 import static io.appium.settings.recorder.RecorderConstant.BPS_IN_MBPS;
 import static io.appium.settings.recorder.RecorderConstant.NANOSECONDS_IN_MICROSECOND;
@@ -116,22 +113,6 @@ public class RecorderThread implements Runnable {
         return !stopped;
     }
 
-    private MediaFormat initVideoEncoderFormat(String videoMime, int videoWidth,
-                                               int videoHeight, int videoBitrate,
-                                               int videoFrameRate) {
-        MediaFormat encoderFormat = MediaFormat.createVideoFormat(videoMime, videoWidth,
-                videoHeight);
-        encoderFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT,
-                MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
-        encoderFormat.setInteger(MediaFormat.KEY_BIT_RATE, videoBitrate);
-        encoderFormat.setInteger(MediaFormat.KEY_FRAME_RATE, videoFrameRate);
-        encoderFormat.setInteger(MediaFormat.KEY_REPEAT_PREVIOUS_FRAME_AFTER,
-                RecorderConstant.AUDIO_CODEC_REPEAT_PREV_FRAME_AFTER_MS);
-        encoderFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL,
-                RecorderConstant.AUDIO_CODEC_I_FRAME_INTERVAL_MS);
-        return encoderFormat;
-    }
-
     private VirtualDisplay initVirtualDisplay(MediaProjection mediaProjection,
                                               Surface surface, Handler handler,
                                               int videoWidth, int videoHeight, int videoDpi) {
@@ -139,43 +120,6 @@ public class RecorderThread implements Runnable {
                 videoWidth, videoHeight, videoDpi,
                 DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
                 surface, displayCallback, handler);
-    }
-
-    private MediaCodec initAudioCodec(int sampleRate) throws IOException {
-        // TODO set channelCount 2 try stereo quality
-        MediaFormat encoderFormat = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC,
-                sampleRate, RecorderConstant.AUDIO_CODEC_CHANNEL_COUNT);
-        encoderFormat.setInteger(MediaFormat.KEY_BIT_RATE,
-                RecorderConstant.AUDIO_CODEC_DEFAULT_BITRATE);
-
-        MediaCodec audioEncoder = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_AUDIO_AAC);
-        audioEncoder.configure(encoderFormat, null, null,
-                MediaCodec.CONFIGURE_FLAG_ENCODE);
-        return audioEncoder;
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.Q)
-    @SuppressLint("MissingPermission")
-    private AudioRecord initAudioRecord(MediaProjection mediaProjection, int sampleRate) {
-        int channelConfig = AudioFormat.CHANNEL_IN_MONO;
-        int minBufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig,
-                AudioFormat.ENCODING_PCM_16BIT);
-
-        AudioFormat audioFormat = new AudioFormat.Builder()
-                .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-                .setSampleRate(sampleRate)
-                .setChannelMask(AudioFormat.CHANNEL_IN_MONO)
-                .build();
-
-        AudioRecord.Builder audioRecordBuilder = new AudioRecord.Builder();
-        AudioPlaybackCaptureConfiguration apcc =
-                new AudioPlaybackCaptureConfiguration.Builder(mediaProjection)
-                        .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
-                        .build();
-        return audioRecordBuilder.setAudioFormat(audioFormat)
-                .setBufferSizeInBytes(4 * minBufferSize)
-                .setAudioPlaybackCaptureConfig(apcc)
-                .build();
     }
 
     private Thread initAudioRecordThread(MediaCodec audioEncoder, final AudioRecord audioRecord,
@@ -235,11 +179,6 @@ public class RecorderThread implements Runnable {
         }
         return (System.nanoTime() / RecorderConstant.NANOSECONDS_IN_MICROSECOND
                 - startTimestampUs);
-    }
-
-    private int calculateBitRate(int width, int height, int frameRate) {
-        return (int) (RecorderConstant.BITRATE_MULTIPLIER *
-                frameRate * width * height);
     }
 
     private void startMuxerIfSetUp(MediaMuxer muxer) {
@@ -349,14 +288,15 @@ public class RecorderThread implements Runnable {
                     videoEncoderCapabilities.getSupportedFrameRates().getUpper());
 
             int videoBitrate = videoEncoderCapabilities.getBitrateRange()
-                    .clamp(calculateBitRate(this.videoWidth, this.videoHeight, videoFrameRate));
+                    .clamp(MediaCodecFactory.calculateVideoBitrate(
+                            this.videoWidth, this.videoHeight, videoFrameRate));
 
             Log.i(TAG, String.format("Recording starting with frame rate = %d FPS " +
                             "and bitrate = %5.2f Mbps",
                     videoFrameRate, videoBitrate / BPS_IN_MBPS));
 
             MediaFormat videoEncoderFormat =
-                    initVideoEncoderFormat(RECORDING_DEFAULT_VIDEO_MIME_TYPE,
+                    MediaCodecFactory.createVideoEncoderFormat(RECORDING_DEFAULT_VIDEO_MIME_TYPE,
                             this.videoWidth, this.videoHeight, videoBitrate, videoFrameRate);
 
             videoEncoder.configure(videoEncoderFormat, null, null,
@@ -383,10 +323,13 @@ public class RecorderThread implements Runnable {
                     this.videoWidth, this.videoHeight, this.videoDpi);
 
             int sampleRate = RecorderConstant.AUDIO_CODEC_SAMPLE_RATE_HZ;
-            audioEncoder = initAudioCodec(sampleRate);
+            audioEncoder = MediaCodecFactory.createAacEncoder(sampleRate,
+                    RecorderConstant.AUDIO_CODEC_CHANNEL_COUNT,
+                    RecorderConstant.AUDIO_CODEC_DEFAULT_BITRATE);
             audioEncoder.start();
 
-            AudioRecord audioRecord = initAudioRecord(this.mediaProjection, sampleRate);
+            AudioRecord audioRecord =
+                    MediaCodecFactory.createPlaybackCaptureAudioRecord(this.mediaProjection, sampleRate);
 
             muxer = new MediaMuxer(this.outputFilePath,
                     MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);

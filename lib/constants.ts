@@ -43,3 +43,13 @@ export const RECORDING_SERVICE_NAME = `${SETTINGS_HELPER_ID}/.recorder.RecorderS
 export const RECORDING_ACTIVITY_NAME = `${SETTINGS_HELPER_ID}/io.appium.settings.Settings`;
 export const RECORDING_ACTION_START = `${SETTINGS_HELPER_ID}.recording.ACTION_START`;
 export const RECORDING_ACTION_STOP = `${SETTINGS_HELPER_ID}.recording.ACTION_STOP`;
+
+export const STREAMING_ACTIVITY_NAME = RECORDING_ACTIVITY_NAME;
+
+export const JPEG_STREAM_SERVICE_NAME = `${SETTINGS_HELPER_ID}/.streaming.JpegStreamService`;
+export const JPEG_STREAM_ACTION_START = `${SETTINGS_HELPER_ID}.streaming.jpeg.ACTION_START`;
+export const JPEG_STREAM_ACTION_STOP = `${SETTINGS_HELPER_ID}.streaming.jpeg.ACTION_STOP`;
+
+export const VIDEO_STREAM_SERVICE_NAME = `${SETTINGS_HELPER_ID}/.streaming.VideoStreamService`;
+export const VIDEO_STREAM_ACTION_START = `${SETTINGS_HELPER_ID}.streaming.video.ACTION_START`;
+export const VIDEO_STREAM_ACTION_STOP = `${SETTINGS_HELPER_ID}.streaming.video.ACTION_STOP`;
