@@ -1,3 +1,9 @@
+## [8.1.0](https://github.com/appium/io.appium.settings/compare/v8.0.10...v8.1.0) (2026-09-27)
+
+### Features
+
+* Add streaming support ([#320](https://github.com/appium/io.appium.settings/issues/320)) ([d166701](https://github.com/appium/io.appium.settings/commit/d16670175769e62e5dc8edb0883705f1baaa46bf))
+
 ## [8.0.10](https://github.com/appium/io.appium.settings/compare/v8.0.9...v8.0.10) (2026-09-26)
 
 ### Bug Fixes
