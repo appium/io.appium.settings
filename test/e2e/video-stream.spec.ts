@@ -117,7 +117,10 @@ describe('Video Streaming', function () {
     let firstAudioTimestampMicros: number | undefined;
     const deadline = Date.now() + 15000;
     for await (const unit of session.accessUnits()) {
-      if (unit.track === 'video') {
+      // The CONFIG unit's timestamp already came from getPresentationTimeUs() before the
+      // fix, so it can't detect a regression there - only a real (non-config) video frame,
+      // which carries the encoder's own presentationTimeUs, exercises toSessionRelativeUs().
+      if (unit.track === 'video' && !unit.isConfig) {
         sawVideo = true;
         firstVideoTimestampMicros ??= unit.timestampMicros;
       } else if (unit.track === 'audio') {

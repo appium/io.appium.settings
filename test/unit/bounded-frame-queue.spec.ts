@@ -63,4 +63,102 @@ describe('BoundedFrameQueue', function () {
     }
     assert.deepStrictEqual(items, [2, 3]);
   });
+
+  describe('dependencyChain', function () {
+    interface Item {
+      id: string;
+      track: 'video' | 'audio';
+      isConfig?: boolean;
+      isKeyFrame?: boolean;
+    }
+    const isChainMember = (item: Item) => item.track === 'video' && !item.isConfig;
+    const isSyncPoint = (item: Item) => Boolean(item.isKeyFrame);
+
+    it('should discard dependent frames left behind by an evicted keyframe when no later keyframe exists', async function () {
+      // Reproduces the review comment's exact repro: config + one keyframe + 59 dependent
+      // frames overflow a capacity-60 queue by one, evicting the keyframe - every dependent
+      // frame after it is now undecodable and must go too, since no later keyframe exists.
+      const queue = new BoundedFrameQueue<Item>(60, (item) => Boolean(item.isConfig), {isChainMember, isSyncPoint});
+
+      queue.push({id: 'config', track: 'video', isConfig: true});
+      queue.push({id: 'key', track: 'video', isKeyFrame: true});
+      for (let i = 0; i < 59; i++) {
+        queue.push({id: `dep${i}`, track: 'video'});
+      }
+      queue.push({id: 'sentinel', track: 'audio'});
+
+      const items: Item[] = [];
+      for await (const item of queue) {
+        items.push(item);
+        if (item.id === 'sentinel') {
+          break;
+        }
+      }
+
+      assert.deepStrictEqual(
+        items.map((item) => item.id),
+        ['config', 'sentinel'],
+        'expected every video frame after the evicted keyframe to be discarded, leaving only config',
+      );
+    });
+
+    it('should stop the cascade at the next keyframe, leaving later items (including interleaved audio) intact', async function () {
+      const queue = new BoundedFrameQueue<Item>(5, (item) => Boolean(item.isConfig), {isChainMember, isSyncPoint});
+
+      queue.push({id: 'config', track: 'video', isConfig: true});
+      queue.push({id: 'key1', track: 'video', isKeyFrame: true});
+      queue.push({id: 'dep1', track: 'video'});
+      queue.push({id: 'audio1', track: 'audio'});
+      queue.push({id: 'key2', track: 'video', isKeyFrame: true});
+      // Overflows capacity 5 by one, evicting key1: dep1 (which depended on it) cascades
+      // away too, audio1 is skipped over untouched, and key2 stops the cascade since it
+      // doesn't depend on anything before it.
+      queue.push({id: 'dep2', track: 'video'});
+
+      const items: Item[] = [];
+      for await (const item of queue) {
+        items.push(item);
+        if (items.length >= 4) {
+          break;
+        }
+      }
+
+      assert.deepStrictEqual(
+        items.map((item) => item.id),
+        ['config', 'audio1', 'key2', 'dep2'],
+      );
+    });
+
+    it('should keep discarding new dependent frames until a fresh keyframe arrives', async function () {
+      const queue = new BoundedFrameQueue<Item>(3, (item) => Boolean(item.isConfig), {isChainMember, isSyncPoint});
+
+      queue.push({id: 'config', track: 'video', isConfig: true});
+      queue.push({id: 'key1', track: 'video', isKeyFrame: true});
+      queue.push({id: 'dep1', track: 'video'});
+      // Overflows capacity 3, evicting key1; the cascade finds no later keyframe (queue
+      // ends at dep1), so dep1 is also dropped and the queue now awaits a fresh keyframe.
+      queue.push({id: 'dep2', track: 'video'});
+
+      // Pushed while awaiting a fresh keyframe: silently discarded, not merely evicted
+      // later - it must never reach the consumer even though there is room to buffer it.
+      queue.push({id: 'dep3', track: 'video'});
+      // Audio has no dependency chain, so it bypasses the gate entirely.
+      queue.push({id: 'audio1', track: 'audio'});
+      // The first keyframe pushed since the gap clears the gate and resumes buffering.
+      queue.push({id: 'key2', track: 'video', isKeyFrame: true});
+
+      const items: Item[] = [];
+      for await (const item of queue) {
+        items.push(item);
+        if (items.length >= 3) {
+          break;
+        }
+      }
+
+      assert.deepStrictEqual(
+        items.map((item) => item.id),
+        ['config', 'audio1', 'key2'],
+      );
+    });
+  });
 });

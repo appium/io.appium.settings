@@ -4,7 +4,7 @@ import type {ADB} from 'appium-adb';
 import {retryInterval} from 'asyncbox';
 
 import type {LocalPortOpts} from '../commands/types.js';
-import {createParserState, parseFrames, type StreamFrame} from './streaming-protocol.js';
+import {createParserState, parseFrames, StreamTrack, type StreamFrame} from './streaming-protocol.js';
 
 const DEFAULT_QUEUE_CAPACITY = 60;
 const CONNECT_TIMEOUT_MS = 5000;
@@ -15,10 +15,27 @@ const CONNECT_RETRY_INTERVAL_MS = 200;
 const CONNECT_VERIFY_GRACE_MS = 150;
 
 /**
+ * Describes a decode-dependency chain within the queued items (e.g. H.264/HEVC video
+ * frames, where a delta frame is undecodable without every frame back to its last
+ * keyframe). Items outside the chain (e.g. an interleaved audio track) are unaffected.
+ */
+export interface DependencyChain<T> {
+  /** True for items that participate in the chain at all (e.g. non-CONFIG video frames). */
+  isChainMember: (item: T) => boolean;
+  /** True for a chain member that doesn't depend on earlier ones (e.g. a keyframe). */
+  isSyncPoint: (item: T) => boolean;
+}
+
+/**
  * A bounded async-iterable queue that drops the oldest buffered item once its
  * capacity is exceeded, so a slow consumer never causes unbounded memory growth.
  * An optional `isProtected` predicate can shield items (e.g. video CONFIG frames)
- * from eviction as long as any non-protected item remains to drop instead.
+ * from eviction as long as any non-protected item remains to drop instead. An
+ * optional `dependencyChain` additionally makes eviction dependency-aware: dropping
+ * any chain member cascades to every following chain member up to (not including)
+ * the next sync point, and further chain-member pushes are discarded until a fresh
+ * sync point arrives - since anything in between is undecodable, buffering it only
+ * to have the consumer choke on it later isn't useful.
  */
 export class BoundedFrameQueue<T> {
   private readonly items: T[] = [];
@@ -26,16 +43,21 @@ export class BoundedFrameQueue<T> {
   private readonly errorWaiters: Array<(err: Error) => void> = [];
   private ended = false;
   private endError: Error | undefined;
+  private awaitingSyncPoint = false;
 
   constructor(
     private readonly capacity: number = DEFAULT_QUEUE_CAPACITY,
     private readonly isProtected?: (item: T) => boolean,
+    private readonly dependencyChain?: DependencyChain<T>,
   ) {}
 
   /**
    * Enqueues an item. If a consumer is already awaiting the next item, it is
    * delivered directly; otherwise it is buffered, dropping the oldest droppable
-   * (non-protected) buffered item first if `capacity` would be exceeded.
+   * (non-protected) buffered item first if `capacity` would be exceeded. If a
+   * `dependencyChain` was given and a prior eviction broke it without a later sync
+   * point already buffered, chain-member items are silently discarded here until a
+   * fresh sync point item is pushed.
    *
    * @param item - The item to enqueue
    */
@@ -43,6 +65,14 @@ export class BoundedFrameQueue<T> {
     if (this.ended) {
       return;
     }
+    const chain = this.dependencyChain;
+    if (this.awaitingSyncPoint && chain?.isChainMember(item)) {
+      if (!chain.isSyncPoint(item)) {
+        return;
+      }
+      this.awaitingSyncPoint = false;
+    }
+
     const waiter = this.waiters.shift();
     if (waiter) {
       this.errorWaiters.shift();
@@ -51,31 +81,52 @@ export class BoundedFrameQueue<T> {
     }
     this.items.push(item);
     while (this.items.length > this.capacity) {
-      if (!this.evictOldestDroppable()) {
-        // Every buffered item is protected (should not happen in practice) - drop the
-        // true oldest one anyway rather than growing unbounded.
-        this.items.shift();
-      }
+      this.evictOnce();
     }
   }
 
   /**
-   * Removes the oldest non-protected buffered item, if any.
-   *
-   * @returns False if every buffered item is protected, and nothing was removed
+   * Evicts one item to bring the queue back under capacity: the oldest non-protected
+   * item, or (if every buffered item is protected, which should not happen in
+   * practice) the true oldest one regardless. If the evicted item was a
+   * `dependencyChain` member, cascades to drop every following chain member up to
+   * the next sync point, setting {@link awaitingSyncPoint} if none is found.
    */
-  private evictOldestDroppable(): boolean {
+  private evictOnce(): void {
     const isProtected = this.isProtected;
-    if (!isProtected) {
-      this.items.shift();
-      return true;
-    }
-    const index = this.items.findIndex((item) => !isProtected(item));
+    const index = isProtected ? this.items.findIndex((item) => !isProtected(item)) : 0;
     if (index === -1) {
-      return false;
+      this.items.shift();
+      return;
     }
-    this.items.splice(index, 1);
-    return true;
+    const [evicted] = this.items.splice(index, 1);
+    const chain = this.dependencyChain;
+    if (chain?.isChainMember(evicted) && !this.dropDependentsFrom(index, chain)) {
+      this.awaitingSyncPoint = true;
+    }
+  }
+
+  /**
+   * Starting at `index`, removes chain-member items up to (not including) the next
+   * sync point, skipping over non-chain-member items (e.g. an interleaved audio
+   * track) in place without disturbing them.
+   *
+   * @returns True if a sync point was found (and kept), false if the scan reached
+   * the end of the buffer first
+   */
+  private dropDependentsFrom(index: number, chain: DependencyChain<T>): boolean {
+    while (index < this.items.length) {
+      const item = this.items[index];
+      if (!chain.isChainMember(item)) {
+        index++;
+        continue;
+      }
+      if (chain.isSyncPoint(item)) {
+        return true;
+      }
+      this.items.splice(index, 1);
+    }
+    return false;
   }
 
   /**
@@ -294,7 +345,14 @@ async function connectWithRetry(port: number, timeoutMs: number, intervalMs: num
 export class StreamTransport {
   // Config frames (e.g. video SPS/PPS) carry decoder state a consumer needs to make sense
   // of everything that follows, so protect them from the bounded queue's drop-oldest policy.
-  private readonly queue = new BoundedFrameQueue<StreamFrame>(DEFAULT_QUEUE_CAPACITY, (frame) => frame.isConfig);
+  // Non-config video frames form a decode-dependency chain (a delta frame is undecodable
+  // without every frame back to its last keyframe), so eviction there must cascade up to
+  // the next keyframe rather than leaving orphaned, undecodable frames behind - audio
+  // frames have no such dependency and are left alone by this either way.
+  private readonly queue = new BoundedFrameQueue<StreamFrame>(DEFAULT_QUEUE_CAPACITY, (frame) => frame.isConfig, {
+    isChainMember: (frame) => frame.track === StreamTrack.Video && !frame.isConfig,
+    isSyncPoint: (frame) => frame.isKeyFrame,
+  });
   private readonly parserState = createParserState();
   private closed = false;
 
