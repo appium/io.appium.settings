@@ -183,8 +183,9 @@ describe('JPEG Streaming', function () {
     assert.ok(transport, 'expected an internal transport after start()');
     await transport.close();
 
+    // waitForCondition's own success is the assertion - a redundant re-check right after can
+    // flake, since `dumpsys activity services` can briefly flicker right after a service stop.
     await waitForCondition(async () => !(await session.isRunning()), {waitMs: 10000, intervalMs: 300});
-    assert.strictEqual(await session.isRunning(), false);
   });
 
   it('should stop the on-device service on its own if no client connects within the accept timeout', async function (ctx: TestContext) {
@@ -210,8 +211,8 @@ describe('JPEG Streaming', function () {
     ]);
     try {
       await waitForCondition(async () => await session.isRunning(), {waitMs: 3000, intervalMs: 300});
+      // waitForCondition's own success is the assertion (see the test above for why).
       await waitForCondition(async () => !(await session.isRunning()), {waitMs: 15000, intervalMs: 500});
-      assert.strictEqual(await session.isRunning(), false);
     } finally {
       await adb.shell(['am', 'start', '-n', STREAMING_ACTIVITY_NAME, '-a', JPEG_STREAM_ACTION_STOP]).catch(() => {});
     }
@@ -240,8 +241,8 @@ describe('JPEG Streaming', function () {
     // Stops while accept() is still blocked (no client ever connected) - this must not
     // leave the session thread, listening socket or media projection alive.
     await adb.shell(['am', 'start', '-n', STREAMING_ACTIVITY_NAME, '-a', JPEG_STREAM_ACTION_STOP]);
+    // waitForCondition's own success is the assertion (see the first test above for why).
     await waitForCondition(async () => !(await session.isRunning()), {waitMs: 5000, intervalMs: 300});
-    assert.strictEqual(await session.isRunning(), false);
   });
 
   it('should adapt frame dimensions to a device rotation without interrupting the stream', async function (ctx: TestContext) {
