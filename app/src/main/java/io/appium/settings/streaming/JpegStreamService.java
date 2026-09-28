@@ -110,7 +110,7 @@ public class JpegStreamService extends Service {
 
         DisplayMetrics metrics = getResources().getDisplayMetrics();
 
-        session = new JpegStreamSession(projection, socketName,
+        session = new JpegStreamSession(getApplicationContext(), projection, socketName,
                 metrics.widthPixels, metrics.heightPixels, metrics.densityDpi,
                 fps, quality, scale);
         JpegStreamSession startedSession = session;

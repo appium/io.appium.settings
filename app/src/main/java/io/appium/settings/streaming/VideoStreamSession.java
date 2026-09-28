@@ -16,6 +16,7 @@
 
 package io.appium.settings.streaming;
 
+import android.content.Context;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
 import android.media.AudioRecord;
@@ -25,11 +26,12 @@ import android.media.MediaFormat;
 import android.media.projection.MediaProjection;
 import android.os.Build;
 import android.os.Handler;
-import android.os.Looper;
+import android.os.HandlerThread;
 import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -58,15 +60,30 @@ public class VideoStreamSession extends StreamingSession {
     private final long sessionStartNanos = System.nanoTime();
 
     private VirtualDisplay virtualDisplay;
-    private MediaCodec videoEncoder;
+    // Reassigned by restartVideoEncoder() on a rotation; drainVideo() compares its own
+    // `encoder` argument against the current field to know its generation was superseded.
+    private volatile MediaCodec videoEncoder;
+    private volatile Thread videoDrainThread;
     private MediaCodec audioEncoder;
     private AudioRecord audioRecord;
     private MediaProjection.Callback mediaProjectionCallback;
+    private HandlerThread callbackHandlerThread;
+    private Handler callbackHandler;
+    private StreamingSession.SizeChangeMonitor sizeChangeMonitor;
 
-    public VideoStreamSession(MediaProjection mediaProjection, String socketName,
+    // Never reset across restartVideoEncoder(): a rotation-driven swap looks to the client
+    // like a real codec reconfiguration - a fresh CONFIG frame, but a continuous sequence.
+    private final AtomicLong videoSequence = new AtomicLong(0);
+    private boolean isPortraitOrientation;
+    private int currentWidth;
+    private int currentHeight;
+    private int clampedFps;
+    private int clampedBitrate;
+
+    public VideoStreamSession(Context context, MediaProjection mediaProjection, String socketName,
                                int rawWidth, int rawHeight, String resolutionMode, int dpi,
                                String codecMime, int fps, int bitrate, boolean audioEnabled) {
-        super(socketName);
+        super(context, socketName);
         this.mediaProjection = mediaProjection;
         this.rawWidth = rawWidth;
         this.rawHeight = rawHeight;
@@ -92,12 +109,9 @@ public class VideoStreamSession extends StreamingSession {
         // throwaway encoder to probe capabilities, which is slow enough to otherwise delay
         // the socket bind and race the client's connection attempt.
         Size recordingResolution = RecorderUtil.getRecordingResolution(resolutionMode);
-        int width = recordingResolution.getWidth();
-        int height = recordingResolution.getHeight();
-        if (rawWidth < rawHeight) {
-            width = recordingResolution.getHeight();
-            height = recordingResolution.getWidth();
-        }
+        isPortraitOrientation = rawWidth < rawHeight;
+        currentWidth = isPortraitOrientation ? recordingResolution.getHeight() : recordingResolution.getWidth();
+        currentHeight = isPortraitOrientation ? recordingResolution.getWidth() : recordingResolution.getHeight();
 
         MediaCodecInfo.VideoCapabilities capabilities;
         MediaCodec capabilitiesProbe = MediaCodec.createEncoderByType(codecMime);
@@ -108,16 +122,23 @@ public class VideoStreamSession extends StreamingSession {
             capabilitiesProbe.release();
         }
 
-        int clampedFps = Math.min(fps, capabilities.getSupportedFrameRates().getUpper());
-        int clampedBitrate = capabilities.getBitrateRange().clamp(bitrate);
+        clampedFps = Math.min(fps, capabilities.getSupportedFrameRates().getUpper());
+        clampedBitrate = capabilities.getBitrateRange().clamp(bitrate);
 
-        MediaFormat format = MediaCodecFactory.createVideoEncoderFormat(codecMime, width, height,
-                clampedBitrate, clampedFps);
-        videoEncoder = MediaCodecFactory.createConfiguredVideoEncoder(codecMime, format);
+        videoEncoder = createVideoEncoder(currentWidth, currentHeight);
         Surface surface = videoEncoder.createInputSurface();
         videoEncoder.start();
 
-        Handler handler = new Handler(Looper.getMainLooper());
+        // Dedicated handler thread, not the main looper: a rotation restart does real work
+        // here (building a new encoder, joining the old drain thread).
+        callbackHandlerThread = new HandlerThread("video-stream-callback");
+        callbackHandlerThread.start();
+        callbackHandler = new Handler(callbackHandlerThread.getLooper());
+
+        sizeChangeMonitor = new SizeChangeMonitor(appContext, callbackHandler, rawWidth, rawHeight,
+                this::onRawSizeChanged);
+        sizeChangeMonitor.start();
+
         mediaProjectionCallback = new MediaProjection.Callback() {
             @Override
             public void onStop() {
@@ -126,14 +147,23 @@ public class VideoStreamSession extends StreamingSession {
                     hasAsyncError = true;
                 }
             }
+
+            @Override
+            public void onCapturedContentResize(int width, int height) {
+                super.onCapturedContentResize(width, height);
+                if (sizeChangeMonitor != null) {
+                    sizeChangeMonitor.onCapturedContentResize(width, height);
+                }
+            }
         };
-        mediaProjection.registerCallback(mediaProjectionCallback, handler);
+        mediaProjection.registerCallback(mediaProjectionCallback, callbackHandler);
 
         virtualDisplay = mediaProjection.createVirtualDisplay("Appium Video Stream",
-                width, height, dpi, DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
-                surface, null, handler);
+                currentWidth, currentHeight, dpi, DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
+                surface, null, callbackHandler);
 
-        Thread videoDrainThread = new Thread(this::drainVideo, "video-stream-drain");
+        MediaCodec startingEncoder = videoEncoder;
+        videoDrainThread = new Thread(() -> drainVideo(startingEncoder), "video-stream-drain");
         videoDrainThread.start();
 
         Thread audioDrainThread = null;
@@ -148,20 +178,119 @@ public class VideoStreamSession extends StreamingSession {
                 audioDrainThread.start();
             }
 
-            videoDrainThread.join();
-            if (audioDrainThread != null) {
-                audioDrainThread.join();
+            // videoDrainThread may be replaced mid-session by restartVideoEncoder() (a
+            // rotation), so this can't just join() a single drain thread - poll instead.
+            while (!stopped && !hasAsyncError) {
+                Thread.sleep(200);
             }
-        } catch (Exception e) {
-            // Setup failed (or join() was interrupted) - releaseCaptureResources() is about to
-            // stop/release the encoders, so make sure neither drain thread is still touching
-            // them before this method returns.
+        } finally {
+            // Ensure both drain threads stop touching their encoders (even if audio setup
+            // above threw) before releaseCaptureResources() stops/releases them elsewhere.
             stopped = true;
-            videoDrainThread.join();
-            if (audioDrainThread != null) {
-                audioDrainThread.join();
-            }
-            throw e;
+            joinQuietly(videoDrainThread);
+            joinQuietly(audioDrainThread);
+        }
+    }
+
+    private static void joinQuietly(Thread thread) {
+        if (thread == null) {
+            return;
+        }
+        try {
+            thread.join();
+        } catch (InterruptedException ignored) {
+        }
+    }
+
+    private MediaCodec createVideoEncoder(int width, int height) throws IOException {
+        MediaFormat format = MediaCodecFactory.createVideoEncoderFormat(codecMime, width, height,
+                clampedBitrate, clampedFps);
+        return MediaCodecFactory.createConfiguredVideoEncoder(codecMime, format);
+    }
+
+    // The target resolution is a fixed supported-resolution choice, independent of raw pixel
+    // size, so a rotation only swaps its width/height rather than re-deriving a new one.
+    private void onRawSizeChanged(int newRawWidth, int newRawHeight) {
+        if (stopped) {
+            // Queued right as the session is tearing down - fields may already be released.
+            return;
+        }
+        if (!isPlainRotation(newRawWidth, newRawHeight)) {
+            // Not a portrait<->landscape flip of the session's original raw dimensions (e.g.
+            // a foldable's screen switch, or multi-window) - leave the resolution as-is.
+            return;
+        }
+        boolean newIsPortrait = newRawWidth < newRawHeight;
+        if (newIsPortrait == isPortraitOrientation) {
+            return;
+        }
+        isPortraitOrientation = newIsPortrait;
+        restartVideoEncoder(currentHeight, currentWidth);
+    }
+
+    // True only if the new raw size is an exact swap of the session's original raw
+    // dimensions - a real rotation of the same physical display, not an arbitrary resize.
+    private boolean isPlainRotation(int newRawWidth, int newRawHeight) {
+        return (newRawWidth == rawWidth && newRawHeight == rawHeight)
+                || (newRawWidth == rawHeight && newRawHeight == rawWidth);
+    }
+
+    // MediaCodec's input Surface size is fixed at configure() time, so a resolution change
+    // means: build a fresh encoder, point the VirtualDisplay at its new Surface, then swap the
+    // drain thread over. The old thread notices the swap (its `encoder` no longer matches the
+    // videoEncoder field) and exits within one DRAIN_TIMEOUT_US wakeup.
+    private void restartVideoEncoder(int newWidth, int newHeight) {
+        Log.i(TAG, "Restarting video encoder at " + newWidth + "x" + newHeight);
+        MediaCodec newEncoder = null;
+        Surface newSurface;
+        try {
+            newEncoder = createVideoEncoder(newWidth, newHeight);
+            newSurface = newEncoder.createInputSurface();
+            newEncoder.start();
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to build a new video encoder after resize", e);
+            releaseQuietly(newEncoder);
+            hasAsyncError = true;
+            return;
+        }
+
+        if (stopped) {
+            // stopSession() raced this rebuild - virtualDisplay/videoEncoder are being (or
+            // have been) released elsewhere, so don't touch them; just discard the new one.
+            releaseQuietly(newEncoder);
+            return;
+        }
+
+        virtualDisplay.resize(newWidth, newHeight, dpi);
+        virtualDisplay.setSurface(newSurface);
+
+        MediaCodec oldEncoder = videoEncoder;
+        Thread oldDrainThread = videoDrainThread;
+        videoEncoder = newEncoder;
+        currentWidth = newWidth;
+        currentHeight = newHeight;
+
+        joinQuietly(oldDrainThread);
+        oldEncoder.stop();
+        oldEncoder.release();
+
+        MediaCodec startedEncoder = newEncoder;
+        Thread newDrainThread = new Thread(() -> drainVideo(startedEncoder), "video-stream-drain");
+        videoDrainThread = newDrainThread;
+        newDrainThread.start();
+    }
+
+    private static void releaseQuietly(MediaCodec codec) {
+        if (codec == null) {
+            return;
+        }
+        try {
+            codec.stop();
+        } catch (Exception ignored) {
+        }
+        try {
+            codec.release();
+        } catch (Exception ignored) {
         }
     }
 
@@ -177,14 +306,15 @@ public class VideoStreamSession extends StreamingSession {
         return presentationTimeUs - sessionStartNanos / 1000;
     }
 
-    private void drainVideo() {
+    // `encoder` is this thread's own generation; the loop exits cleanly (no error) once
+    // restartVideoEncoder() moves the videoEncoder field on to a newer one.
+    private void drainVideo(MediaCodec encoder) {
         MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
-        AtomicLong sequence = new AtomicLong(0);
         try {
-            while (!stopped && !hasAsyncError) {
-                int status = videoEncoder.dequeueOutputBuffer(info, StreamingConstant.DRAIN_TIMEOUT_US);
+            while (!stopped && !hasAsyncError && encoder == videoEncoder) {
+                int status = encoder.dequeueOutputBuffer(info, StreamingConstant.DRAIN_TIMEOUT_US);
                 if (status == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
-                    MediaFormat outputFormat = videoEncoder.getOutputFormat();
+                    MediaFormat outputFormat = encoder.getOutputFormat();
                     byte[] csd0 = toBytes(outputFormat.getByteBuffer("csd-0"));
                     byte[] csd1 = outputFormat.containsKey("csd-1")
                             ? toBytes(outputFormat.getByteBuffer("csd-1")) : new byte[0];
@@ -192,13 +322,13 @@ public class VideoStreamSession extends StreamingSession {
                     System.arraycopy(csd0, 0, configPayload, 0, csd0.length);
                     System.arraycopy(csd1, 0, configPayload, csd0.length, csd1.length);
                     queue.offer(new Frame(Frame.Track.VIDEO, Frame.FLAG_CONFIG,
-                            sequence.getAndIncrement(), getPresentationTimeUs(), configPayload));
+                            videoSequence.getAndIncrement(), getPresentationTimeUs(), configPayload));
                     continue;
                 }
                 if (status < 0) {
                     continue;
                 }
-                ByteBuffer outputBuffer = videoEncoder.getOutputBuffer(status);
+                ByteBuffer outputBuffer = encoder.getOutputBuffer(status);
                 if (outputBuffer != null && info.size > 0
                         && (info.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) == 0) {
                     outputBuffer.position(info.offset);
@@ -213,16 +343,16 @@ public class VideoStreamSession extends StreamingSession {
                     if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
                         flags |= Frame.FLAG_EOS;
                     }
-                    queue.offer(new Frame(Frame.Track.VIDEO, flags, sequence.getAndIncrement(),
+                    queue.offer(new Frame(Frame.Track.VIDEO, flags, videoSequence.getAndIncrement(),
                             toSessionRelativeUs(info.presentationTimeUs), payload));
                 }
-                videoEncoder.releaseOutputBuffer(status, false);
+                encoder.releaseOutputBuffer(status, false);
                 if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
                     break;
                 }
             }
         } catch (Exception e) {
-            if (!stopped) {
+            if (!stopped && encoder == videoEncoder) {
                 Log.e(TAG, "Video drain thread error", e);
                 hasAsyncError = true;
             }
@@ -296,13 +426,14 @@ public class VideoStreamSession extends StreamingSession {
 
     @Override
     protected void releaseCaptureResources() {
-        if (virtualDisplay != null) {
-            virtualDisplay.release();
-            virtualDisplay = null;
-        }
-        if (mediaProjectionCallback != null) {
-            mediaProjection.unregisterCallback(mediaProjectionCallback);
-            mediaProjectionCallback = null;
+        // sizeChangeMonitor/virtualDisplay/mediaProjectionCallback/videoEncoder are otherwise
+        // only ever touched on the callback handler thread (resize handling); marshaling their
+        // teardown onto that same thread closes the race an already-queued resize callback
+        // would otherwise have with releasing them from this (session) thread instead.
+        if (callbackHandler != null) {
+            runOnHandlerAndWait(callbackHandler, this::releaseCallbackThreadResources);
+        } else {
+            releaseCallbackThreadResources();
         }
         if (audioRecord != null) {
             try {
@@ -317,11 +448,30 @@ public class VideoStreamSession extends StreamingSession {
             audioEncoder.release();
             audioEncoder = null;
         }
+        if (callbackHandlerThread != null) {
+            callbackHandlerThread.quitSafely();
+            callbackHandlerThread = null;
+        }
+        mediaProjection.stop();
+    }
+
+    private void releaseCallbackThreadResources() {
+        if (sizeChangeMonitor != null) {
+            sizeChangeMonitor.stop();
+            sizeChangeMonitor = null;
+        }
+        if (virtualDisplay != null) {
+            virtualDisplay.release();
+            virtualDisplay = null;
+        }
+        if (mediaProjectionCallback != null) {
+            mediaProjection.unregisterCallback(mediaProjectionCallback);
+            mediaProjectionCallback = null;
+        }
         if (videoEncoder != null) {
             videoEncoder.stop();
             videoEncoder.release();
             videoEncoder = null;
         }
-        mediaProjection.stop();
     }
 }

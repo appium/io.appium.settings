@@ -128,6 +128,12 @@ export class VideoStreamSession {
   /**
    * Yields access units (video NAL units and, if enabled, AAC audio units) as
    * they arrive from the device. `start()` must be called before iterating.
+   *
+   * A CONFIG unit is normally seen only once, at the start of the stream, but a
+   * device rotation makes the on-device encoder restart mid-stream: a second (or
+   * later) CONFIG unit means the video's dimensions changed and the decoder must be
+   * reconfigured with these new SPS/PPS bytes, not treated as an error. `sequence`
+   * keeps increasing across such a restart, it is never reset.
    */
   async *accessUnits(): AsyncGenerator<AccessUnit> {
     if (!this.transport) {

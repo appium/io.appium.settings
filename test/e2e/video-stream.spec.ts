@@ -3,10 +3,28 @@ import fs from 'node:fs/promises';
 import {describe, it, before, beforeEach, afterEach, type TestContext} from 'node:test';
 
 import {ADB} from 'appium-adb';
+import {waitForCondition} from 'asyncbox';
 
 import {SettingsApp} from '../../lib/client.js';
 import type {AccessUnit} from '../../lib/commands/types.js';
+import {SETTINGS_HELPER_ID} from '../../lib/constants.js';
 import {getSettingsApkPath} from '../../lib/utils/index.js';
+
+// `fixed-to-user-rotation` (API 30+) overrides the foreground app's own orientation request
+// (e.g. a launcher's portrait lock); best-effort since it doesn't exist below that - `lock`
+// is the actual trigger, so its own failure means this platform can't force a rotation at all.
+async function tryLockRotation(adb: ADB, rotation: number): Promise<boolean> {
+  await adb.shell(['cmd', 'window', 'fixed-to-user-rotation', 'enabled']).catch(() => {});
+  return adb
+    .shell(['cmd', 'window', 'user-rotation', 'lock', `${rotation}`])
+    .then(() => true)
+    .catch(() => false);
+}
+
+async function restoreRotation(adb: ADB): Promise<void> {
+  await adb.shell(['cmd', 'window', 'user-rotation', 'lock', '0']).catch(() => {});
+  await adb.shell(['cmd', 'window', 'fixed-to-user-rotation', 'default']).catch(() => {});
+}
 
 describe('Video Streaming', function () {
   let adb: ADB;
@@ -149,5 +167,131 @@ describe('Video Streaming', function () {
     );
 
     await session.stop();
+  });
+
+  it('should reconfigure the encoder with a fresh CONFIG unit after a device rotation', async function (ctx: TestContext) {
+    if (shouldSkip) {
+      ctx.skip();
+      return;
+    }
+    if (!(await tryLockRotation(adb, 0))) {
+      // Platform can't force a rotation via adb shell (e.g. no fixed-to-user-rotation and
+      // something in the foreground holds its own orientation lock) - nothing to test here.
+      ctx.skip();
+      return;
+    }
+
+    const started = await session.start({codec: 'h264', fps: 15, bitrate: 1000000});
+    assert.strictEqual(started, true);
+
+    try {
+      // Video and audio sequence numbers are independent per-track counters, so only the
+      // video track's own sequence is checked for monotonicity across the rotation.
+      let lastVideoSequence = -1;
+      let firstConfig: AccessUnit | undefined;
+      const beforeRotationDeadline = Date.now() + 15000;
+      for await (const unit of session.accessUnits()) {
+        if (unit.track !== 'video') {
+          continue;
+        }
+        assert.ok(unit.sequence > lastVideoSequence, 'expected strictly increasing video sequence numbers');
+        lastVideoSequence = unit.sequence;
+        if (unit.isConfig) {
+          firstConfig = unit;
+          break;
+        }
+        if (Date.now() > beforeRotationDeadline) {
+          break;
+        }
+      }
+      assert.ok(firstConfig, 'expected an initial CONFIG unit');
+
+      // 1 = ROTATION_90, guaranteed to flip portrait<->landscape from ROTATION_0 above.
+      await adb.shell(['cmd', 'window', 'user-rotation', 'lock', '1']);
+
+      let secondConfig: AccessUnit | undefined;
+      let sawKeyframeAfterConfig = false;
+      const afterRotationDeadline = Date.now() + 15000;
+      for await (const unit of session.accessUnits()) {
+        if (unit.track !== 'video') {
+          continue;
+        }
+        assert.ok(
+          unit.sequence > lastVideoSequence,
+          'expected video sequence numbers to keep increasing (not reset) across the rotation',
+        );
+        lastVideoSequence = unit.sequence;
+        if (!secondConfig) {
+          if (unit.isConfig) {
+            secondConfig = unit;
+          }
+        } else if (unit.isKeyFrame) {
+          sawKeyframeAfterConfig = true;
+          break;
+        }
+        if (Date.now() > afterRotationDeadline) {
+          break;
+        }
+      }
+
+      assert.ok(secondConfig, 'expected a second CONFIG unit after rotating');
+      assert.notDeepStrictEqual(
+        secondConfig!.data,
+        firstConfig!.data,
+        'expected the post-rotation CONFIG (SPS/PPS) bytes to differ from the original',
+      );
+      assert.ok(sawKeyframeAfterConfig, 'expected a keyframe to follow the post-rotation CONFIG unit');
+    } finally {
+      await restoreRotation(adb);
+    }
+
+    await session.stop();
+  });
+
+  it('should not crash the app when a rotation races a client disconnect', async function (ctx: TestContext) {
+    if (shouldSkip) {
+      ctx.skip();
+      return;
+    }
+    if (!(await tryLockRotation(adb, 0))) {
+      ctx.skip();
+      return;
+    }
+
+    try {
+      const started = await session.start({codec: 'h264', fps: 15, bitrate: 1000000});
+      assert.strictEqual(started, true);
+
+      // Wait for the encoder/callback pipeline to be fully up before racing it, reproducing
+      // a reported crash: a resize callback queued on the callback handler thread running
+      // concurrently with teardown from the disconnect below.
+      for await (const unit of session.accessUnits()) {
+        if (unit.track === 'video' && unit.isConfig) {
+          break;
+        }
+      }
+
+      const pidsBefore = await adb.getProcessIdsByName(SETTINGS_HELPER_ID);
+      assert.ok(pidsBefore.length > 0, 'expected the app process to be running before the race');
+
+      // Fire the rotation and the disconnect back-to-back, without awaiting the rotation
+      // command first, to maximize the chance they race each other on-device.
+      const rotatePromise = adb.shell(['cmd', 'window', 'user-rotation', 'lock', '1']);
+      const transport = (session as unknown as {transport: {close(): Promise<void>}}).transport;
+      assert.ok(transport, 'expected an internal transport after start()');
+      await transport.close();
+      await rotatePromise;
+
+      await waitForCondition(async () => !(await session.isRunning()), {waitMs: 10000, intervalMs: 300});
+
+      const pidsAfter = await adb.getProcessIdsByName(SETTINGS_HELPER_ID);
+      assert.deepStrictEqual(
+        pidsAfter,
+        pidsBefore,
+        'expected the app process to still be the one running before the race, not crash-restarted',
+      );
+    } finally {
+      await restoreRotation(adb);
+    }
   });
 });
