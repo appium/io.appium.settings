@@ -125,7 +125,9 @@ public class JpegStreamSession extends StreamingSession {
             @Override
             public void onCapturedContentResize(int width, int height) {
                 super.onCapturedContentResize(width, height);
-                sizeChangeMonitor.onCapturedContentResize(width, height);
+                if (sizeChangeMonitor != null) {
+                    sizeChangeMonitor.onCapturedContentResize(width, height);
+                }
             }
         };
         mediaProjection.registerCallback(mediaProjectionCallback, captureHandler);
@@ -196,6 +198,23 @@ public class JpegStreamSession extends StreamingSession {
 
     @Override
     protected void releaseCaptureResources() {
+        // These fields are otherwise only ever touched on the capture handler thread (image
+        // available callbacks, resize handling); marshaling their teardown onto that same
+        // thread closes the race an already-queued callback would otherwise have with
+        // releasing them from this (session) thread instead.
+        if (captureHandler != null) {
+            runOnHandlerAndWait(captureHandler, this::releaseCaptureThreadResources);
+        } else {
+            releaseCaptureThreadResources();
+        }
+        if (handlerThread != null) {
+            handlerThread.quitSafely();
+            handlerThread = null;
+        }
+        mediaProjection.stop();
+    }
+
+    private void releaseCaptureThreadResources() {
         if (sizeChangeMonitor != null) {
             sizeChangeMonitor.stop();
             sizeChangeMonitor = null;
@@ -212,12 +231,6 @@ public class JpegStreamSession extends StreamingSession {
             imageReader.close();
             imageReader = null;
         }
-        if (handlerThread != null) {
-            handlerThread.quitSafely();
-            handlerThread = null;
-        }
-        mediaProjection.stop();
-
         if (captureBitmap != null) {
             captureBitmap.recycle();
             captureBitmap = null;

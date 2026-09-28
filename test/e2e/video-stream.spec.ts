@@ -3,9 +3,11 @@ import fs from 'node:fs/promises';
 import {describe, it, before, beforeEach, afterEach, type TestContext} from 'node:test';
 
 import {ADB} from 'appium-adb';
+import {waitForCondition} from 'asyncbox';
 
 import {SettingsApp} from '../../lib/client.js';
 import type {AccessUnit} from '../../lib/commands/types.js';
+import {SETTINGS_HELPER_ID} from '../../lib/constants.js';
 import {getSettingsApkPath} from '../../lib/utils/index.js';
 
 // `fixed-to-user-rotation` (API 30+) overrides the foreground app's own orientation request
@@ -244,5 +246,52 @@ describe('Video Streaming', function () {
     }
 
     await session.stop();
+  });
+
+  it('should not crash the app when a rotation races a client disconnect', async function (ctx: TestContext) {
+    if (shouldSkip) {
+      ctx.skip();
+      return;
+    }
+    if (!(await tryLockRotation(adb, 0))) {
+      ctx.skip();
+      return;
+    }
+
+    try {
+      const started = await session.start({codec: 'h264', fps: 15, bitrate: 1000000});
+      assert.strictEqual(started, true);
+
+      // Wait for the encoder/callback pipeline to be fully up before racing it, reproducing
+      // a reported crash: a resize callback queued on the callback handler thread running
+      // concurrently with teardown from the disconnect below.
+      for await (const unit of session.accessUnits()) {
+        if (unit.track === 'video' && unit.isConfig) {
+          break;
+        }
+      }
+
+      const pidsBefore = await adb.getProcessIdsByName(SETTINGS_HELPER_ID);
+      assert.ok(pidsBefore.length > 0, 'expected the app process to be running before the race');
+
+      // Fire the rotation and the disconnect back-to-back, without awaiting the rotation
+      // command first, to maximize the chance they race each other on-device.
+      const rotatePromise = adb.shell(['cmd', 'window', 'user-rotation', 'lock', '1']);
+      const transport = (session as unknown as {transport: {close(): Promise<void>}}).transport;
+      assert.ok(transport, 'expected an internal transport after start()');
+      await transport.close();
+      await rotatePromise;
+
+      await waitForCondition(async () => !(await session.isRunning()), {waitMs: 10000, intervalMs: 300});
+
+      const pidsAfter = await adb.getProcessIdsByName(SETTINGS_HELPER_ID);
+      assert.deepStrictEqual(
+        pidsAfter,
+        pidsBefore,
+        'expected the app process to still be the one running before the race, not crash-restarted',
+      );
+    } finally {
+      await restoreRotation(adb);
+    }
   });
 });

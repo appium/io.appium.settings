@@ -151,7 +151,9 @@ public class VideoStreamSession extends StreamingSession {
             @Override
             public void onCapturedContentResize(int width, int height) {
                 super.onCapturedContentResize(width, height);
-                sizeChangeMonitor.onCapturedContentResize(width, height);
+                if (sizeChangeMonitor != null) {
+                    sizeChangeMonitor.onCapturedContentResize(width, height);
+                }
             }
         };
         mediaProjection.registerCallback(mediaProjectionCallback, callbackHandler);
@@ -424,17 +426,14 @@ public class VideoStreamSession extends StreamingSession {
 
     @Override
     protected void releaseCaptureResources() {
-        if (sizeChangeMonitor != null) {
-            sizeChangeMonitor.stop();
-            sizeChangeMonitor = null;
-        }
-        if (virtualDisplay != null) {
-            virtualDisplay.release();
-            virtualDisplay = null;
-        }
-        if (mediaProjectionCallback != null) {
-            mediaProjection.unregisterCallback(mediaProjectionCallback);
-            mediaProjectionCallback = null;
+        // sizeChangeMonitor/virtualDisplay/mediaProjectionCallback/videoEncoder are otherwise
+        // only ever touched on the callback handler thread (resize handling); marshaling their
+        // teardown onto that same thread closes the race an already-queued resize callback
+        // would otherwise have with releasing them from this (session) thread instead.
+        if (callbackHandler != null) {
+            runOnHandlerAndWait(callbackHandler, this::releaseCallbackThreadResources);
+        } else {
+            releaseCallbackThreadResources();
         }
         if (audioRecord != null) {
             try {
@@ -449,15 +448,30 @@ public class VideoStreamSession extends StreamingSession {
             audioEncoder.release();
             audioEncoder = null;
         }
-        if (videoEncoder != null) {
-            videoEncoder.stop();
-            videoEncoder.release();
-            videoEncoder = null;
-        }
         if (callbackHandlerThread != null) {
             callbackHandlerThread.quitSafely();
             callbackHandlerThread = null;
         }
         mediaProjection.stop();
+    }
+
+    private void releaseCallbackThreadResources() {
+        if (sizeChangeMonitor != null) {
+            sizeChangeMonitor.stop();
+            sizeChangeMonitor = null;
+        }
+        if (virtualDisplay != null) {
+            virtualDisplay.release();
+            virtualDisplay = null;
+        }
+        if (mediaProjectionCallback != null) {
+            mediaProjection.unregisterCallback(mediaProjectionCallback);
+            mediaProjectionCallback = null;
+        }
+        if (videoEncoder != null) {
+            videoEncoder.stop();
+            videoEncoder.release();
+            videoEncoder = null;
+        }
     }
 }

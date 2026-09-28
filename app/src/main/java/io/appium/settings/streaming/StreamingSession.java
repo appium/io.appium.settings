@@ -29,6 +29,8 @@ import android.util.Log;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 // Base for a live streaming session: accepts a single client on a local abstract socket
 // (off the main thread), then drains a FrameQueue to it on a dedicated writer thread
@@ -197,6 +199,38 @@ public abstract class StreamingSession implements Runnable {
      * Releases all capture-pipeline resources (VirtualDisplay, encoders, MediaProjection).
      */
     protected abstract void releaseCaptureResources();
+
+    // Runs `action` on `handler`'s own thread and blocks until it completes. Resize handling
+    // (an already-queued callback) and teardown must not touch the same fields concurrently
+    // from different threads - marshaling teardown onto the same handler serializes them via
+    // that thread's normal FIFO message order instead of racing.
+    protected static void runOnHandlerAndWait(Handler handler, Runnable action) {
+        if (Thread.currentThread() == handler.getLooper().getThread()) {
+            action.run();
+            return;
+        }
+        CountDownLatch latch = new CountDownLatch(1);
+        boolean posted = handler.post(() -> {
+            try {
+                action.run();
+            } finally {
+                latch.countDown();
+            }
+        });
+        if (!posted) {
+            // The handler thread's Looper has already quit (e.g. it crashed) - nothing would
+            // ever count the latch down, so just run inline instead of waiting forever.
+            action.run();
+            return;
+        }
+        try {
+            // Bounded, not indefinite: if the handler thread is somehow stuck rather than
+            // merely busy, this must not turn into an ANR.
+            latch.await(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
 
     @Override
     public void run() {
