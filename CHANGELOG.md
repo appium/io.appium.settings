@@ -1,3 +1,9 @@
+## [8.2.0](https://github.com/appium/io.appium.settings/compare/v8.1.0...v8.2.0) (2026-09-28)
+
+### Features
+
+* adapt live JPEG/video streaming to device rotation ([#322](https://github.com/appium/io.appium.settings/issues/322)) ([c537b49](https://github.com/appium/io.appium.settings/commit/c537b49922d6790ccfb2e78792d4bee20b15c772))
+
 ## [8.1.0](https://github.com/appium/io.appium.settings/compare/v8.0.10...v8.1.0) (2026-09-27)
 
 ### Features
